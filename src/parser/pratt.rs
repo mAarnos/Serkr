@@ -79,11 +79,11 @@ fn parse_not_formula(tokens: &mut Vec<Token>) -> Result<Formula,  &'static str> 
     Ok(Formula::Not(box try!(parse(tokens, 7))))  
 }
 
-fn parse_predicate(tokens: &mut Vec<Token>, current_token: Token) -> Result<Formula,  &'static str> {
+fn parse_predicate(_tokens: &mut Vec<Token>, _current_token: Token) -> Result<Formula,  &'static str> {
     panic!("unimplemented");
 }
 
-fn parse_quantifier(tokens: &mut Vec<Token>, current_token: Token) -> Result<Formula,  &'static str> {
+fn parse_quantifier(_tokens: &mut Vec<Token>, _current_token: Token) -> Result<Formula,  &'static str> {
     panic!("unimplemented");
 }
 
