@@ -19,23 +19,23 @@ use parser::formula::{Formula};
 
 /// Converts a formula into an equivalent negation normal form.
 pub fn nnf(f: Formula) -> Formula {
-    move_nots_inward(eliminate_imp_and_eq(f))
+    move_nots_inward(elim_imp_and_eq(f))
 }
 
 /// Eliminates all implications and equivalences in a formula.
-fn eliminate_imp_and_eq(f: Formula) -> Formula {
+fn elim_imp_and_eq(f: Formula) -> Formula {
     match f {
-        Formula::Predicate(_, _) => f,
-        Formula::Not(box p) => Formula::Not(box eliminate_imp_and_eq(p)),
-        Formula::And(box p, box q) => Formula::And(box eliminate_imp_and_eq(p), box eliminate_imp_and_eq(q)),
-        Formula::Or(box p, box q) => Formula::Or(box eliminate_imp_and_eq(p), box eliminate_imp_and_eq(q)),
-        Formula::Implies(box p, box q) => Formula::Or(box Formula::Not(box eliminate_imp_and_eq(p)), box eliminate_imp_and_eq(q)),
-        Formula::Equivalent(box p, box q) => Formula::And(box Formula::Or(box eliminate_imp_and_eq(p.clone()), 
-                                                                          box Formula::Not(box eliminate_imp_and_eq(q.clone()))), 
-                                                          box Formula::Or(box Formula::Not(box eliminate_imp_and_eq(p)), 
-                                                                          box eliminate_imp_and_eq(q))),
-        Formula::Forall(s, box p) => Formula::Forall(s, box eliminate_imp_and_eq(p)),
-        Formula::Exists(s, box p) => Formula::Exists(s, box eliminate_imp_and_eq(p)),
+        Formula::Not(box p) => Formula::Not(box elim_imp_and_eq(p)),
+        Formula::And(box p, box q) => Formula::And(box elim_imp_and_eq(p), box elim_imp_and_eq(q)),
+        Formula::Or(box p, box q) => Formula::Or(box elim_imp_and_eq(p), box elim_imp_and_eq(q)),
+        Formula::Implies(box p, box q) => Formula::Or(box Formula::Not(box elim_imp_and_eq(p)), 
+                                                      box elim_imp_and_eq(q)),
+        Formula::Equivalent(box p, box q) => Formula::And(box Formula::Or(box elim_imp_and_eq(p.clone()), 
+                                                                          box Formula::Not(box elim_imp_and_eq(q.clone()))), 
+                                                          box Formula::Or(box Formula::Not(box elim_imp_and_eq(p)), 
+                                                                          box elim_imp_and_eq(q))),
+        Formula::Forall(s, box p) => Formula::Forall(s, box elim_imp_and_eq(p)),
+        Formula::Exists(s, box p) => Formula::Exists(s, box elim_imp_and_eq(p)),
         _ => f,
     }
 }
