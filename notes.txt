@@ -1,0 +1,9 @@
+CNF transformation:
+ +Start with the naive version from "Computing small clause normal forms" without miniscoping
+ +Then create the standard version by adding miniscoping and formula renaming
+ +Then create the advanced version by adding advanced skolemization 
+ +Keep all three available and have a command line switch to choose between them
+
+Random notes:
+ +Should we use pure equational representation?
+ +The equational representation of a non-equational atom A is the equation A = T, where T is a special function symbol signifying truth.

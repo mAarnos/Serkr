@@ -1,0 +1,4 @@
+[package]
+name = "serkr"
+version = "0.1.0"
+authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
