@@ -101,7 +101,7 @@ fn simplify_equivalent(f1: Formula, f2: Formula) -> Formula {
 
 #[cfg(test)]
 mod test {
-    use super::{simplify_not, simplify_and, simplify_or, simplify_implies};
+    use super::{simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
     use parser::formula::{Formula};
     
     #[test]
@@ -209,5 +209,32 @@ mod test {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
         let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
         assert_eq!(simplify_implies(pred.clone(), pred2.clone()), Formula::Implies(box pred, box pred2));
+    }
+    
+    #[test]
+    fn simplify_equivalent_1() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        assert_eq!(simplify_equivalent(pred.clone(), pred), Formula::True);
+    }
+    
+    #[test]
+    fn simplify_equivalent_2() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        assert_eq!(simplify_equivalent(pred.clone(), Formula::True), pred);
+        assert_eq!(simplify_equivalent(Formula::True, pred.clone()), pred);
+    }
+    
+    #[test]
+    fn simplify_equivalent_3() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        assert_eq!(simplify_equivalent(pred.clone(), Formula::False), Formula::Not(box pred.clone()));
+        assert_eq!(simplify_equivalent(Formula::False, pred.clone()), Formula::Not(box pred));
+    }
+    
+    #[test]
+    fn simplify_equivalent_4() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        assert_eq!(simplify_equivalent(pred.clone(), pred2.clone()), Formula::Equivalent(box pred, box pred2));
     }
 }
