@@ -106,7 +106,7 @@ mod test {
     
     #[test]
     fn simplify_not_1() {
-        assert_eq!(simplify_not(Formula::False), Formula::False);
+        assert_eq!(simplify_not(Formula::False), Formula::True);
     }
     
     #[test]
