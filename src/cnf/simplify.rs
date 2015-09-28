@@ -98,3 +98,25 @@ fn simplify_equivalent(f1: Formula, f2: Formula) -> Formula {
         (p, q) => if p == q { Formula::True } else { Formula::Equivalent(box p, box q) },
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::simplify_not;
+    use parser::formula::{Formula};
+    
+    #[test]
+    fn simplify_not_1() {
+        assert_eq!(simplify_not(Formula::False), Formula::True);
+    }
+    
+    #[test]
+    fn simplify_not_2() {
+        assert_eq!(simplify_not(Formula::True), Formula::False);
+    }
+    
+    #[test]
+    fn simplify_not_3() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        assert_eq!(simplify_not(pred.clone()), Formula::Not(box pred));
+    }
+}
