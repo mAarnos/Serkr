@@ -148,6 +148,23 @@ mod test {
     }
     
     #[test]
+    fn simplify_and_5() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        assert_eq!(simplify_and(pred.clone(), pred2.clone()), Formula::And(box pred, box pred2));
+    }
+    
+    #[test]
+    fn simplify_and_6() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        assert_eq!(simplify_and(pred.clone(), Formula::Not(box pred2.clone())), Formula::And(box pred.clone(), 
+                                                                                             box Formula::Not(box pred2.clone())));
+        assert_eq!(simplify_and(Formula::Not(box pred2.clone()), pred.clone()), Formula::And(box pred, 
+                                                                                             box Formula::Not(box pred2)));
+    }
+    
+    #[test]
     fn simplify_or_1() {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
         assert_eq!(simplify_or(pred.clone(), pred.clone()), pred);
@@ -172,6 +189,23 @@ mod test {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
         assert_eq!(simplify_or(Formula::False, pred.clone()), pred.clone());
         assert_eq!(simplify_or(pred.clone(), Formula::False), pred);
+    }
+    
+    #[test]
+    fn simplify_or_5() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        assert_eq!(simplify_or(pred.clone(), pred2.clone()), Formula::Or(box pred, box pred2));
+    }
+    
+    #[test]
+    fn simplify_or_6() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        assert_eq!(simplify_or(pred.clone(), Formula::Not(box pred2.clone())), Formula::Or(box pred.clone(), 
+                                                                                           box Formula::Not(box pred2.clone())));
+        assert_eq!(simplify_or(Formula::Not(box pred2.clone()), pred.clone()), Formula::Or(box pred, 
+                                                                                           box Formula::Not(box pred2)));
     }
     
     #[test]
