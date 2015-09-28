@@ -56,3 +56,49 @@ fn move_nots_inward(f: Formula) -> Formula {
         _ => f
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::{elim_imp_and_eq};
+    use parser::formula::{Formula};
+    
+    #[test]
+    fn elim_imp_and_eq_1() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        let f = Formula::Implies(box pred.clone(), box pred2.clone()); 
+        assert_eq!(elim_imp_and_eq(f), Formula::Or(box Formula::Not(box pred), box pred2));
+    }
+    
+    #[test]
+    fn elim_imp_and_eq_2() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
+        let f = Formula::Equivalent(box pred.clone(), box pred2.clone()); 
+        assert_eq!(elim_imp_and_eq(f), Formula::And(box Formula::Or(box pred.clone(), 
+                                                                    box Formula::Not(box pred2.clone())), 
+                                                    box Formula::Or(box Formula::Not(box pred),
+                                                                    box pred2)));
+    }
+    
+    #[test]
+    fn elim_imp_and_eq_3() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new()); 
+        
+        // (P -> Q) <-> (~Q -> ~P)
+        let f = Formula::Equivalent(box Formula::Implies(box pred.clone(), box pred2.clone()), 
+                                    box Formula::Implies(box Formula::Not(box pred2.clone()), box Formula::Not(box pred.clone())));
+        
+        // ((~P \/ Q) \/ ~(~~Q \/ ~P)) /\ (~(~P \/ Q) \/ (~~Q \/ ~P))
+        let correct_f_part_1 = Formula::Or(box Formula::Not(box pred.clone()), 
+                                           box pred2.clone());
+        let correct_f_part_4 = Formula::Or(box Formula::Not(box Formula::Not(box pred2.clone())), 
+                                                            box Formula::Not(box pred));
+        let correct_f_part_3 = Formula::Not(box correct_f_part_1.clone());
+        let correct_f_part_2 = Formula::Not(box correct_f_part_4.clone());
+        let correct_f = Formula::And(box Formula::Or(box correct_f_part_1, box correct_f_part_2),
+                                     box Formula::Or(box correct_f_part_3, box correct_f_part_4));
+        assert_eq!(elim_imp_and_eq(f), correct_f);                             
+    }
+}
