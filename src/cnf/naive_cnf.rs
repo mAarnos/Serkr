@@ -15,46 +15,13 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Term, Formula};
+use parser::formula::{Formula};
 use cnf::nnf::nnf;
 
 /// Turns a formula into CNF.
 pub fn cnf(f: Formula) -> Formula {
     let nnf_f = nnf(f);
     nnf_f
-}
-
-/// Renames a single variable in a term. We do not check for collisions in this function.
-fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
-    match t {
-        Term::Variable(s) => if from == s { Term::Variable(to.to_string()) } else { Term::Variable(s) },
-        Term::Function(s, subterms) => Term::Function(s, subterms.into_iter().map(|term| rename_variable_in_term(term, from, to)).collect())
-    }
-}
-
-/// Renames a single variable in a formula. We do not check for collisions in this function.
-fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
-    match f {
-        Formula::Predicate(s, terms) => Formula::Predicate(s, terms.into_iter().map(|term| rename_variable_in_term(term, from, to)).collect()),
-        Formula::Not(box p) => Formula::Not(box rename_variable(p, from, to)),
-        Formula::And(box p, box q) => Formula::And(box rename_variable(p, from, to), box rename_variable(q, from, to)),
-        Formula::Or(box p, box q) => Formula::Or(box rename_variable(p, from, to), box rename_variable(q, from, to)),
-        Formula::Forall(s, box p) => Formula::Forall(if s == from { to.to_string() } else { s }, box rename_variable(p, from, to)),
-        Formula::Exists(s, box p) => Formula::Exists(if s == from { to.to_string() } else { s }, box rename_variable(p, from, to)),
-        _ => f
-    }
-}
-
-/// Renames variables so that different occurences of quantifiers bind different variables.
-fn ren(f: Formula, n: &mut isize) -> Formula {
-    match f {
-        Formula::Not(box p) => Formula::Not(box ren(p, n)),
-        Formula::And(box p, box q) => Formula::And(box ren(p, n), box ren(q, n)),
-        Formula::Or(box p, box q) => Formula::Or(box ren(p, n), box ren(q, n)),
-        Formula::Forall(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Forall(new_var.clone(), box ren(rename_variable(p, &s, &new_var), n)) },
-        Formula::Exists(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Exists(new_var.clone(), box ren(rename_variable(p, &s, &new_var), n)) }
-        _ => f
-    }
 }
 
 /// Drops all universal quantifiers from the start of the formula.

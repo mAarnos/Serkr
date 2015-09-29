@@ -17,6 +17,7 @@
 
 mod simplify;
 mod nnf;
+mod rename;
 
 pub mod naive_cnf;
 
