@@ -87,4 +87,10 @@ mod test {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
         assert_eq!(drop_universal_quantifiers(Formula::Forall("x".to_string(), box Formula::Forall("y".to_string(), box pred.clone()))), pred);
     }
+    
+    #[test]
+    fn drop_universal_quantifiers_2() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        assert_eq!(drop_universal_quantifiers(pred.clone()), pred);
+    }
 }    

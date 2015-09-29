@@ -78,8 +78,31 @@ fn move_nots_inward_not(f: Formula) -> Formula {
 
 #[cfg(test)]
 mod test {
-    use super::{elim_imp_and_eq, move_nots_inward, move_nots_inward_not};
+    use super::{nnf, elim_imp_and_eq, move_nots_inward, move_nots_inward_not};
     use parser::formula::{Formula};
+    
+    #[test]
+    fn nnf_1() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new()); 
+        
+        // (P -> Q) <-> (~Q -> ~P)
+        let f = Formula::Equivalent(box Formula::Implies(box pred.clone(), box pred2.clone()), 
+                                    box Formula::Implies(box Formula::Not(box pred2.clone()), box Formula::Not(box pred.clone())));
+        
+        // ((~P \/ Q) \/ (~Q /\ P)) /\ ((P /\ ~Q) \/ (Q \/ ~P))
+        let correct_f_part_1 = Formula::Or(box Formula::Not(box pred.clone()), 
+                                           box pred2.clone());
+        let correct_f_part_2 = Formula::And(box Formula::Not(box pred2.clone()), 
+                                            box pred.clone());
+        let correct_f_part_3 = Formula::And(box pred.clone(), 
+                                            box Formula::Not(box pred2.clone()));
+        let correct_f_part_4 = Formula::Or(box pred2, 
+                                           box Formula::Not(box pred));
+        let correct_f = Formula::And(box Formula::Or(box correct_f_part_1, box correct_f_part_2),
+                                     box Formula::Or(box correct_f_part_3, box correct_f_part_4));
+        assert_eq!(nnf(f), correct_f);                             
+    }
     
     #[test]
     fn elim_imp_and_eq_1() {
@@ -99,28 +122,29 @@ mod test {
                                                     box Formula::Or(box Formula::Not(box pred),
                                                                     box pred2)));
     }
-    
+          
     #[test]
     fn elim_imp_and_eq_3() {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new()); 
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
         
-        // (P -> Q) <-> (~Q -> ~P)
-        let f = Formula::Equivalent(box Formula::Implies(box pred.clone(), box pred2.clone()), 
-                                    box Formula::Implies(box Formula::Not(box pred2.clone()), box Formula::Not(box pred.clone())));
+        // ((P -> Q) /\ P) <-> Q
+        let f = Formula::Equivalent(box Formula::And(box Formula::Implies(box pred.clone(), box pred2.clone()), box pred.clone()), box pred2.clone());
         
-        // ((~P \/ Q) \/ ~(~~Q \/ ~P)) /\ (~(~P \/ Q) \/ (~~Q \/ ~P))
-        let correct_f_part_1 = Formula::Or(box Formula::Not(box pred.clone()), 
-                                           box pred2.clone());
-        let correct_f_part_4 = Formula::Or(box Formula::Not(box Formula::Not(box pred2.clone())), 
-                                                            box Formula::Not(box pred));
-        let correct_f_part_3 = Formula::Not(box correct_f_part_1.clone());
-        let correct_f_part_2 = Formula::Not(box correct_f_part_4.clone());
+        // (((~P \/ Q) /\ P) \/ ~Q) /\ (~((~P \/ Q) /\ P) \/ Q)
+        let correct_f_part_1 = Formula::And(box Formula::Or(box Formula::Not(box pred.clone()), 
+                                                            box pred2.clone()),
+                                            box pred.clone());
+        let correct_f_part_2 = Formula::Not(box pred2.clone());
+        let correct_f_part_3 = Formula::Not(box Formula::And(box Formula::Or(box Formula::Not(box pred.clone()),
+                                                                             box pred2.clone()),
+                                                             box pred.clone()));
+        let correct_f_part_4 = pred2.clone();
         let correct_f = Formula::And(box Formula::Or(box correct_f_part_1, box correct_f_part_2),
                                      box Formula::Or(box correct_f_part_3, box correct_f_part_4));
-        assert_eq!(elim_imp_and_eq(f), correct_f);                             
+        assert_eq!(elim_imp_and_eq(f), correct_f);
     }
-    
+        
     #[test]
     fn move_nots_inward_not_1() {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
@@ -158,11 +182,20 @@ mod test {
     }
     
     #[test]
-    fn elim_imp_and_eq_4() {
+    fn move_nots_inward_1() {
         let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("P".to_string(), Vec::new());
+        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
         
-        // ((P -> Q) /\ P) -> Q
-        let f = Formula::Equivalent(box Formula::And(box Formula::Implies(box pred.clone(), box pred2.clone()), box pred.clone()), box pred2.clone());
+        // ~(~(P \/ Q) /\ ~~(~P /\ Q))
+        let f_1 = Formula::Not(box Formula::Or(box pred.clone(), box pred2.clone()));
+        let f_2 = Formula::Not(box Formula::Not(box Formula::And(box Formula::Not(box pred.clone()), box pred2.clone())));
+        let f = Formula::Not(box Formula::And(box f_1, box f_2));
+        
+        // (P \/ Q) \/ (P \/ ~Q)
+        let correct_f = Formula::Or(box Formula::Or(box pred.clone(), box pred2.clone()), 
+                                    box Formula::Or(box pred.clone(), box Formula::Not(box pred2.clone())));
+        
+        
+        assert_eq!(move_nots_inward(f), correct_f);
     }
 }
