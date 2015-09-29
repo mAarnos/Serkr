@@ -16,12 +16,11 @@
 */
 
 use parser::formula::{Term, Formula};
-use cnf::simplify::simplify;
 use cnf::nnf::nnf;
 
 /// Turns a formula into CNF.
 pub fn cnf(f: Formula) -> Formula {
-    let nnf_f = nnf(simplify(f));
+    let nnf_f = nnf(f);
     nnf_f
 }
 
@@ -58,7 +57,7 @@ fn ren(f: Formula, n: &mut isize) -> Formula {
     }
 }
 
-/// Drops all universal quantifiers.
+/// Drops all universal quantifiers from the start of the formula.
 fn drop_universal_quantifiers(f: Formula) -> Formula {
     match f {
         Formula::Forall(_, box p) => drop_universal_quantifiers(p),
@@ -77,3 +76,15 @@ fn distribute_ors_over_ands(f: Formula) -> Formula {
         _ => f,
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::{drop_universal_quantifiers};
+    use parser::formula::{Formula};
+    
+    #[test]
+    fn drop_universal_quantifiers_1() {
+        let pred = Formula::Predicate("P".to_string(), Vec::new());
+        assert_eq!(drop_universal_quantifiers(Formula::Forall("x".to_string(), box Formula::Forall("y".to_string(), box pred.clone()))), pred);
+    }
+}    
