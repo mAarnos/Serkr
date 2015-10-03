@@ -18,18 +18,19 @@
 use parser::formula::{Term, Formula};
 
 /// Renames variables so that different occurences of quantifiers bind different variables.
-fn ren(f: Formula, n: &mut isize) -> Formula {
+pub fn rename(f: Formula, n: &mut isize) -> Formula {
     match f {
-        Formula::Not(box p) => Formula::Not(box ren(p, n)),
-        Formula::And(box p, box q) => Formula::And(box ren(p, n), box ren(q, n)),
-        Formula::Or(box p, box q) => Formula::Or(box ren(p, n), box ren(q, n)),
-        Formula::Forall(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Forall(new_var.clone(), box ren(rename_variable(p, &s, &new_var), n)) },
-        Formula::Exists(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Exists(new_var.clone(), box ren(rename_variable(p, &s, &new_var), n)) }
+        Formula::Not(box p) => Formula::Not(box rename(p, n)),
+        Formula::And(box p, box q) => Formula::And(box rename(p, n), box rename(q, n)),
+        Formula::Or(box p, box q) => Formula::Or(box rename(p, n), box rename(q, n)),
+        Formula::Forall(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Forall(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) },
+        Formula::Exists(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Exists(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) }
         _ => f
     }
 }
 
-/// Renames a single variable in a formula. We do not check for collisions in this function.
+/// Renames a single variable in a formula. 
+/// We assume that the new variable does not exist already.
 fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
     match f {
         Formula::Predicate(s, terms) => Formula::Predicate(s, terms.into_iter().map(|term| rename_variable_in_term(term, from, to)).collect()),
@@ -42,10 +43,33 @@ fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
     }
 }
 
-/// Renames a single variable in a term. We do not check for collisions in this function.
+/// Renames a single variable in a term. 
+/// We assume that the new variable does not exist already.
 fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
     match t {
         Term::Variable(s) => if from == s { Term::Variable(to.to_string()) } else { Term::Variable(s) },
         Term::Function(s, subterms) => Term::Function(s, subterms.into_iter().map(|term| rename_variable_in_term(term, from, to)).collect())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::{rename};
+    use parser::formula::{Term, Formula};
+    
+    #[test]
+    fn rename_1() {
+        let mut n = 0;
+        // forall x. exists x. P(x)
+        let f = Formula::Forall("x".to_string(), 
+                                box Formula::Exists("x".to_string(), 
+                                                    box Formula::Predicate("P".to_string(), 
+                                                                            vec!(Term::Variable("x".to_string())))));
+        // forall v_0. exists v_1. P(v_1)
+        let correct_f = Formula::Forall("v_0".to_string(), 
+                                        box Formula::Exists("v_1".to_string(), 
+                                                            box Formula::Predicate("P".to_string(), 
+                                                                                   vec!(Term::Variable("v_1".to_string())))));
+        assert_eq!(rename(f, &mut n), correct_f);
+    }
+}    

@@ -18,10 +18,15 @@
 #![allow(dead_code)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
+#![feature(plugin)]
+#![plugin(peg_syntax_ext)]
 
 mod parser;
 mod cnf;
 
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
+    
+    let x = parser::grammar::parse("f(x, y)").unwrap_err();
+    println!("{}", x);
 }
