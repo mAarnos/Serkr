@@ -3,5 +3,8 @@ name = "serkr"
 version = "0.1.0"
 authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
-[dependencies]
-peg = "0.3.0"
+[dependencies.peg]
+peg = "*"
+
+[dependencies.time]
+time = "*"

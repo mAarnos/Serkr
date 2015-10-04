@@ -25,7 +25,7 @@ pub fn parse(s: &str) -> Result<Formula, formula::ParseError> {
 
 #[cfg(test)]
 mod test {
-    use parser::formula::{Term, Formula};
+    use parser::formula::{Formula};
     use super::*;
     
     #[test]

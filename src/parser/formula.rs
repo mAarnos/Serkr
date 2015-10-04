@@ -36,4 +36,3 @@ pub enum Formula {
     Forall(String, Box<Formula>),
     Exists(String, Box<Formula>),
 }
-
