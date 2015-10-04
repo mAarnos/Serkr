@@ -27,5 +27,5 @@ mod cnf;
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
     
-    println!("{}", parser::parser::parse("(P() <=> Q())").unwrap_err());
+    // println!("{}", parser::parser::parse("(P() <=> Q())").unwrap_err());
 }

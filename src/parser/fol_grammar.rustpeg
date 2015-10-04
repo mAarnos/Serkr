@@ -33,10 +33,17 @@ spaced_formula -> Formula
     / exists_formula
         
 parenthesis_formula -> Formula
-    = [(] f:formula [)] { f }
+    = [(] f:formula [)] { f } 
         
 predicate -> Formula
     = s:predicate_name [(] tl:term_list [)] { Formula::Predicate(s, tl) }   
+    / s:predicate_name { 
+        match &*s {
+            "T" => Formula::True, 
+            "F" => Formula::False,
+            _ => Formula::Predicate(s, Vec::new()), 
+        }
+    }
         
 not_formula -> Formula
     = "~" f:formula { Formula::Not(box f) }
