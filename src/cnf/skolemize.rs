@@ -15,10 +15,15 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod simplify;
-mod nnf;
-mod rename;
-mod skolemize;
+use parser::formula::{Term, Formula};
+use cnf::rename::rename;
 
-pub mod naive_cnf;
+pub fn skolemize(f: Formula) -> Formula {
+    let mut n = 0;
+    rename(f, &mut n)
+}
 
+#[cfg(test)]
+mod test {
+    
+}    

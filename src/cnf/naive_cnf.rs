@@ -17,11 +17,13 @@
 
 use parser::formula::{Formula};
 use cnf::nnf::nnf;
+use cnf::skolemize::skolemize;
 
 /// Turns a formula into CNF.
 pub fn cnf(f: Formula) -> Formula {
     let nnf_f = nnf(f);
-    nnf_f
+    let skolemized_f = skolemize(nnf_f);
+    skolemized_f
 }
 
 /// Drops all universal quantifiers from the start of the formula.
