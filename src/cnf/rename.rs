@@ -56,15 +56,12 @@ fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
 mod test {
     use super::{rename};
     use parser::formula::{Term, Formula};
+    use parser::parser::parse;
     
     #[test]
     fn rename_1() {
         let mut n = 0;
-        // forall x. exists x. P(x)
-        let f = Formula::Forall("x".to_string(), 
-                                box Formula::Exists("x".to_string(), 
-                                                    box Formula::Predicate("P".to_string(), 
-                                                                            vec!(Term::Variable("x".to_string())))));
+        let f = parse("forall x. exists x. P(x)").unwrap(); 
         // forall v_0. exists v_1. P(v_1)
         let correct_f = Formula::Forall("v_0".to_string(), 
                                         box Formula::Exists("v_1".to_string(), 

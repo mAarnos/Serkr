@@ -19,6 +19,8 @@ mod simplify;
 mod nnf;
 mod rename;
 mod skolemize;
+mod drop_universal_quantifiers;
+mod distribute_ors_over_ands;
 
 pub mod naive_cnf;
 

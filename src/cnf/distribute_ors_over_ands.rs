@@ -16,13 +16,18 @@
 */
 
 use parser::formula::{Formula};
-use cnf::rename::rename;
 
-pub fn skolemize(f: Formula) -> Formula {
-    let mut n = 0;
-    rename(f, &mut n)
+/// Distributes ORs inwards over ANDs.
+fn distribute_ors_over_ands(f: Formula) -> Formula {
+    match f {
+        Formula::And(box p, box q) => Formula::And(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
+        Formula::Or(box ref p, box Formula::And(box ref q, box ref r)) | 
+        Formula::Or(box Formula::And(box ref q, box ref r), box ref p) => Formula::And(box distribute_ors_over_ands(Formula::Or(box p.clone(), box q.clone())),
+                                                                                       box distribute_ors_over_ands(Formula::Or(box p.clone(), box r.clone()))),
+        Formula::Or(box p, box q) => Formula::Or(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
+        _ => f,
+    }
 }
-
 #[cfg(test)]
 mod test {
     

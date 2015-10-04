@@ -26,40 +26,5 @@ pub fn cnf(f: Formula) -> Formula {
     skolemized_f
 }
 
-/// Drops all universal quantifiers from the start of the formula.
-fn drop_universal_quantifiers(f: Formula) -> Formula {
-    match f {
-        Formula::Forall(_, box p) => drop_universal_quantifiers(p),
-        _ => f,
-    }
-}
 
-/// Distributes ORs inwards over ANDs.
-fn distribute_ors_over_ands(f: Formula) -> Formula {
-    match f {
-        Formula::And(box p, box q) => Formula::And(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
-        Formula::Or(box ref p, box Formula::And(box ref q, box ref r)) | 
-        Formula::Or(box Formula::And(box ref q, box ref r), box ref p) => Formula::And(box distribute_ors_over_ands(Formula::Or(box p.clone(), box q.clone())),
-                                                                                       box distribute_ors_over_ands(Formula::Or(box p.clone(), box r.clone()))),
-        Formula::Or(box p, box q) => Formula::Or(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
-        _ => f,
-    }
-}
 
-#[cfg(test)]
-mod test {
-    use super::{drop_universal_quantifiers};
-    use parser::formula::{Formula};
-    
-    #[test]
-    fn drop_universal_quantifiers_1() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(drop_universal_quantifiers(Formula::Forall("x".to_string(), box Formula::Forall("y".to_string(), box pred.clone()))), pred);
-    }
-    
-    #[test]
-    fn drop_universal_quantifiers_2() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(drop_universal_quantifiers(pred.clone()), pred);
-    }
-}    
