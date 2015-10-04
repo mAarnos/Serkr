@@ -22,9 +22,9 @@ peg! formula(r#"
     
     #[pub]
     formula -> Formula
-         = [ ]* f:complex_formula [ ]* { f }
+         = [ ]* f:spaced_formula [ ]* { f }
           
-    complex_formula -> Formula
+    spaced_formula -> Formula
         = parenthesis_formula
         / predicate
         / not_formula
@@ -37,6 +37,9 @@ peg! formula(r#"
         
     parenthesis_formula -> Formula
         = [(] f:formula [)] { f }
+        
+    predicate -> Formula
+        = s:predicate_name [(] tl:term_list [)] { Formula::Predicate(s, tl) }   
         
     not_formula -> Formula
         = "~" f:formula { Formula::Not(box f) }
@@ -57,10 +60,7 @@ peg! formula(r#"
         = "forall " [ ]* v:term_name [ ]* [.] f:formula { Formula::Forall(v, box f) }
         
     exists_formula -> Formula
-        = "exists " [ ]* v:term_name [ ]* [.] f:formula { Formula::Exists(v, box f) }
-        
-    predicate -> Formula
-        = s:predicate_name [(] tl:term_list [)] { Formula::Predicate(s, tl) }    
+        = "exists " [ ]* v:term_name [ ]* [.] f:formula { Formula::Exists(v, box f) } 
 
     term -> Term
         = function / variable 
@@ -118,9 +118,16 @@ pub fn parse(s: &str) -> Result<Formula, formula::ParseError> {
 #[cfg(test)]
 mod test {
     use super::*;
+    
+    #[test]
+    fn dont_allow_pure_terms() {
+        assert!(parse("x").is_err());
+        assert!(parse("f(x)").is_err());
+        assert!(parse("f(g(x), c)").is_err());
+    }
  
     #[test]
-    fn parser_1() {
+    fn nested_predicates_and_parenthesis() {
         assert!(parse("P()").is_ok());
         assert!(parse("(P())").is_ok());
         assert!(parse("((P()))").is_ok());
@@ -128,14 +135,14 @@ mod test {
     }
     
     #[test]
-    fn parser_2() {
+    fn nested_not() {
         assert!(parse("~P()").is_ok());
-        assert!(parse("~(P())").is_ok());
-        assert!(parse("(~~(P()))").is_ok());
+        assert!(parse("~(~P())").is_ok());
+        assert!(parse("~(~~(P()))").is_ok());
     }
     
     #[test]
-    fn parser_3() {
+    fn general() {
         assert!(parse("((Equal(x, y) /\\ Equal(y, z)) ==> Equal(x, z))").is_ok());
         assert!(parse("(P(x) <=> (Q(x) <=> R(x)))").is_ok());
         assert!(parse("(P()/\\Q())").is_ok());
