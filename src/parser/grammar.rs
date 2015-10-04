@@ -22,21 +22,11 @@ peg! formula(r#"
     
     #[pub]
     formula -> Formula
-         = spaced_atomic_formula 
-         / spaced_complex_formula
-         
-    spaced_atomic_formula -> Formula
-        = [ ]* f:atomic_formula [ ]* { f } 
-         
-    atomic_formula -> Formula
-        = [(] p:spaced_atomic_formula [)] { p } 
-        / predicate
-        
-    spaced_complex_formula -> Formula
-        = [ ]* f:complex_formula [ ]* { f }
-    
+         = [ ]* f:complex_formula [ ]* { f }
+          
     complex_formula -> Formula
         = parenthesis_formula
+        / predicate
         / not_formula
         / and_formula
         / or_formula
