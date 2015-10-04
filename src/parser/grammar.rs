@@ -22,12 +22,18 @@ peg! formula(r#"
     
     #[pub]
     formula -> Formula
-         = atomic_formula 
-         / complex_formula
+         = spaced_atomic_formula 
+         / spaced_complex_formula
+         
+    spaced_atomic_formula -> Formula
+        = [ ]* f:atomic_formula [ ]* { f } 
          
     atomic_formula -> Formula
-        = [ ]* [(] p:atomic_formula [)] [ ]* { p } 
+        = [(] p:spaced_atomic_formula [)] { p } 
         / predicate
+        
+    spaced_complex_formula -> Formula
+        = [ ]* f:complex_formula [ ]* { f }
     
     complex_formula -> Formula
         = parenthesis_formula
@@ -40,43 +46,46 @@ peg! formula(r#"
         / exists_formula
         
     parenthesis_formula -> Formula
-        = [ ]* [(] f:formula [)] [ ]* { f }
+        = [(] f:formula [)] { f }
         
     not_formula -> Formula
         = "~" f:formula { Formula::Not(box f) }
         
     and_formula -> Formula
-        = [ ]* [(] f1:formula "/\\" f2:formula [)] [ ]* { Formula::And(box f1, box f2) }   
+        = [(] f1:formula "/\\" f2:formula [)] { Formula::And(box f1, box f2) }   
     
     or_formula -> Formula
-        = [ ]* [(] f1:formula "\\/" f2:formula [)] [ ]* { Formula::Or(box f1, box f2) }    
+        = [(] f1:formula "\\/" f2:formula [)] { Formula::Or(box f1, box f2) }    
 
     implies_formula -> Formula
-        = [ ]* [(] f1:formula "==>" f2:formula [)] [ ]* { Formula::Implies(box f1, box f2) }  
+        = [(] f1:formula "==>" f2:formula [)] { Formula::Implies(box f1, box f2) }  
 
     equivalent_formula -> Formula
-        = [ ]* [(] f1:formula "<=>" f2:formula [)] [ ]* { Formula::Equivalent(box f1, box f2) }   
+        = [(] f1:formula "<=>" f2:formula [)] { Formula::Equivalent(box f1, box f2) }   
 
     forall_formula -> Formula
-        = [ ]* "forall " [ ]* v:term_name [ ]* [.] f:formula { Formula::Forall(v, box f) }
+        = "forall " [ ]* v:term_name [ ]* [.] f:formula { Formula::Forall(v, box f) }
         
     exists_formula -> Formula
-        = [ ]* "exists " [ ]* v:term_name [ ]* [.] f:formula { Formula::Exists(v, box f) }
+        = "exists " [ ]* v:term_name [ ]* [.] f:formula { Formula::Exists(v, box f) }
         
     predicate -> Formula
-        = [ ]* s:predicate_name [(] tl:term_list [)] [ ]* { Formula::Predicate(s, tl) }    
+        = s:predicate_name [(] tl:term_list [)] { Formula::Predicate(s, tl) }    
 
     term -> Term
         = function / variable 
                                
     function -> Term
-        = [ ]* s:term_name [(] tl:term_list [)] [ ]* { Term::Function(s, tl) }
+        = s:term_name [(] tl:term_list [)] { Term::Function(s, tl) }
             
     term_list -> Vec<Term>
-        = term ** [,]
+        = spaced_term ** [,]
+        
+    spaced_term -> Term
+        = [ ]* t:term [ ]* { t }
      
     variable -> Term
-        = [ ]* s:term_name [ ]* { Term::Variable(s) }    
+        = s:term_name { Term::Variable(s) }    
         
     term_name -> String
         = s:lowerletter xs:letter_or_digit* { 
@@ -143,5 +152,6 @@ mod test {
         assert!(parse("forall x. P(x)").is_ok());
         assert!(parse("forall x. exists y. Equal(x, y)").is_ok());
         assert!(parse("forall x. (exists y. (Equal(x, y)))").is_ok());
+        assert!(parse("P( f(x) )").is_ok());
     }  
 }    
