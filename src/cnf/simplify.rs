@@ -103,172 +103,180 @@ fn simplify_equivalent(f1: Formula, f2: Formula) -> Formula {
 mod test {
     use super::{simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
     use parser::formula::{Formula};
+    use parser::parser::parse;
     
     #[test]
     fn simplify_not_1() {
-        assert_eq!(simplify_not(Formula::False), Formula::True);
-    }
-    
-    #[test]
-    fn simplify_not_2() {
         assert_eq!(simplify_not(Formula::True), Formula::False);
     }
     
     #[test]
+    fn simplify_not_2() {
+        assert_eq!(simplify_not(Formula::False), Formula::True);
+    }
+    
+    #[test]
     fn simplify_not_3() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_not(pred.clone()), Formula::Not(box pred));
+        let f = parse("P(x, f(y), g(f(z)))").unwrap();
+        let correct_f = parse("~P(x, f(y), g(f(z)))").unwrap();
+        assert_eq!(simplify_not(f), correct_f);
     }
     
     #[test]
     fn simplify_and_1() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_and(pred.clone(), pred.clone()), pred);
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_and(Formula::True, f.clone()), f);
+        assert_eq!(simplify_and(f.clone(), Formula::True), f);
     }
     
     #[test]
     fn simplify_and_2() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_and(pred.clone(), Formula::Not(box pred.clone())), Formula::False);
-        assert_eq!(simplify_and(Formula::Not(box pred.clone()), pred), Formula::False);
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_and(Formula::False, f.clone()), Formula::False);
+        assert_eq!(simplify_and(f, Formula::False), Formula::False);
     }
     
     #[test]
     fn simplify_and_3() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_and(Formula::True, pred.clone()), pred);
-        assert_eq!(simplify_and(pred.clone(), Formula::True), pred);
+        let f1 = parse("P(x, y)").unwrap();
+        let f2 = parse("~P(x, y)").unwrap();
+        assert_eq!(simplify_and(f1.clone(), f2.clone()), Formula::False);
+        assert_eq!(simplify_and(f2, f1), Formula::False);
     }
-    
+     
     #[test]
     fn simplify_and_4() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_and(Formula::False, pred.clone()), Formula::False);
-        assert_eq!(simplify_and(pred, Formula::False), Formula::False);
+        let f1 = parse("P(x)").unwrap();
+        let f2 = parse("~Q(x)").unwrap();
+        let correct_f = parse("(P(x) /\\ ~Q(x))").unwrap();
+        assert_eq!(simplify_and(f1.clone(), f2.clone()), correct_f);
+        assert_eq!(simplify_and(f2, f1), correct_f);
     }
-    
+        
     #[test]
     fn simplify_and_5() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
-        assert_eq!(simplify_and(pred.clone(), pred2.clone()), Formula::And(box pred, box pred2));
+        let f = parse("P(x, y)").unwrap();
+        assert_eq!(simplify_and(f.clone(), f.clone()), f);
     }
     
     #[test]
     fn simplify_and_6() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
-        assert_eq!(simplify_and(pred.clone(), Formula::Not(box pred2.clone())), Formula::And(box pred.clone(), 
-                                                                                             box Formula::Not(box pred2.clone())));
-        assert_eq!(simplify_and(Formula::Not(box pred2.clone()), pred.clone()), Formula::And(box pred, 
-                                                                                             box Formula::Not(box pred2)));
+        let f1 = parse("P(x)").unwrap();
+        let f2 = parse("Q(x)").unwrap();
+        let correct_f = parse("(P(x) /\\ Q(x))").unwrap();
+        assert_eq!(simplify_and(f1, f2), correct_f);
     }
-    
+     
     #[test]
     fn simplify_or_1() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_or(pred.clone(), pred.clone()), pred);
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_or(Formula::True, f.clone()), Formula::True);
+        assert_eq!(simplify_or(f, Formula::True), Formula::True);
     }
     
     #[test]
     fn simplify_or_2() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_or(pred.clone(), Formula::Not(box pred.clone())), Formula::True);
-        assert_eq!(simplify_or(Formula::Not(box pred.clone()), pred), Formula::True);
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_or(Formula::False, f.clone()), f.clone());
+        assert_eq!(simplify_or(f.clone(), Formula::False), f);
     }
     
     #[test]
     fn simplify_or_3() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_or(Formula::True, pred.clone()), Formula::True);
-        assert_eq!(simplify_or(pred, Formula::True), Formula::True);
+        let f1 = parse("P(x)").unwrap();
+        let f2 = parse("~P(x)").unwrap();
+        assert_eq!(simplify_or(f1.clone(), f2.clone()), Formula::True);
+        assert_eq!(simplify_or(f2, f1), Formula::True);
     }
     
     #[test]
     fn simplify_or_4() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_or(Formula::False, pred.clone()), pred.clone());
-        assert_eq!(simplify_or(pred.clone(), Formula::False), pred);
+        let f1 = parse("P").unwrap();
+        let f2 = parse("~Q").unwrap();
+        let correct_f = parse("(P \\/ ~Q)").unwrap();
+        assert_eq!(simplify_or(f1.clone(), f2.clone()), correct_f);
+        assert_eq!(simplify_or(f2, f1), correct_f);
     }
     
     #[test]
     fn simplify_or_5() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
-        assert_eq!(simplify_or(pred.clone(), pred2.clone()), Formula::Or(box pred, box pred2));
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_or(f.clone(), f.clone()), f);
     }
     
     #[test]
     fn simplify_or_6() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
-        assert_eq!(simplify_or(pred.clone(), Formula::Not(box pred2.clone())), Formula::Or(box pred.clone(), 
-                                                                                           box Formula::Not(box pred2.clone())));
-        assert_eq!(simplify_or(Formula::Not(box pred2.clone()), pred.clone()), Formula::Or(box pred, 
-                                                                                           box Formula::Not(box pred2)));
+        let f1 = parse("P").unwrap();
+        let f2 = parse("Q").unwrap();
+        let correct_f = parse("(P \\/ Q)").unwrap();
+        assert_eq!(simplify_or(f1, f2), correct_f);
     }
     
     #[test]
     fn simplify_implies_1() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_implies(pred.clone(), pred.clone()), Formula::True);
+        let f = parse("P(x, y, z, w)").unwrap();
+        assert_eq!(simplify_implies(f.clone(), f), Formula::True);
     }
     
     #[test]
     fn simplify_implies_2() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_implies(pred, Formula::True), Formula::True);
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_implies(f, Formula::True), Formula::True);
     }
     
     #[test]
     fn simplify_implies_3() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_implies(pred.clone(), Formula::False), Formula::Not(box pred));
+        let f = parse("P(c)").unwrap();
+        let correct_f = parse("~P(c)").unwrap();
+        assert_eq!(simplify_implies(f.clone(), Formula::False), correct_f);
     }
     
     #[test]
     fn simplify_implies_4() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_implies(Formula::True, pred.clone()), pred);
+        let f = parse("P(c, f(x))").unwrap();
+        assert_eq!(simplify_implies(Formula::True, f.clone()), f);
     }
     
     #[test]
     fn simplify_implies_5() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_implies(Formula::False, pred), Formula::True);
+        let f = parse("P").unwrap();
+        assert_eq!(simplify_implies(Formula::False, f), Formula::True);
     }
     
     #[test]
     fn simplify_implies_6() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
-        assert_eq!(simplify_implies(pred.clone(), pred2.clone()), Formula::Implies(box pred, box pred2));
+        let f1 = parse("P").unwrap();
+        let f2 = parse("Q").unwrap();
+        let correct_f = parse("(P ==> Q)").unwrap();
+        assert_eq!(simplify_implies(f1.clone(), f2.clone()), correct_f);
     }
     
     #[test]
     fn simplify_equivalent_1() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_equivalent(pred.clone(), pred), Formula::True);
+        let f = parse("P(x, y)").unwrap();
+        assert_eq!(simplify_equivalent(f.clone(), f), Formula::True);
     }
     
     #[test]
     fn simplify_equivalent_2() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_equivalent(pred.clone(), Formula::True), pred);
-        assert_eq!(simplify_equivalent(Formula::True, pred.clone()), pred);
+        let f = parse("P(x)").unwrap();
+        assert_eq!(simplify_equivalent(f.clone(), Formula::True), f);
+        assert_eq!(simplify_equivalent(Formula::True, f.clone()), f);
     }
     
     #[test]
     fn simplify_equivalent_3() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(simplify_equivalent(pred.clone(), Formula::False), Formula::Not(box pred.clone()));
-        assert_eq!(simplify_equivalent(Formula::False, pred.clone()), Formula::Not(box pred));
+        let f = parse("P(x)").unwrap();
+        let correct_f = parse("~P(x)").unwrap();
+        assert_eq!(simplify_equivalent(f.clone(), Formula::False), correct_f);
+        assert_eq!(simplify_equivalent(Formula::False, f), correct_f);
     }
     
     #[test]
     fn simplify_equivalent_4() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        let pred2 = Formula::Predicate("Q".to_string(), Vec::new());
-        assert_eq!(simplify_equivalent(pred.clone(), pred2.clone()), Formula::Equivalent(box pred, box pred2));
+        let f1 = parse("P(x)").unwrap();
+        let f2 = parse("Q(x, y)").unwrap();
+        let correct_f = parse("(P(x) <=> Q(x, y))").unwrap();
+        assert_eq!(simplify_equivalent(f1, f2), correct_f);
     }
 }

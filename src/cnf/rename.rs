@@ -63,6 +63,7 @@ mod test {
         let mut n = 0;
         let f = parse("forall x. exists x. P(x)").unwrap(); 
         // forall v_0. exists v_1. P(v_1)
+        // TODO: fix this
         let correct_f = Formula::Forall("v_0".to_string(), 
                                         box Formula::Exists("v_1".to_string(), 
                                                             box Formula::Predicate("P".to_string(), 

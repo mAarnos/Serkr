@@ -17,7 +17,7 @@
 
 use parser::formula::{Formula};
 use cnf::nnf::nnf;
-use cnf::skolemize::skolemize;
+use cnf::standard_skolemization::skolemize;
 
 /// Turns a formula into CNF.
 pub fn cnf(f: Formula) -> Formula {
@@ -25,6 +25,3 @@ pub fn cnf(f: Formula) -> Formula {
     let skolemized_f = skolemize(nnf_f);
     skolemized_f
 }
-
-
-

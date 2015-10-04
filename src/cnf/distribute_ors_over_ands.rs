@@ -28,6 +28,7 @@ fn distribute_ors_over_ands(f: Formula) -> Formula {
         _ => f,
     }
 }
+
 #[cfg(test)]
 mod test {
     

@@ -28,17 +28,18 @@ fn drop_universal_quantifiers(f: Formula) -> Formula {
 #[cfg(test)]
 mod test {
     use super::{drop_universal_quantifiers};
-    use parser::formula::{Formula};
+    use parser::parser::parse;
     
     #[test]
     fn drop_universal_quantifiers_1() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(drop_universal_quantifiers(Formula::Forall("x".to_string(), box Formula::Forall("y".to_string(), box pred.clone()))), pred);
+        let f = parse("forall x. forall y. P(x, y)").unwrap();
+        let correct_f = parse("P(x, y)").unwrap();
+        assert_eq!(drop_universal_quantifiers(f), correct_f);
     }
     
     #[test]
     fn drop_universal_quantifiers_2() {
-        let pred = Formula::Predicate("P".to_string(), Vec::new());
-        assert_eq!(drop_universal_quantifiers(pred.clone()), pred);
+        let f = parse("P(x, f(y))").unwrap();
+        assert_eq!(drop_universal_quantifiers(f.clone()), f);
     }
 }    
