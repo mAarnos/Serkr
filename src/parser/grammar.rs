@@ -15,69 +15,133 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-peg! term(r#"
-    use parser::formula::{Term};
+use parser::formula::{Formula};
 
+peg! formula(r#"
+    use parser::formula::{Term, Formula};
+    
     #[pub]
+    formula -> Formula
+         = atomic_formula 
+         / complex_formula
+         
+    atomic_formula -> Formula
+        = [ ]* [(] p:atomic_formula [)] [ ]* { p } 
+        / predicate
+    
+    complex_formula -> Formula
+        = parenthesis_formula
+        / not_formula
+        / and_formula
+        / or_formula
+        / implies_formula
+        / equivalent_formula
+        / forall_formula
+        / exists_formula
+        
+    parenthesis_formula -> Formula
+        = [ ]* [(] f:formula [)] [ ]* { f }
+        
+    not_formula -> Formula
+        = "~" f:formula { Formula::Not(box f) }
+        
+    and_formula -> Formula
+        = [ ]* [(] f1:formula "/\\" f2:formula [)] [ ]* { Formula::And(box f1, box f2) }   
+    
+    or_formula -> Formula
+        = [ ]* [(] f1:formula "\\/" f2:formula [)] [ ]* { Formula::Or(box f1, box f2) }    
+
+    implies_formula -> Formula
+        = [ ]* [(] f1:formula "==>" f2:formula [)] [ ]* { Formula::Implies(box f1, box f2) }  
+
+    equivalent_formula -> Formula
+        = [ ]* [(] f1:formula "<=>" f2:formula [)] [ ]* { Formula::Equivalent(box f1, box f2) }   
+
+    forall_formula -> Formula
+        = [ ]* "forall " [ ]* v:term_name [ ]* [.] f:formula { Formula::Forall(v, box f) }
+        
+    exists_formula -> Formula
+        = [ ]* "exists " [ ]* v:term_name [ ]* [.] f:formula { Formula::Exists(v, box f) }
+        
+    predicate -> Formula
+        = [ ]* s:predicate_name [(] tl:term_list [)] [ ]* { Formula::Predicate(s, tl) }    
+
     term -> Term
-         = function / variable 
+        = function / variable 
                                
     function -> Term
-             = s:term_name [(] tl:term_list [)] { Term::Function(s, tl) }
+        = [ ]* s:term_name [(] tl:term_list [)] [ ]* { Term::Function(s, tl) }
             
     term_list -> Vec<Term>
-             = term ** [,]
+        = term ** [,]
      
     variable -> Term
-             = s:term_name { Term::Variable(s) }     
+        = [ ]* s:term_name [ ]* { Term::Variable(s) }    
         
-    digit -> String
-          = [0-9] { match_str.parse().unwrap() }
+    term_name -> String
+        = s:lowerletter xs:letter_or_digit* { 
+            let mut name = s;
+            for x in xs {
+                name.push_str(&x);
+            }                     
+            name
+        }
+                               
+    predicate_name -> String
+        = s:upperletter xs:letter_or_digit* { 
+            let mut name = s;
+            for x in xs {
+                name.push_str(&x);
+            }                     
+            name
+        }       
+          
+    letter_or_digit -> String
+        = letter / digit
+          
+    letter -> String
+        = upperletter / lowerletter
+        
+    upperletter -> String
+        = [A-Z] { match_str.parse().unwrap() }
         
     lowerletter -> String
-                = [a-z] { match_str.parse().unwrap() }
-          
-    upperletter -> String
-                = [A-Z] { match_str.parse().unwrap() }
-    
-    letter -> String
-            = upperletter / lowerletter
-     
-    letter_or_digit -> String
-                     = letter / digit
-     
-    term_name -> String
-                     = s:lowerletter xs:letter_or_digit* { 
-                        let mut name = s;
-                        for x in xs {
-                            name.push_str(&x);
-                        }                     
-                        name
-                     }
+        = [a-z] { match_str.parse().unwrap() }
+        
+    digit -> String
+        = [0-9] { match_str.parse().unwrap() }              
 "#);
 
-use parser::formula::{Term};
-
-pub fn parse(s: &str) -> Result<Term, term::ParseError> {
-    term::term(s)
+pub fn parse(s: &str) -> Result<Formula, formula::ParseError> {
+    formula::formula(s)
 }
 
 #[cfg(test)]
 mod test {
-    use super::term::term;
-    use parser::formula::{Term};
+    use super::*;
  
     #[test]
-    fn term_test_1() {
-        assert_eq!(term("p"), Ok(Term::Variable("p".to_string())));
-        assert_eq!(term("healthy"), Ok(Term::Variable("healthy".to_string())));
-        assert!(term("P").is_err());
+    fn parser_1() {
+        assert!(parse("P()").is_ok());
+        assert!(parse("(P())").is_ok());
+        assert!(parse("((P()))").is_ok());
+        assert!(parse("(((P())))").is_ok());
     }
     
     #[test]
-    fn term_test_2() {
-        assert_eq!(term("f()"), Ok(Term::Function("f".to_string(), Vec::new())));
-        assert_eq!(term("f(x,y)"), Ok(Term::Function("f".to_string(), vec!(Term::Variable("x".to_string()), Term::Variable("y".to_string())))));
-        assert_eq!(term("f(g(x),y)"), Ok(Term::Function("f".to_string(), vec!(Term::Function("g".to_string(), vec!(Term::Variable("x".to_string()))), Term::Variable("y".to_string())))));
+    fn parser_2() {
+        assert!(parse("~P()").is_ok());
+        assert!(parse("~(P())").is_ok());
+        assert!(parse("(~~(P()))").is_ok());
     }
+    
+    #[test]
+    fn parser_3() {
+        assert!(parse("((Equal(x, y) /\\ Equal(y, z)) ==> Equal(x, z))").is_ok());
+        assert!(parse("(P(x) <=> (Q(x) <=> R(x)))").is_ok());
+        assert!(parse("(P()/\\Q())").is_ok());
+        assert!(parse("forall x. P(x)").is_ok());
+        assert!(parse("forall x. exists y. Equal(x, y)").is_ok());
+        assert!(parse("forall x. (exists y. (Equal(x, y)))").is_ok());
+    }  
 }    

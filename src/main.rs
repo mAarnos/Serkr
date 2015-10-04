@@ -27,6 +27,5 @@ mod cnf;
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
     
-    let x = parser::grammar::parse("f(x, y)").unwrap_err();
-    println!("{}", x);
+    println!("{}", parser::grammar::parse("forall x. (exists y. Equal(x, y))").unwrap_err());
 }
