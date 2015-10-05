@@ -59,38 +59,6 @@ impl<T: Eq + Hash + Clone + Debug> Set<T> {
         self.0.union(&other.0)
     }
     
-    // Constructs a set of all subsets with the given cardinality of the set.
-    // Could probably be improved.
-    pub fn subsets_of_size(&self, m: usize) -> Set<Set<T>> {
-        if m == 0 {
-            Set::singleton(Set::new())
-        } else if self.is_empty() {
-            Set::new()
-        } else {
-            let mut t = self.clone();
-            let h = t.iter().next().unwrap().clone();
-            t.remove(&h);
-            let lhs = t.subsets_of_size(m);
-            let rhs = t.subsets_of_size(m - 1).into_iter().map(|mut s| { s.insert(h.clone()); s }).collect();
-            lhs.union(&rhs).cloned().collect()
-        }
-    }
-    
-    // Constructs the power set of the set.
-    pub fn powerset(&self) -> Set<Set<T>> {
-        let mut ps = Set::<Set<T>>::new();
-        ps.insert(Set::<T>::new());
-        for e in self.iter() {
-            let mut s = Set::<Set<T>>::new();
-            for mut x in ps.iter().cloned() {
-                x.insert(e.clone());
-                s.insert(x);
-            }
-            ps.extend(s.into_iter());
-        }
-        ps
-    }
-    
     // Returns the cardinality of the set.
     pub fn cardinality(&self) -> usize {
         self.0.len()
@@ -141,17 +109,6 @@ impl<T: Eq + Hash + Clone + Debug> Set<T> {
     
     pub fn remove<Q: ?Sized>(&mut self, value: &Q) -> bool where T: Borrow<Q>, Q: Hash + Eq {
         self.0.remove(value)
-    }
-}
-
-impl<T: Eq + Hash + Clone + Debug> Set<Set<T>> {
-    // Checks if a given set of sets (of T) is a power set of a given set (of T).
-    pub fn is_powerset(&self, other: &Set<T>) -> bool {
-        if self.cardinality() != (2 as usize).pow(other.cardinality() as u32) {
-            false
-        } else {
-            self.iter().all(|s| { s.iter().all(|e| { other.contains(e) }) })
-        }
     }
 }
 
