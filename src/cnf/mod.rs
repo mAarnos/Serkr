@@ -15,6 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+mod free_variables;
+
 mod simplify;
 mod nnf;
 mod rename;

@@ -23,6 +23,18 @@ pub fn skolemize(f: Formula) -> Formula {
     rename(f, &mut n)
 }
 
+/*
+fn skolemize1(f: Formula, mut bound_variables: Vec<String>) -> Formula {
+    match f {
+        Formula::And(box p, box q) => Formula::And(box skolemize1(p, bound_variables.clone()), box skolemize1(q, bound_variables)),
+        Formula::Or(box p, box q) => Formula::Or(box skolemize1(p, bound_variables.clone()), box skolemize1(q, bound_variables)),
+        Formula::Forall(s, box p) => { bound_variables.push(s.clone()); Formula::Forall(s, box skolemize1(p, bound_variables)) },
+        Formula::Exists(_, box p) => { unimplemented!(); p },
+        _ => f,
+    }
+}
+*/
+
 #[cfg(test)]
 mod test {
     
