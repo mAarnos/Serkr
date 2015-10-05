@@ -23,8 +23,8 @@ pub fn rename(f: Formula, n: &mut isize) -> Formula {
         Formula::Not(box p) => Formula::Not(box rename(p, n)),
         Formula::And(box p, box q) => Formula::And(box rename(p, n), box rename(q, n)),
         Formula::Or(box p, box q) => Formula::Or(box rename(p, n), box rename(q, n)),
-        Formula::Forall(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Forall(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) },
-        Formula::Exists(s, box p) => { let new_var = format!("v_{}", *n); *n += 1; Formula::Exists(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) }
+        Formula::Forall(s, box p) => { let new_var = format!("v{}", *n); *n += 1; Formula::Forall(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) },
+        Formula::Exists(s, box p) => { let new_var = format!("v{}", *n); *n += 1; Formula::Exists(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) }
         _ => f
     }
 }
@@ -55,19 +55,29 @@ fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
 #[cfg(test)]
 mod test {
     use super::{rename};
-    use parser::formula::{Term, Formula};
     use parser::parser::parse;
     
     #[test]
     fn rename_1() {
         let mut n = 0;
         let f = parse("forall x. exists x. P(x)").unwrap(); 
-        // forall v_0. exists v_1. P(v_1)
-        // TODO: fix this
-        let correct_f = Formula::Forall("v_0".to_string(), 
-                                        box Formula::Exists("v_1".to_string(), 
-                                                            box Formula::Predicate("P".to_string(), 
-                                                                                   vec!(Term::Variable("v_1".to_string())))));
+        let correct_f = parse("forall v0. exists v1. P(v1)").unwrap(); 
+        assert_eq!(rename(f, &mut n), correct_f);
+    }
+    
+    #[test]
+    fn rename_2() {
+        let mut n = 0;
+        let f = parse("forall x. forall y. (P(x, y) /\\ Q(y, z))").unwrap(); 
+        let correct_f = parse("forall v0. forall v1. (P(v0, v1) /\\ Q(v1, z))").unwrap(); 
+        assert_eq!(rename(f, &mut n), correct_f);
+    }
+    
+    #[test]
+    fn rename_3() {
+        let mut n = 0;
+        let f = parse("forall x. (R(x, x) /\\ exists y. (P(y) \\/ forall x. exists y. (R(x, y) \\/ forall z. Q(z))))").unwrap(); 
+        let correct_f = parse("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
         assert_eq!(rename(f, &mut n), correct_f);
     }
 }    
