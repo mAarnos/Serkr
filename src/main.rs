@@ -17,8 +17,8 @@
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-#![feature(plugin)]
 #![feature(hashmap_hasher)]
+#![feature(plugin)]
 #![plugin(peg_syntax_ext)]
 #![allow(dead_code)]
 

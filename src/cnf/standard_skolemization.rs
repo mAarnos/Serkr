@@ -24,11 +24,11 @@ pub fn skolemize(f: Formula) -> Formula {
 }
 
 /*
-fn skolemize1(f: Formula, mut bound_variables: Vec<String>) -> Formula {
+fn skolemize1(f: Formula) -> Formula {
     match f {
-        Formula::And(box p, box q) => Formula::And(box skolemize1(p, bound_variables.clone()), box skolemize1(q, bound_variables)),
-        Formula::Or(box p, box q) => Formula::Or(box skolemize1(p, bound_variables.clone()), box skolemize1(q, bound_variables)),
-        Formula::Forall(s, box p) => { bound_variables.push(s.clone()); Formula::Forall(s, box skolemize1(p, bound_variables)) },
+        Formula::And(box p, box q) => Formula::And(box skolemize1(p), box skolemize1(q)),
+        Formula::Or(box p, box q) => Formula::Or(box skolemize1(p), box skolemize1(q)),
+        Formula::Forall(s, box p) => Formula::Forall(s, box skolemize1(p)),
         Formula::Exists(_, box p) => { unimplemented!(); p },
         _ => f,
     }

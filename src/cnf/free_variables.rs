@@ -24,10 +24,8 @@ pub fn fv(f: Formula) -> Set<String> {
         Formula::True | Formula::False => Set::new(),
         Formula::Predicate(_, params) => params.into_iter().flat_map(|p| fvt(p)).collect(),
         Formula::Not(box p) => fv(p),
-        Formula::And(box p, box q) | 
-        Formula::Or(box p, box q) | 
-        Formula::Implies(box p, box q) | 
-        Formula::Equivalent (box p, box q) => { let lhs = fv(p); lhs.union(&fv(q)).cloned().collect() },
+        Formula::And(box p, box q) | Formula::Or(box p, box q) | 
+        Formula::Implies(box p, box q) | Formula::Equivalent (box p, box q) => fv(p).union(&fv(q)).cloned().collect(),
         Formula::Forall(s, box p) | Formula::Exists(s, box p) => { let mut lhs = fv(p); lhs.remove(&s); lhs },
     }
 }
@@ -57,10 +55,11 @@ mod test {
     
     #[test]
     fn fv_2() {
-        let f = parse("forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z))").unwrap();
+        let f = parse("exists v. (P(c2) /\\ forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z)))").unwrap();
         let free_variables = fv(f);
-        assert_eq!(free_variables.cardinality(), 2);
+        assert_eq!(free_variables.cardinality(), 3);
         assert!(free_variables.contains("c"));
+        assert!(free_variables.contains("c2"));
         assert!(free_variables.contains("z"));
     }
 }    
