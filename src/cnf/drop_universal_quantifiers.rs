@@ -25,6 +25,17 @@ fn drop_universal_quantifiers(f: Formula) -> Formula {
     }
 }
 
+fn all_universal_quantifiers_are_outside_formula(f: Formula, outside: bool) -> bool {
+    match f {
+        Formula::Predicate(_, _) => true,
+        Formula::Not(box p) => all_universal_quantifiers_are_outside_formula(p, false),
+        Formula::And(box p, box q) | Formula::Or(box p, box q) => all_universal_quantifiers_are_outside_formula(p, false) && all_universal_quantifiers_are_outside_formula(q, false),
+        Formula::Forall(_, box p) => if !outside { false } else { all_universal_quantifiers_are_outside_formula(p, true) },
+        _ => panic!("These should have been eliminated previously, something is SERIOUSLY wrong somewhere!"),
+        
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::{drop_universal_quantifiers};
