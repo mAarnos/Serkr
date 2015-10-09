@@ -15,7 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Formula};
+use parser::formula::{Term, Formula};
+use cnf::free_variables::free_in;
 
 /// Simplifies a formula by performing some equivalence-preserving first-order simplifications.
 /// After this function the formula either is only "true" or "false", or it no longer contains any instances of "true" and "false".
@@ -26,8 +27,8 @@ pub fn simplify(f: Formula) -> Formula {
         Formula::Or(box p, box q) => simplify_or(p, q),
         Formula::Implies(box p, box q) => simplify_implies(p, q),
         Formula::Equivalent(box p, box q) => simplify_equivalent(p, q),
-        Formula::Forall(s, box p) => Formula::Forall(s, box simplify(p)),
-        Formula::Exists(s, box p) => Formula::Exists(s, box simplify(p)),
+        Formula::Forall(s, box p) => simplify_quantifier(s, p, true),
+        Formula::Exists(s, box p) => simplify_quantifier(s, p, false),
         _ => f,
     }
 }
@@ -99,9 +100,23 @@ fn simplify_equivalent(f1: Formula, f2: Formula) -> Formula {
     }
 }
 
+/// "forall x. p" and "exists x. p" can be written as "p" if x does not occur free in p.
+fn simplify_quantifier(s: String, f: Formula, forall: bool) -> Formula {
+    let simplified_f = simplify(f);
+    if free_in(&simplified_f, &Term::Variable(s.clone())) {
+        if forall {
+            Formula::Forall(s, box simplified_f)
+        } else {
+            Formula::Exists(s, box simplified_f)
+        }   
+    } else {
+        simplified_f
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use super::{simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
+    use super::{simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
     use parser::formula::{Formula};
     use parser::parser::parse;
     
@@ -278,5 +293,26 @@ mod test {
         let f2 = parse("Q(x, y)").unwrap();
         let correct_f = parse("(P(x) <=> Q(x, y))").unwrap();
         assert_eq!(simplify_equivalent(f1, f2), correct_f);
+    }
+    
+    #[test]
+    fn simplify_quantifier_1() {
+        let f = parse("exists y. (Odd(n) \\/ Even(n))").unwrap();
+        let correct_f = parse("(Odd(n) \\/ Even(n))").unwrap();
+        assert_eq!(simplify_quantifier("x".to_string(), f, true), correct_f);
+    }
+    
+    #[test]
+    fn simplify_quantifier_2() {
+        let f = parse("exists y. (Odd(n) \\/ Even(n))").unwrap();
+        let correct_f = parse("forall n. (Odd(n) \\/ Even(n))").unwrap();
+        assert_eq!(simplify_quantifier("n".to_string(), f, true), correct_f);
+    }
+    
+    #[test]
+    fn simplify_quantifier_3() {
+        let f = parse("P(x)").unwrap();
+        let correct_f = parse("exists x. P(x)").unwrap();
+        assert_eq!(simplify_quantifier("x".to_string(), f, false), correct_f);
     }
 }

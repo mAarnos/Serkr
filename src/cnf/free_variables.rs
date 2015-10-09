@@ -18,6 +18,26 @@
 use parser::formula::{Term, Formula};
 use utils::set::Set;
 
+/// Used for checking if a term t is free in a formula f.
+pub fn free_in(f: &Formula, t: &Term) -> bool {
+    match *f {
+        Formula::True | Formula::False => false,
+        Formula::Predicate(_, ref args) => args.iter().any(|x| occurs_in(x, t)),
+        Formula::Not(box ref p) => free_in(&p, t),
+        Formula::And(box ref p, box ref q) | Formula::Or(box ref p, box ref q) | 
+        Formula::Implies(box ref p, box ref q) | Formula::Equivalent(box ref p, box ref q) => free_in(&p, t) || free_in(&q, t),
+        Formula::Forall(ref s, box ref p) | Formula::Exists(ref s, box ref p) => !occurs_in(&Term::Variable(s.clone()), t) && free_in(&p, t),
+    }
+}
+
+/// Used for checking if a term s occurs as a subterm in a term t.
+fn occurs_in(t: &Term, s: &Term) -> bool {
+    t == s || match *t {
+        Term::Variable(_) => false,
+        Term::Function(_, ref args) => args.iter().any(|x| occurs_in(x, s)),
+    }
+}
+
 /// Get the free variables of a formula.
 pub fn fv(f: Formula) -> Set<String> {
     match f {
