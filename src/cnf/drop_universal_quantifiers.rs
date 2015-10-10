@@ -18,7 +18,7 @@
 use parser::formula::{Formula};
 
 /// Drops all universal quantifiers from the start of a formula. 
-fn drop_universal_quantifiers(f: Formula) -> Formula {
+pub fn drop_universal_quantifiers(f: Formula) -> Formula {
     match f {
         Formula::Forall(_, box p) => drop_universal_quantifiers(p),
         _ => f,

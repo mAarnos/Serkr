@@ -18,10 +18,15 @@
 use parser::formula::{Formula};
 use cnf::nnf::nnf;
 use cnf::standard_skolemization::skolemize;
+use cnf::pull_out_quantifiers::pull_out_quantifiers;
+use cnf::drop_universal_quantifiers::drop_universal_quantifiers;
+use cnf::distribute_ors_over_ands::distribute_ors_over_ands;
 
 /// Turns a formula into CNF.
 pub fn cnf(f: Formula) -> Formula {
     let nnf_f = nnf(f);
     let skolemized_f = skolemize(nnf_f);
-    skolemized_f
+    let quantifier_free_f = drop_universal_quantifiers(pull_out_quantifiers(skolemized_f));
+    let cnf_f = distribute_ors_over_ands(quantifier_free_f);
+    cnf_f
 }

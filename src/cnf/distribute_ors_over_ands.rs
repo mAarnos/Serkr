@@ -18,7 +18,7 @@
 use parser::formula::{Formula};
 
 /// Distributes ORs inwards over ANDs.
-fn distribute_ors_over_ands(f: Formula) -> Formula {
+pub fn distribute_ors_over_ands(f: Formula) -> Formula {
     match f {
         Formula::And(box p, box q) => Formula::And(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
         Formula::Or(box ref p, box Formula::And(box ref q, box ref r)) | 
@@ -31,5 +31,13 @@ fn distribute_ors_over_ands(f: Formula) -> Formula {
 
 #[cfg(test)]
 mod test {
+    use super::distribute_ors_over_ands;
+    use parser::parser::parse;
     
+    #[test]
+    fn distribute_1() {
+        let f = parse("((Animal(f(x)) /\\ ~Loves(x, f(x))) \\/ Loves(g(x), x))").unwrap();
+        let correct_f = parse("((Loves(g(x), x) \\/ Animal(f(x))) /\\ (Loves(g(x), x) \\/ ~Loves(x, f(x))))").unwrap();
+        assert_eq!(distribute_ors_over_ands(f), correct_f);
+    }
 }    
