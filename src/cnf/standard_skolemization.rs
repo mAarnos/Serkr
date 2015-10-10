@@ -69,8 +69,7 @@ fn tsubst_variable(t: Term, from: &str, to: Term) -> Term {
 /// Checks if a given formula contains existential quantifiers. After skolemization this should not happen at all.
 fn contains_existential_quantifiers(f: Formula) -> bool {
     match f {
-        Formula::Predicate(_, _) => false,
-        Formula::Not(box p) => contains_existential_quantifiers(p),
+        Formula::Predicate(_, _) | Formula::Not(_) => false,
         Formula::And(box p, box q) | Formula::Or(box p, box q) => contains_existential_quantifiers(p) || contains_existential_quantifiers(q),
         Formula::Forall(_, box p) => contains_existential_quantifiers(p),
         Formula::Exists(_, _) => true,
