@@ -146,8 +146,8 @@ mod test {
     
     #[test]
     fn move_nots_inward_1() {
-        let f = parse("~(~(P \\/ Q) /\\ ~~(~P /\\ Q))").unwrap();
-        let correct_f = parse("((P \\/ Q) \\/ (P \\/ ~Q))").unwrap();
+        let f = parse("~((P \\/ Q) /\\ ~~(~P /\\ Q))").unwrap();
+        let correct_f = parse("((~P /\\ ~Q) \\/ (P \\/ ~Q))").unwrap();
         assert_eq!(move_nots_inward(f), correct_f);
     }
 }

@@ -40,4 +40,17 @@ mod test {
         let correct_f = parse("((Loves(g(x), x) \\/ Animal(f(x))) /\\ (Loves(g(x), x) \\/ ~Loves(x, f(x))))").unwrap();
         assert_eq!(distribute_ors_over_ands(f), correct_f);
     }
+    
+    #[test]
+    fn distribute_2() {
+        let f = parse("((P /\\ Q) \\/ (R /\\ S))").unwrap();
+        let correct_f = parse("(((R \\/ P) /\\ (R \\/ Q)) /\\ ((S \\/ P) /\\ (S \\/ Q)))").unwrap();
+        assert_eq!(distribute_ors_over_ands(f), correct_f);
+    }
+    
+    #[test]
+    fn distribute_3() {
+        let f = parse("(Stays(x) /\\ (~HeavyItem(x) \\/ ~ExpensiveItem(x)))").unwrap();
+        assert_eq!(distribute_ors_over_ands(f.clone()), f);
+    }
 }    
