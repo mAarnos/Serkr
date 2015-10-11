@@ -30,3 +30,16 @@ pub fn cnf(f: Formula) -> Formula {
     let cnf_f = distribute_ors_over_ands(quantifier_free_f);
     cnf_f
 }
+
+#[cfg(test)]
+mod test {
+    use super::cnf;
+    use parser::parser::parse;
+    
+    #[test]
+    fn cnf_1() {
+        let f = parse("forall x. ((forall y. (Animal(y) ==> Loves(x, y))) ==> (exists y. Loves(y, x)))").unwrap();
+        let correct_f = parse("((Loves(sf1(v0), v0) \\/ Animal(sf0(v0))) /\\ (Loves(sf1(v0), v0) \\/ ~Loves(v0, sf0(v0))))").unwrap();
+        assert_eq!(cnf(f), correct_f);
+    }
+}    
