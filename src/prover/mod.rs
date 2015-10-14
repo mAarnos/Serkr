@@ -15,21 +15,4 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(box_patterns)]
-#![feature(box_syntax)]
-#![feature(hashmap_hasher)]
-#![feature(plugin)]
-#![plugin(peg_syntax_ext)]
-#![allow(dead_code)]
-
-mod parser;
-mod cnf;
-mod prover;
-mod utils;
-
-fn main() {
-    println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
-    
-    // let mut x = utils::set::Set::<utils::set::Set<i64>>::new();
-    // println!("{}", parser::parser::parse("(P() <=> Q())").unwrap_err());
-}
+mod unification;

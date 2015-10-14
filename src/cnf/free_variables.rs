@@ -31,7 +31,7 @@ pub fn free_in(f: &Formula, t: &Term) -> bool {
 }
 
 /// Used for checking if a term s occurs as a subterm in a term t.
-fn occurs_in(t: &Term, s: &Term) -> bool {
+pub fn occurs_in(t: &Term, s: &Term) -> bool {
     t == s || match *t {
         Term::Variable(_) => false,
         Term::Function(_, ref args) => args.iter().any(|x| occurs_in(x, s)),

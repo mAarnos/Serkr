@@ -17,7 +17,7 @@
 
 /// Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
-mod free_variables;
+pub mod free_variables;
 
 mod simplify;
 mod nnf;
