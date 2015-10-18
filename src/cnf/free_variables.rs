@@ -61,7 +61,7 @@ fn fvt(t: Term) -> Set<String> {
 #[cfg(test)]
 mod test {
     use super::fv;
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn fv_1() {

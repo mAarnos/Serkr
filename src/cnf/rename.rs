@@ -55,7 +55,7 @@ fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
 #[cfg(test)]
 mod test {
     use super::{rename};
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn rename_1() {

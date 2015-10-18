@@ -49,7 +49,7 @@ fn and_or_formula(f1: Formula, f2: Formula, and_formula: bool) -> Formula {
 #[cfg(test)]
 mod test {
     use super::pull_out_quantifiers;
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn pull_out_quantifiers_1() {

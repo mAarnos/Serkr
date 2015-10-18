@@ -32,7 +32,7 @@ pub fn distribute_ors_over_ands(f: Formula) -> Formula {
 #[cfg(test)]
 mod test {
     use super::distribute_ors_over_ands;
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn distribute_1() {

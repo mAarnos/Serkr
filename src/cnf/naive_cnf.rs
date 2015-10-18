@@ -34,7 +34,7 @@ pub fn cnf(f: Formula) -> Formula {
 #[cfg(test)]
 mod test {
     use super::cnf;
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn cnf_1() {

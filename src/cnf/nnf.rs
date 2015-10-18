@@ -79,7 +79,7 @@ fn move_nots_inward_not(f: Formula) -> Formula {
 #[cfg(test)]
 mod test {
     use super::{nnf, elim_imp_and_eq, move_nots_inward, move_nots_inward_not};
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn nnf_1() {

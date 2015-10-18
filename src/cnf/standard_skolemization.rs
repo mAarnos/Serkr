@@ -80,7 +80,7 @@ fn contains_existential_quantifiers(f: Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::skolemize1;
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
 
     #[test]
     fn skolemize1_1() {

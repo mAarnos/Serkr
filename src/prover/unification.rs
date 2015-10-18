@@ -83,7 +83,7 @@ fn fullunify(eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
 mod test {
     use super::fullunify;
     use parser::formula::{Term, Formula};
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     fn equals_to_eqs(f: Formula) -> Vec<(Term, Term)> {
         match f {

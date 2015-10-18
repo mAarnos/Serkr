@@ -16,4 +16,4 @@
 */
 
 pub mod formula;
-pub mod parser;
+pub mod internal_parser;

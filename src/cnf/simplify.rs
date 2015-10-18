@@ -118,7 +118,7 @@ fn simplify_quantifier(s: String, f: Formula, forall: bool) -> Formula {
 mod test {
     use super::{simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
     use parser::formula::{Formula};
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn simplify_not_1() {

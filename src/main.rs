@@ -29,7 +29,5 @@ mod utils;
 
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
-    
-    // let mut x = utils::set::Set::<utils::set::Set<i64>>::new();
-    // println!("{}", parser::parser::parse("(P() <=> Q())").unwrap_err());
+
 }

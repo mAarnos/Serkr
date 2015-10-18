@@ -39,7 +39,7 @@ fn all_universal_quantifiers_are_outside_formula(f: Formula, outside: bool) -> b
 #[cfg(test)]
 mod test {
     use super::{drop_universal_quantifiers};
-    use parser::parser::parse;
+    use parser::internal_parser::parse;
     
     #[test]
     fn drop_universal_quantifiers_1() {
