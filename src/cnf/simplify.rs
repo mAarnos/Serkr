@@ -19,8 +19,15 @@ use parser::formula::{Term, Formula};
 use cnf::free_variables::free_in;
 
 /// Simplifies a formula by performing some equivalence-preserving first-order simplifications.
-/// After this function the formula either is only "true" or "false", or it no longer contains any instances of "true" and "false".
-pub fn simplify(f: Formula) -> Formula {
+/// After this function the formula is either only "true" or "false", or it no longer contains any instances of "true" and "false".
+pub fn simplify_formula(f: Formula) -> Formula {
+    let simplified_formula = simplify(f);
+    assert!(is_simplified(&simplified_formula));
+    simplified_formula
+}
+
+/// The main function for simplifying the formula from bottom up.
+fn simplify(f: Formula) -> Formula {
     match f { 
         Formula::Not(box p) => simplify_not(p),
         Formula::And(box p, box q) => simplify_and(p, q),
@@ -111,6 +118,30 @@ fn simplify_quantifier(s: String, f: Formula, forall: bool) -> Formula {
         }   
     } else {
         simplified_f
+    }
+}
+
+/// Checks if a formula has been simplified, i.e. it is either "true" or "false" or doesn't contain "true" or "false".
+pub fn is_simplified(f: &Formula) -> bool {
+    if *f == Formula::True || *f == Formula::False {
+        true
+    } else {
+        !contains_true_or_false(f)
+    }
+}
+
+/// Used for checking if a formula contains "true" or "false".
+fn contains_true_or_false(f: &Formula) -> bool {
+    match *f {
+        Formula::True => true,
+        Formula::False => true,
+        Formula::Predicate(_, _) => false,
+        Formula::Not(box ref p) => contains_true_or_false(p),
+        Formula::And(box ref p, box ref q) | 
+        Formula::Or(box ref p, box ref q) |
+        Formula::Implies(box ref p, box ref q) | 
+        Formula::Equivalent(box ref p, box ref q) => contains_true_or_false(p) || contains_true_or_false(q), 
+        Formula::Forall(_, box ref p) | Formula::Exists(_, box ref p) => contains_true_or_false(p),
     }
 }
 

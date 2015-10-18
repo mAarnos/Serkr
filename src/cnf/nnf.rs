@@ -16,11 +16,11 @@
 */
 
 use parser::formula::{Formula};
-use cnf::simplify::simplify;
+use cnf::simplify::simplify_formula;
 
 /// Converts a formula into an equivalent negation normal form.
 pub fn nnf(f: Formula) -> Formula {
-    let simplified_f = simplify(f);
+    let simplified_f = simplify_formula(f);
     match simplified_f {
         Formula::True => Formula::True,
         Formula::False => Formula::False,
