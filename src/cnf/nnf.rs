@@ -21,11 +21,13 @@ use cnf::simplify::simplify_formula;
 /// Converts a formula into an equivalent negation normal form.
 pub fn nnf(f: Formula) -> Formula {
     let simplified_f = simplify_formula(f);
-    match simplified_f {
-        Formula::True => Formula::True,
-        Formula::False => Formula::False,
-        _ => move_nots_inward(elim_imp_and_eq(simplified_f))
-    }   
+    if simplified_f == Formula::True || simplified_f == Formula::False {
+        simplified_f
+    } else {
+        let nnf_formula = move_nots_inward(elim_imp_and_eq(simplified_f));
+        assert!(is_in_nnf(&nnf_formula));
+        nnf_formula
+    }
 }
 
 /// Eliminates all implications and equivalences in a formula.
@@ -73,6 +75,19 @@ fn move_nots_inward_not(f: Formula) -> Formula {
         Formula::Forall(s, box p) => Formula::Exists(s, box move_nots_inward(Formula::Not(box p))),
         Formula::Exists(s, box p) => Formula::Forall(s, box move_nots_inward(Formula::Not(box p))),
         _ => Formula::Not(box move_nots_inward(f)),
+    }
+}
+
+/// Checks whether a given formula is in NNF or not.
+fn is_in_nnf(f: &Formula) -> bool {
+    match *f {
+        Formula::Predicate(_, _) => true,
+        Formula::Not(box Formula::Predicate(_, _)) => true,
+        Formula::And(box ref p, box ref q) |
+        Formula::Or(box ref p, box ref q) => is_in_nnf(p) && is_in_nnf(q),
+        Formula::Forall(_, box ref p) | 
+        Formula::Exists(_, box ref p) => is_in_nnf(p),
+        _ => false,
     }
 }
 

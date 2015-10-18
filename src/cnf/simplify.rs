@@ -122,7 +122,7 @@ fn simplify_quantifier(s: String, f: Formula, forall: bool) -> Formula {
 }
 
 /// Checks if a formula has been simplified, i.e. it is either "true" or "false" or doesn't contain "true" or "false".
-pub fn is_simplified(f: &Formula) -> bool {
+fn is_simplified(f: &Formula) -> bool {
     if *f == Formula::True || *f == Formula::False {
         true
     } else {

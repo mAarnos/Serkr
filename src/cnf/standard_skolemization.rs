@@ -19,14 +19,13 @@ use parser::formula::{Term, Formula};
 use cnf::rename::rename;
 use cnf::free_variables::fv;
 
+/// Eliminates existential quantifiers by replacing them with new skolem functions.
 pub fn skolemize(f: Formula) -> Formula {
     let mut n1 = 0;
     let mut n2 = 0;
     let renamed_f = rename(f, &mut n1);
     let skolemized_f = skolemize1(renamed_f, &mut n2);
-    
     assert!(!contains_existential_quantifiers(skolemized_f.clone()));
-    
     skolemized_f
 }
 
@@ -69,11 +68,10 @@ fn tsubst_variable(t: Term, from: &str, to: Term) -> Term {
 /// Checks if a given formula contains existential quantifiers. After skolemization this should not happen at all.
 fn contains_existential_quantifiers(f: Formula) -> bool {
     match f {
-        Formula::Predicate(_, _) | Formula::Not(_) => false,
         Formula::And(box p, box q) | Formula::Or(box p, box q) => contains_existential_quantifiers(p) || contains_existential_quantifiers(q),
         Formula::Forall(_, box p) => contains_existential_quantifiers(p),
         Formula::Exists(_, _) => true,
-        _ => panic!("These should have been eliminated previously, something is SERIOUSLY wrong somewhere!"),
+        _ => false
     }
 }
 
