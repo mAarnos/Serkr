@@ -15,9 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/// Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
+//! Contains stuff for converting raw first order formulas into CNF.
+//!
+//! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
-/// TODO: move this stuff somewhere else.
+// TODO: move this stuff somewhere else.
 pub mod free_variables;
 
 mod simplify;

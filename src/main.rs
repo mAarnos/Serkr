@@ -22,10 +22,10 @@
 #![plugin(peg_syntax_ext)]
 #![allow(dead_code)]
 
-mod parser;
-mod cnf;
-mod prover;
-mod utils;
+pub mod parser;
+pub mod cnf;
+pub mod prover;
+pub mod utils;
 
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
