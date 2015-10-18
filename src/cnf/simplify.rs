@@ -141,15 +141,22 @@ fn contains_true_or_false(f: &Formula) -> bool {
         Formula::Or(box ref p, box ref q) |
         Formula::Implies(box ref p, box ref q) | 
         Formula::Equivalent(box ref p, box ref q) => contains_true_or_false(p) || contains_true_or_false(q), 
-        Formula::Forall(_, box ref p) | Formula::Exists(_, box ref p) => contains_true_or_false(p),
+        Formula::Forall(_, box ref p) | 
+        Formula::Exists(_, box ref p) => contains_true_or_false(p),
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::{simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
+    use super::{simplify_formula, simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
     use parser::formula::{Formula};
     use parser::internal_parser::parse;
+    
+    #[test]
+    fn simplify_1() {
+        let f = parse("((P <=> P) \\/ Q(x, y))").unwrap();
+        assert_eq!(simplify_formula(f), Formula::True);
+    }
     
     #[test]
     fn simplify_not_1() {

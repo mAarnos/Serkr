@@ -23,9 +23,20 @@ pub fn rename(f: Formula, n: &mut isize) -> Formula {
         Formula::Not(box p) => Formula::Not(box rename(p, n)),
         Formula::And(box p, box q) => Formula::And(box rename(p, n), box rename(q, n)),
         Formula::Or(box p, box q) => Formula::Or(box rename(p, n), box rename(q, n)),
-        Formula::Forall(s, box p) => { let new_var = format!("v{}", *n); *n += 1; Formula::Forall(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) },
-        Formula::Exists(s, box p) => { let new_var = format!("v{}", *n); *n += 1; Formula::Exists(new_var.clone(), box rename(rename_variable(p, &s, &new_var), n)) }
+        Formula::Forall(s, box p) => rename_quantifier(s, p, n, true),
+        Formula::Exists(s, box p) => rename_quantifier(s, p, n, false),
         _ => f
+    }
+}
+
+fn rename_quantifier(s: String, p: Formula, n: &mut isize, universal_quantifier: bool) -> Formula {
+    let new_var = format!("v{}", *n); 
+    *n += 1;
+    let renamed_p = rename(rename_variable(p, &s, &new_var), n);
+    if universal_quantifier {
+        Formula::Forall(new_var, box renamed_p)
+    } else {
+        Formula::Exists(new_var, box renamed_p)
     }
 }
 
