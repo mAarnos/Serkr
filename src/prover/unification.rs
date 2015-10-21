@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use parser::formula::Term;
+use parser::formula::{Term, Formula};
 use cnf::free_variables::occurs_in;
 
 fn subst(t: Term, from: &Term, to: &Term) -> Term {
@@ -26,9 +26,7 @@ fn subst(t: Term, from: &Term, to: &Term) -> Term {
     }
 }
 
-fn unify(mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
-    let mut env = HashMap::<Term, Term>::new();
-
+fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
     while let Some(eq) = eqs.pop() {
         if eq.0 == eq.1 {
             continue; // delete
@@ -76,7 +74,37 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
 }
 
 fn fullunify(eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
-    Ok(solve(try!(unify(eqs))))
+    Ok(solve(try!(unify(HashMap::new(), eqs))))
+}
+
+fn unify_literals(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<HashMap<Term, Term>, ()> {
+    match tmp {
+        (Formula::Predicate(p1, args1), Formula::Predicate(p2, args2)) => Ok(try!(unify(env, vec!((Term::Function(p1, args1), Term::Function(p2, args2)))))),
+        (Formula::Not(box p), Formula::Not(box q)) => unify_literals(env, (p, q)),
+        _ => Err(())
+    }
+}
+
+fn negate(f: Formula) -> Formula {
+    match f {
+        Formula::Not(box p) => p,
+        _ => f
+    }
+}
+
+fn unify_complements(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<HashMap<Term, Term>, ()> {
+    unify_literals(env, (tmp.0, negate(tmp.1)))
+}
+
+fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term, Term>, ()> {
+    for i in 0..(l.len() - 1) {
+        env = try!(unify_literals(env, (l[i].clone(), l[i + 1].clone())));
+    }
+    Ok(solve(env))
+}
+
+fn unifiable(p: Formula, q: Formula) -> bool {
+    unify_literals(HashMap::new(), (p, q)).is_ok()
 }
 
 #[cfg(test)]
