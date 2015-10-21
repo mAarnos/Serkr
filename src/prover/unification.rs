@@ -85,7 +85,7 @@ fn unify_literals(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<H
     }
 }
 
-fn negate(f: Formula) -> Formula {
+pub fn negate(f: Formula) -> Formula {
     match f {
         Formula::Not(box p) => p,
         _ => f
