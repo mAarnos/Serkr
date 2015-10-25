@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::{Formula};
+ use utils::formula::Formula;
 
 /// Drops all universal quantifiers from the start of a formula. 
 pub fn drop_universal_quantifiers(f: Formula) -> Formula {
@@ -39,7 +39,7 @@ fn contains_universal_quantifiers(f: Formula) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::{drop_universal_quantifiers};
+    use super::drop_universal_quantifiers;
     use parser::internal_parser::parse;
     
     #[test]

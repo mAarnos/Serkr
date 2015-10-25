@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::{Formula};
+ use utils::formula::Formula;
 
 /// Distributes ORs inwards over ANDs.
 pub fn distribute_ors_over_ands(f: Formula) -> Formula {

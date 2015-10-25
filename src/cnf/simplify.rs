@@ -149,7 +149,7 @@ fn contains_true_or_false(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::{simplify_formula, simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
-     use utils::formula::{Formula};
+     use utils::formula::Formula;
     use parser::internal_parser::parse;
     
     #[test]

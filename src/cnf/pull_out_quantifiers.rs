@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::{Formula};
+ use utils::formula::Formula;
 
 /// Move all universal quantifiers outwards.
 pub fn pull_out_quantifiers(f: Formula) -> Formula {

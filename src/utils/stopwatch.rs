@@ -18,6 +18,7 @@
 extern crate time;
 
 /// A stopwatch-type timer.
+#[derive(Debug, Copy, Clone)]
 pub struct Stopwatch {
     start_time: u64,
     stop_time: u64,

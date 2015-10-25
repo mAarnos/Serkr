@@ -22,6 +22,16 @@
 #![plugin(peg_syntax_ext)]
 #![allow(dead_code)]
 
+// Some lints which are pretty useful.
+// Try to add "unstable_features" and "unused_qualifications" when possible.
+#![deny(missing_docs,
+        missing_debug_implementations, 
+        missing_copy_implementations,
+        trivial_casts, 
+        trivial_numeric_casts,
+        unsafe_code,
+        unused_import_braces)]
+
 pub mod parser;
 pub mod cnf;
 pub mod prover;

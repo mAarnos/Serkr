@@ -19,7 +19,7 @@ use std::hash::{self, Hash, Hasher, SipHasher};
 use std::collections::HashSet;
 use std::collections::hash_set::{Iter, IntoIter, SymmetricDifference, Difference, Union, Intersection};
 use std::collections::hash_map::RandomState;
-use std::iter::{FromIterator};
+use std::iter::FromIterator;
 use std::fmt::{Debug, Formatter, Result};
 use std::default::Default;
 use std::borrow::Borrow;

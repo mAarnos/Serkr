@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::{Formula};
+ use utils::formula::Formula;
 use cnf::nnf::nnf;
 use cnf::standard_skolemization::skolemize;
 use cnf::pull_out_quantifiers::pull_out_quantifiers;
