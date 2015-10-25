@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use parser::formula::{Term, Formula};
+use utils::formula::{Term, Formula};
 use cnf::free_variables::occurs_in;
 
 fn subst(t: Term, from: &Term, to: &Term) -> Term {
@@ -110,7 +110,7 @@ fn unifiable(p: Formula, q: Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::fullunify;
-    use parser::formula::{Term, Formula};
+    use utils::formula::{Term, Formula};
     use parser::internal_parser::parse;
     
     fn equals_to_eqs(f: Formula) -> Vec<(Term, Term)> {

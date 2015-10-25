@@ -15,11 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Formula};
+ use utils::formula::{Formula};
 
 /// The grammar for the internal parser.
 peg! formula(r#"
-    use parser::formula::{Term, Formula};
+    use utils::formula::{Term, Formula};
     
     #[pub]
     formula -> Formula
@@ -128,7 +128,7 @@ pub fn parse(s: &str) -> Result<Formula, formula::ParseError> {
 
 #[cfg(test)]
 mod test {
-    use parser::formula::{Formula};
+     use utils::formula::{Formula};
     use super::*;
     
     #[test]

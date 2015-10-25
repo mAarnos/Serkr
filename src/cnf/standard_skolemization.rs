@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Term, Formula};
+use utils::formula::{Term, Formula};
 use cnf::rename::rename;
 use cnf::free_variables::fv;
 

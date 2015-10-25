@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Term, Formula};
+use utils::formula::{Term, Formula};
 use utils::set::Set;
 
 /// Used for checking if a term t is free in a formula f.

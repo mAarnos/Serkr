@@ -16,4 +16,5 @@
 */
 
 pub mod stopwatch;
+pub mod formula;
 pub mod set;

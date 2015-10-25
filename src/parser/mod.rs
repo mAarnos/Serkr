@@ -15,5 +15,4 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod formula;
 pub mod internal_parser;

@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Formula};
+ use utils::formula::{Formula};
 use cnf::simplify::simplify_formula;
 
 /// Converts a formula into an equivalent negation normal form.

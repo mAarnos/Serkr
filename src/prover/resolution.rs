@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::Formula;
+use utils::formula::Formula;
 use prover::unification::negate;
 
 /// Picks and removes the "best" clause from the unused clauses according to heuristics.
