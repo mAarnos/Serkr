@@ -35,11 +35,11 @@ fn pick_clause(unused: &mut Vec<Vec<Formula>>) -> Vec<Formula> {
 }
 
 /// Checks if a clause is trivial, i.e. it is a syntactical tautology.
-fn trivial(cl: &Vec<Formula>) -> bool {
-    for i in 0..cl.len() {
-        let counterpart = negate(cl[i].clone());
-        for j in (i + 1)..cl.len() {
-            if cl[j] == counterpart {
+fn trivial(cls: &[Formula]) -> bool {
+    for (i, cl) in cls.iter().enumerate() {
+        let counterpart = negate(cl.clone());
+        for j in (i + 1)..cls.len() {
+            if cls[j] == counterpart {
                 return true;
             }
         }
@@ -48,8 +48,9 @@ fn trivial(cl: &Vec<Formula>) -> bool {
 }
 
 fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
-    while unused.len() > 0 {
+    while !unused.is_empty() {
         let chosen_clause = pick_clause(&mut unused);
+        used.push(chosen_clause);
     }
     Err("No proof found.")
 }

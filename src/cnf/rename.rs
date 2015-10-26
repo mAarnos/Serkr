@@ -48,8 +48,8 @@ fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
         Formula::Not(box p) => Formula::Not(box rename_variable(p, from, to)),
         Formula::And(box p, box q) => Formula::And(box rename_variable(p, from, to), box rename_variable(q, from, to)),
         Formula::Or(box p, box q) => Formula::Or(box rename_variable(p, from, to), box rename_variable(q, from, to)),
-        Formula::Forall(s, box p) => Formula::Forall(if s == from { to.to_string() } else { s }, box rename_variable(p, from, to)),
-        Formula::Exists(s, box p) => Formula::Exists(if s == from { to.to_string() } else { s }, box rename_variable(p, from, to)),
+        Formula::Forall(s, box p) => Formula::Forall(if s == from { to.to_owned() } else { s }, box rename_variable(p, from, to)),
+        Formula::Exists(s, box p) => Formula::Exists(if s == from { to.to_owned() } else { s }, box rename_variable(p, from, to)),
         _ => f
     }
 }
@@ -58,7 +58,7 @@ fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
 /// We assume that the new variable does not exist already.
 fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
     match t {
-        Term::Variable(s) => if from == s { Term::Variable(to.to_string()) } else { Term::Variable(s) },
+        Term::Variable(s) => if from == s { Term::Variable(to.to_owned()) } else { Term::Variable(s) },
         Term::Function(s, args) => Term::Function(s, args.into_iter().map(|t2| rename_variable_in_term(t2, from, to)).collect())
     }
 }

@@ -60,7 +60,7 @@ fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<Has
 fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
     let mut new_env = env.clone();
     
-    for (_, v) in new_env.iter_mut() {
+    for (_, v) in &mut new_env {
         if let Some(new_v) = env.get(v) {
             *v = new_v.clone();
         }
@@ -97,8 +97,9 @@ fn unify_complements(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Resul
 }
 
 fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term, Term>, ()> {
-    for i in 0..(l.len() - 1) {
-        env = try!(unify_literals(env, (l[i].clone(), l[i + 1].clone())));
+    // More complicated than needs to be to get around a warning.
+    for (i, item) in l.iter().enumerate().take(l.len() - 1) {
+        env = try!(unify_literals(env, (item.clone(), l[i + 1].clone())));
     }
     Ok(solve(env))
 }
@@ -126,8 +127,8 @@ mod test {
         let eqs = equals_to_eqs(f);
         let mgu = fullunify(eqs).unwrap();
         assert_eq!(mgu.len(), 2);
-        assert_eq!(*mgu.get(&Term::Variable("w".to_string())).unwrap(), Term::Function("g".to_string(), vec!(Term::Variable("y".to_string()))));
-        assert_eq!(*mgu.get(&Term::Variable("x".to_string())).unwrap(), Term::Function("f".to_string(), vec!(Term::Variable("z".to_string()))));
+        assert_eq!(*mgu.get(&Term::Variable("w".to_owned())).unwrap(), Term::Function("g".to_owned(), vec!(Term::Variable("y".to_owned()))));
+        assert_eq!(*mgu.get(&Term::Variable("x".to_owned())).unwrap(), Term::Function("f".to_owned(), vec!(Term::Variable("z".to_owned()))));
     }
     
     #[test]
@@ -137,7 +138,7 @@ mod test {
         let mgu = fullunify(eqs).unwrap();
         // Other way round is okay too.
         assert_eq!(mgu.len(), 1);
-        assert_eq!(*mgu.get(&Term::Variable("y".to_string())).unwrap(), Term::Variable("x".to_string()));
+        assert_eq!(*mgu.get(&Term::Variable("y".to_owned())).unwrap(), Term::Variable("x".to_owned()));
     }
     
     #[test]

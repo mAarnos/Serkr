@@ -337,20 +337,20 @@ mod test {
     fn simplify_quantifier_1() {
         let f = parse("exists y. (Odd(n) \\/ Even(n))").unwrap();
         let correct_f = parse("(Odd(n) \\/ Even(n))").unwrap();
-        assert_eq!(simplify_quantifier("x".to_string(), f, true), correct_f);
+        assert_eq!(simplify_quantifier("x".to_owned(), f, true), correct_f);
     }
     
     #[test]
     fn simplify_quantifier_2() {
         let f = parse("exists y. (Odd(n) \\/ Even(n))").unwrap();
         let correct_f = parse("forall n. (Odd(n) \\/ Even(n))").unwrap();
-        assert_eq!(simplify_quantifier("n".to_string(), f, true), correct_f);
+        assert_eq!(simplify_quantifier("n".to_owned(), f, true), correct_f);
     }
     
     #[test]
     fn simplify_quantifier_3() {
         let f = parse("P(x)").unwrap();
         let correct_f = parse("exists x. P(x)").unwrap();
-        assert_eq!(simplify_quantifier("x".to_string(), f, false), correct_f);
+        assert_eq!(simplify_quantifier("x".to_owned(), f, false), correct_f);
     }
 }

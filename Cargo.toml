@@ -8,3 +8,6 @@ peg = "*"
 
 [dependencies.time]
 time = "*"
+
+[dependencies]
+clippy = "*"

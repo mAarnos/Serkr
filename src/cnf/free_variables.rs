@@ -42,7 +42,7 @@ pub fn occurs_in(t: &Term, s: &Term) -> bool {
 pub fn fv(f: Formula) -> Set<String> {
     match f {
         Formula::True | Formula::False => Set::new(),
-        Formula::Predicate(_, params) => params.into_iter().flat_map(|p| fvt(p)).collect(),
+        Formula::Predicate(_, params) => params.into_iter().flat_map(fvt).collect(),
         Formula::Not(box p) => fv(p),
         Formula::And(box p, box q) | Formula::Or(box p, box q) | 
         Formula::Implies(box p, box q) | Formula::Equivalent (box p, box q) => fv(p).union(&fv(q)).cloned().collect(),
@@ -54,7 +54,7 @@ pub fn fv(f: Formula) -> Set<String> {
 fn fvt(t: Term) -> Set<String> {
     match t {
         Term::Variable(s) => Set::singleton(s),
-        Term::Function(_, params) => params.into_iter().flat_map(|p| fvt(p)).collect(),
+        Term::Function(_, params) => params.into_iter().flat_map(fvt).collect(),
     }
 }
 

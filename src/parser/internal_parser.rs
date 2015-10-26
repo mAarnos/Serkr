@@ -184,8 +184,8 @@ mod test {
     #[test]
     fn true_and_false_2() {
         // Make sure that predicates starting with a T or F won't get parsed as True or False.
-        assert_eq!(parse("Taken").unwrap(), Formula::Predicate("Taken".to_string(), Vec::new()));
-        assert_eq!(parse("Free").unwrap(), Formula::Predicate("Free".to_string(), Vec::new()));
+        assert_eq!(parse("Taken").unwrap(), Formula::Predicate("Taken".to_owned(), Vec::new()));
+        assert_eq!(parse("Free").unwrap(), Formula::Predicate("Free".to_owned(), Vec::new()));
     }
     
     #[test]

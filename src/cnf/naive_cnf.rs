@@ -27,8 +27,7 @@ pub fn cnf(f: Formula) -> Formula {
     let nnf_f = nnf(f);
     let skolemized_f = skolemize(nnf_f);
     let quantifier_free_f = drop_universal_quantifiers(pull_out_quantifiers(skolemized_f));
-    let cnf_f = distribute_ors_over_ands(quantifier_free_f);
-    cnf_f
+    distribute_ors_over_ands(quantifier_free_f)
 }
 
 #[cfg(test)]

@@ -20,17 +20,21 @@
 #![feature(hashmap_hasher)]
 #![feature(plugin)]
 #![plugin(peg_syntax_ext)]
-#![allow(dead_code)]
+#![plugin(clippy)]
 
 // Some lints which are pretty useful.
-// Try to add "unstable_features" and "unused_qualifications" when possible.
-#![deny(missing_docs,
-        missing_debug_implementations, 
+// Try to add "missing_docs", "unstable_features" and "unused_qualifications" when possible.
+#![deny(missing_debug_implementations, 
         missing_copy_implementations,
         trivial_casts, 
         trivial_numeric_casts,
         unsafe_code,
         unused_import_braces)]
+#![deny(clippy)]
+
+// Remove these two whenever possible.
+#![allow(len_zero)]  
+#![allow(dead_code)]  
 
 pub mod parser;
 pub mod cnf;

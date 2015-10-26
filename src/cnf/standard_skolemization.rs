@@ -41,7 +41,7 @@ fn skolemize1(f: Formula, n: &mut isize) -> Formula {
 
 fn skolemize_exists(s: String, f: Formula, n: &mut isize) -> Formula {
     let xs = fv(Formula::Exists(s.clone(), box f.clone())); 
-    let sf = Term::Function(format!("sf{}", *n), xs.into_iter().map(|x| Term::Variable(x)).collect()); 
+    let sf = Term::Function(format!("sf{}", *n), xs.into_iter().map(Term::Variable).collect()); 
     *n += 1;
     skolemize1(tsubst(f, &s, sf), n)
 }
