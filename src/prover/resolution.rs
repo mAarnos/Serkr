@@ -253,6 +253,78 @@ mod test {
         assert!(result.is_ok());
     }
     
+    /*
+    #[test]
+    fn pelletier_12() {
+        let result = resolution("(((P <=> Q) <=> R) <=> (P <=> (Q <=> R)))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    /*
+    #[test]
+    fn pelletier_13() {
+        let result = resolution("((P \\/ (Q /\\ R)) <=> ((P \\/ Q) /\\ (P \\/ R)))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    /*
+    #[test]
+    fn pelletier_14() {
+        let result = resolution("((P <=> Q) <=> ((~P \\/ Q) /\\ (~Q \\/ P)))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    /*
+    #[test]
+    fn pelletier_15() {
+        let result = resolution("((P ==> Q) <=> (~P \\/ Q))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_16() {
+        let result = resolution("((P ==> Q) \\/ (Q ==> P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_18() {
+        let result = resolution("exists y. forall x. (F(y) ==> F(x))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_19() {
+        let result = resolution("exists x. forall y. forall z. ((P(y) ==> Q(z)) ==> (P(x) ==> Q(x)))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_22() {
+        let result = resolution("((forall x. (P <=> F(x))) ==> (P <=> forall x. F(x)))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_35() {
+        let result = resolution("exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_39() {
+        let result = resolution("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
+        assert!(result.is_ok());
+    }
+    */
+    
     #[test]
     fn trivial_1() {
         let p = Formula::Predicate("P".to_owned(), Vec::new());
