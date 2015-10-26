@@ -73,10 +73,6 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
     }
 }
 
-fn fullunify(eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
-    Ok(solve(try!(unify(HashMap::new(), eqs))))
-}
-
 fn unify_literals(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<HashMap<Term, Term>, ()> {
     match tmp {
         (Formula::Predicate(p1, args1), Formula::Predicate(p2, args2)) => Ok(try!(unify(env, vec!((Term::Function(p1, args1), Term::Function(p2, args2)))))),
@@ -93,7 +89,8 @@ pub fn negate(f: Formula) -> Formula {
 }
 
 #[allow(needless_range_loop)]
-pub fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term, Term>, ()> {
+pub fn mgu(l: Vec<Formula>) -> Result<HashMap<Term, Term>, ()> {
+    let mut env = HashMap::<Term, Term>::new();
     for i in 0..(l.len() - 1) {
         env = try!(unify_literals(env, (l[i].clone(), l[i + 1].clone())));
     }
@@ -102,41 +99,44 @@ pub fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term
 
 #[cfg(test)]
 mod test {
-    use super::fullunify;
-    use utils::formula::{Term, Formula};
+    use super::mgu;
+    use utils::formula::Term;
     use parser::internal_parser::parse;
     
-    fn equals_to_eqs(f: Formula) -> Vec<(Term, Term)> {
-        match f {
-            Formula::Predicate(_, args) => vec!((args[0].clone(), args[1].clone())),
-            _ => panic!("WTF?")
-        }
-    }
-
     #[test]
-    fn fullunify_1() {
-        let f = parse("Equal(f(x, g(y)), f(f(z), w))").unwrap();
-        let eqs = equals_to_eqs(f);
-        let mgu = fullunify(eqs).unwrap();
-        assert_eq!(mgu.len(), 2);
-        assert_eq!(*mgu.get(&Term::Variable("w".to_owned())).unwrap(), Term::Function("g".to_owned(), vec!(Term::Variable("y".to_owned()))));
-        assert_eq!(*mgu.get(&Term::Variable("x".to_owned())).unwrap(), Term::Function("f".to_owned(), vec!(Term::Variable("z".to_owned()))));
+    fn mgu_1() {
+        let f1 = parse("P(f(x, g(y)))").unwrap();
+        let f2 = parse("P(f(f(z), w))").unwrap();
+        let theta = mgu(vec!(f1, f2)).unwrap();
+        assert_eq!(theta.len(), 2);
+        assert_eq!(*theta.get(&Term::Variable("w".to_owned())).unwrap(), Term::Function("g".to_owned(), vec!(Term::Variable("y".to_owned()))));
+        assert_eq!(*theta.get(&Term::Variable("x".to_owned())).unwrap(), Term::Function("f".to_owned(), vec!(Term::Variable("z".to_owned()))));
     }
     
     #[test]
-    fn fullunify_2() {
-        let f = parse("Equal(f(x, y), f(y, x))").unwrap();
-        let eqs = equals_to_eqs(f);
-        let mgu = fullunify(eqs).unwrap();
+    fn mgu_2() {
+        let f1 = parse("~P(f(x, y))").unwrap();
+        let f2 = parse("~P(f(y, x))").unwrap();
+        let theta = mgu(vec!(f1, f2)).unwrap();
         // Other way round is okay too.
-        assert_eq!(mgu.len(), 1);
-        assert_eq!(*mgu.get(&Term::Variable("y".to_owned())).unwrap(), Term::Variable("x".to_owned()));
+        assert_eq!(theta.len(), 1);
+        assert_eq!(*theta.get(&Term::Variable("y".to_owned())).unwrap(), Term::Variable("x".to_owned()));
     }
     
     #[test]
-    fn fullunify_3() {
-        let f = parse("Equal(f(x, g(y)), f(y, x))").unwrap();
-        let eqs = equals_to_eqs(f);
-        assert!(fullunify(eqs).is_err());
+    fn mgu_3() {
+        let f1 = parse("P(f(x, g(y)))").unwrap();
+        let f2 = parse("P(f(y, x))").unwrap();
+        let theta = mgu(vec!(f1, f2));
+        assert!(theta.is_err());
+    }
+    
+    #[test]
+    fn mgu_4() {
+        // In HOL this would work.
+        let f1 = parse("P(x)").unwrap();
+        let f2 = parse("Q(y)").unwrap();
+        let theta = mgu(vec!(f1, f2));
+        assert!(theta.is_err());
     }
 }    

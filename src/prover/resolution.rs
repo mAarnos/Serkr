@@ -71,7 +71,7 @@ fn rename(pfx: String, cl: &mut Vec<Formula>) {
 fn add_resolvents(cl1: &[Formula], cl2: &[Formula], p: Formula, unused: &mut Vec<Vec<Formula>>) {
     let neg_p = negate(p.clone());
     for x in cl2.iter().cloned() {
-        let possible_theta = mgu(vec!(x.clone(), neg_p.clone()), HashMap::new());
+        let possible_theta = mgu(vec!(x.clone(), neg_p.clone()));
         if let Ok(theta) = possible_theta {
             let mut cl1_done: Vec<Formula> = cl1.iter()
                                                 .cloned()
@@ -136,7 +136,7 @@ fn factor(cl: &mut Vec<Formula>) -> bool {
     while i < cl.len() {
         let mut j = i + 1;
         while j < cl.len() {
-            if let Ok(theta) = mgu(vec!(cl[i].clone(), cl[j].clone()), HashMap::new()) {
+            if let Ok(theta) = mgu(vec!(cl[i].clone(), cl[j].clone())) {
                 cl.swap_remove(j);
                 for l in cl.iter_mut() {
                     *l = tsubst(l.clone(), &theta);
