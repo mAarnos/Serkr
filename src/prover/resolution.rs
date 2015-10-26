@@ -190,7 +190,7 @@ fn collect(f: Formula) -> Vec<Vec<Formula>> {
     }
 }
 
-fn resolution(s: &str) -> Result<bool, &'static str> {
+pub fn resolution(s: &str) -> Result<bool, &'static str> {
     let cnf_f = cnf(Formula::Not(box parse(s).unwrap()));
     if cnf_f == Formula::False {
         Ok(true)
@@ -270,7 +270,7 @@ mod test {
     /*
     #[test]
     fn pelletier_10() {
-        let result = resolution("(((((Q ==> R) /\\ (R ==> (P /\\ Q))) /\\ (P ==> (Q \\/ R)))) /\\ (P <=> Q))");
+        let result = resolution("(((((Q ==> R) /\\ (R ==> (P /\\ Q))) /\\ (P ==> (Q \\/ R)))) ==> (P <=> Q))");
         assert!(result.is_ok());
     }
     */
@@ -350,6 +350,14 @@ mod test {
         let result = resolution("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
         assert!(result.is_ok());
     }
+    
+    /*
+    #[test]
+    fn davis_putnam() {
+        let result = resolution("exists x. exists y. forall z. ((F(x, y) ==> (F(y, z) /\\ F(z, z))) /\\ ((F(x, y) /\\ G(x, y)) ==> (G(x, z) /\\ G(z, z))))");
+        assert!(result.is_ok());
+    }
+    */
     
     #[test]
     fn trivial_1() {

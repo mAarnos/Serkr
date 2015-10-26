@@ -15,8 +15,3 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search.
-
-mod unification;
-mod subsumption;
-mod resolution;

@@ -47,5 +47,4 @@ pub mod utils;
 
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
-
 }
