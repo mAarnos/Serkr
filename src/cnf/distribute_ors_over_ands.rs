@@ -21,11 +21,19 @@
 pub fn distribute_ors_over_ands(f: Formula) -> Formula {
     match f {
         Formula::And(box p, box q) => Formula::And(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
-        Formula::Or(box ref p, box Formula::And(box ref q, box ref r)) | 
-        Formula::Or(box Formula::And(box ref q, box ref r), box ref p) => Formula::And(box distribute_ors_over_ands(Formula::Or(box p.clone(), box q.clone())),
-                                                                                       box distribute_ors_over_ands(Formula::Or(box p.clone(), box r.clone()))),
-        Formula::Or(box p, box q) => Formula::Or(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
+        Formula::Or(box p, box q) => distribute_or(p, q),
         _ => f,
+    }
+}
+
+fn distribute_or(f1: Formula, f2: Formula) -> Formula {
+    let new_f1 = distribute_ors_over_ands(f1);
+    let new_f2 = distribute_ors_over_ands(f2);
+    match (new_f1, new_f2) {
+        (p, Formula::And(box q, box r)) | 
+        (Formula::And(box q, box r), p) => Formula::And(box distribute_ors_over_ands(Formula::Or(box p.clone(), box q)),
+                                                        box distribute_ors_over_ands(Formula::Or(box p, box r))),
+        (p, q) => Formula::Or(box p, box q)
     }
 }
 
@@ -52,5 +60,12 @@ mod test {
     fn distribute_3() {
         let f = parse("(Stays(x) /\\ (~HeavyItem(x) \\/ ~ExpensiveItem(x)))").unwrap();
         assert_eq!(distribute_ors_over_ands(f.clone()), f);
+    }
+    
+    #[test]
+    fn distribute_4() {
+        let f = parse("(~Q \\/ (~P \\/ (P /\\ ~Q)))").unwrap();
+        let correct_f = parse("((~Q \\/ (~P \\/ P)) /\\ (~Q \\/ (~P \\/ ~Q)))").unwrap();
+        assert_eq!(distribute_ors_over_ands(f), correct_f);
     }
 }    

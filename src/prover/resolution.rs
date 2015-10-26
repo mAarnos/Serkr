@@ -239,6 +239,20 @@ mod test {
         assert!(result.is_ok());
     }
     
+    /*
+    #[test]
+    fn pelletier_10() {
+        let result = resolution("(((((Q ==> R) /\\ (R ==> (P /\\ Q))) /\\ (P ==> (Q \\/ R)))) /\\ (P <=> Q))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_11() {
+        let result = resolution("(P <=> P)");
+        assert!(result.is_ok());
+    }
+    
     #[test]
     fn trivial_1() {
         let p = Formula::Predicate("P".to_owned(), Vec::new());
