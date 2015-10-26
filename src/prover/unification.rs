@@ -96,11 +96,10 @@ fn unify_complements(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Resul
     unify_literals(env, (tmp.0, negate(tmp.1)))
 }
 
+#[allow(needless_range_loop)]
 fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term, Term>, ()> {
-    // More complicated than needs to be to get around a warning.
-    // TODO: figure out how to deal with that.
-    for (i, item) in l.iter().enumerate().take(l.len() - 1) {
-        env = try!(unify_literals(env, (item.clone(), l[i + 1].clone())));
+    for i in 0..(l.len() - 1) {
+        env = try!(unify_literals(env, (l[i].clone(), l[i + 1].clone())));
     }
     Ok(solve(env))
 }
