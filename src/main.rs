@@ -23,13 +23,14 @@
 #![plugin(clippy)]
 
 // Some lints which are pretty useful.
-// Try to add "missing_docs", "unstable_features" and "unused_qualifications" when possible.
+// Try to add "missing_docs" and "unstable_features" when possible.
 #![deny(missing_debug_implementations, 
         missing_copy_implementations,
         trivial_casts, 
         trivial_numeric_casts,
         unsafe_code,
-        unused_import_braces)]
+        unused_import_braces,
+        unused_qualifications)]
 #![deny(clippy)]
 
 // Remove these two whenever possible.

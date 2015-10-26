@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::hash::{self, Hash, Hasher, SipHasher};
+use std::hash::{Hash, Hasher, SipHasher};
 use std::collections::HashSet;
 use std::collections::hash_set::{Iter, IntoIter, SymmetricDifference, Difference, Union, Intersection};
 use std::collections::hash_map::RandomState;
@@ -115,7 +115,7 @@ impl<T: Eq + Hash + Clone + Debug> Set<T> {
 // If we want to have a set of sets (or anything similar) this is necessary.
 // This also happens to be an utter and complete hack which undermines the security properties provided by SipHash.
 impl<T: Eq + Hash + Clone + Debug> Hash for Set<T> {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         let mut h = 0;
         for x in self.iter() {
             let mut s = SipHasher::new_with_keys(0, 0);
