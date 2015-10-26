@@ -15,6 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+//! Serkr is an automated theorem prover for first order logic.
+
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(hashmap_hasher)]
@@ -32,10 +34,11 @@
         unused_import_braces,
         unused_qualifications)]
 #![deny(clippy)]
+#![warn(missing_docs)]
 
 // Remove these two whenever possible.
 #![allow(len_zero)]  
-#![allow(dead_code)]  
+#![allow(dead_code)]
 
 pub mod parser;
 pub mod cnf;

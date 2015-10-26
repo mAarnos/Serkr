@@ -122,6 +122,7 @@ peg! formula(r#"
         = [0-9] { match_str.parse().unwrap() }              
 "#);
 
+/// Parses a string into a FOL formula, if possible.
 pub fn parse(s: &str) -> Result<Formula, formula::ParseError> {
     formula::formula(s)
 }

@@ -19,7 +19,9 @@
 //!
 //! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
-// TODO: move this stuff somewhere else.
+/// Contains stuff for manipulating free variables.
+///
+/// TODO: move this stuff somewhere else.
 pub mod free_variables;
 
 mod simplify;
@@ -30,5 +32,8 @@ mod pull_out_quantifiers;
 mod drop_universal_quantifiers;
 mod distribute_ors_over_ands;
 
+/// Contains a naive version of the CNF transformation algorithm. 
+///
+/// TODO: add better versions.
 pub mod naive_cnf;
 

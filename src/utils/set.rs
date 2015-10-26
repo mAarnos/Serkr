@@ -24,89 +24,105 @@ use std::fmt::{Debug, Formatter, Result};
 use std::default::Default;
 use std::borrow::Borrow;
 
+/// A more mathematical set than HashSet. For example, Set<Set<T>> is now possible.
+/// All elements have to implement the traits Eq, Hash, Clone and Debug.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Set<T: Eq + Hash + Clone + Debug>(HashSet<T>);
 
 impl<T: Eq + Hash + Clone + Debug> Set<T> {
+    /// Creates an empty set.
     pub fn new() -> Set<T> {
         Set(HashSet::<T>::new())
     }
     
-    // Returns the one-element set containing only x.
+    /// Creates the singleton set containing x.
     pub fn singleton(value: T) -> Set<T> {
         let mut s = Set(HashSet::<T>::new());
         s.insert(value);
         s
     }
     
+    /// Used for iterating through the elements of the set.
     pub fn iter(&self) -> Iter<T> {
         self.0.iter()
     }
     
+    /// Used for iterating through the elements of the difference of the two sets.
     pub fn difference<'a>(&'a self, other: &'a Set<T>) -> Difference<'a, T, RandomState> {
         self.0.difference(&other.0)
     }
     
+    /// Used for iterating through the elements of the symmetric difference of the two sets.
     pub fn symmetric_difference<'a>(&'a self, other: &'a Set<T>) -> SymmetricDifference<'a, T, RandomState> {
         self.0.symmetric_difference(&other.0)
     }
     
+    /// Used for iterating through the elements of the intersection of the two sets.
     pub fn intersection<'a>(&'a self, other: &'a Set<T>) -> Intersection<'a, T, RandomState> {
         self.0.intersection(&other.0)
     }
     
+    /// Used for iterating through the elements of the union of the two sets.
     pub fn union<'a>(&'a self, other: &'a Set<T>) -> Union<'a, T, RandomState> {
         self.0.union(&other.0)
     }
     
-    // Returns the cardinality of the set.
+    /// Returns the cardinality of the set.
     pub fn cardinality(&self) -> usize {
         self.0.len()
     }
     
+    /// Checks if the set is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
     
-    // Returns true if the set is a singleton set.
+    /// Checks if the set is a singleton set.
     pub fn is_singleton(&self) -> bool {   
         self.cardinality() == 1
     }
     
+    /// Clears the set.
     pub fn clear(&mut self) {
         self.0.clear();
     }
     
+    /// Checks if an element if in the set.
     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool where T: Borrow<Q>, Q: Hash + Eq {
         self.0.contains(value)
     }
     
+    /// Checks if a set is disjoing from another set.
     pub fn is_disjoint(&self, other: &Set<T>) -> bool {
         self.0.is_disjoint(&other.0)
     }
     
+    /// Checks if a set is a subset of another set. 
     pub fn is_subset(&self, other: &Set<T>) -> bool {
         self.0.is_subset(&other.0)
     }
     
-    // Returns true if the set is a proper subset of another.
+    /// Checks if a set is a proper subset of another set. 
     pub fn is_proper_subset(&self, other: &Set<T>) -> bool {
         self != other && self.is_subset(other)
     }
     
+    /// Checks if a set is a superset of another set. 
     pub fn is_superset(&self, other: &Set<T>) -> bool {
         self.0.is_superset(&other.0)
     }
     
-    // Returns true if the set is a proper superset of another.
+    /// Checks if a set is a proper superset of another set. 
     pub fn is_proper_superset(&self, other: &Set<T>) -> bool {
         self != other && self.is_superset(other)
     }
     
+    /// Adds a new element to the set.
     pub fn insert(&mut self, value: T) -> bool {
         self.0.insert(value)
     }
     
+    /// Removes an element from the set. Returns true if the element was in the set.
     pub fn remove<Q: ?Sized>(&mut self, value: &Q) -> bool where T: Borrow<Q>, Q: Hash + Eq {
         self.0.remove(value)
     }

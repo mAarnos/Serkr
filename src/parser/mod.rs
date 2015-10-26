@@ -15,4 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+//! Contains different parsers.
+
+/// Contains the parser for the internal FOL format.
 pub mod internal_parser;
