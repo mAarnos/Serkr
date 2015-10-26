@@ -130,17 +130,15 @@ fn trivial(cl: &[Formula]) -> bool {
 }
 
 fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
-    for cl in &unused {
-        println!("{:?}", cl);
-    }
-    panic!("done");
-
     while !unused.is_empty() {
         let chosen_clause = pick_clause(&mut unused);
         used.push(chosen_clause.clone());
+        
         for cl in &used {
             resolve_clauses(chosen_clause.clone(), cl.clone(), &mut unused);
         }
+        
+        // TODO: ridiculously inefficient, replace.
         if unused.iter().any(|cl| cl.is_empty()) {
             return Ok(true);
         }
@@ -178,13 +176,35 @@ mod test {
     use prover::unification::negate;
     use utils::formula::Formula;
     
-    /*
+    #[test]
+    fn unprovable() {
+        let result = resolution("(P ==> (Q ==> R))");
+        assert!(result.is_err());
+    }
+    
     #[test]
     fn pelletier_1() {
         let result = resolution("((P ==> Q) <=> (~Q ==> ~P))");
         assert!(result.is_ok());
     }
-    */
+    
+    #[test]
+    fn pelletier_2() {
+        let result = resolution("(~~P <=> P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_3() {
+        let result = resolution("(~(P ==> Q) ==> (Q ==> P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_4() {
+        let result = resolution("((~P ==> Q) <=> (~Q ==> P))");
+        assert!(result.is_ok());
+    }
     
     #[test]
     fn trivial_1() {
