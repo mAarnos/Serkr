@@ -88,24 +88,16 @@ fn unify_literals(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<H
 pub fn negate(f: Formula) -> Formula {
     match f {
         Formula::Not(box p) => p,
-        _ => f
+        _ => Formula::Not(box f)
     }
 }
 
-fn unify_complements(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<HashMap<Term, Term>, ()> {
-    unify_literals(env, (tmp.0, negate(tmp.1)))
-}
-
 #[allow(needless_range_loop)]
-fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term, Term>, ()> {
+pub fn mgu(l: Vec<Formula>, mut env: HashMap<Term, Term>) -> Result<HashMap<Term, Term>, ()> {
     for i in 0..(l.len() - 1) {
         env = try!(unify_literals(env, (l[i].clone(), l[i + 1].clone())));
     }
     Ok(solve(env))
-}
-
-fn unifiable(p: Formula, q: Formula) -> bool {
-    unify_literals(HashMap::new(), (p, q)).is_ok()
 }
 
 #[cfg(test)]
