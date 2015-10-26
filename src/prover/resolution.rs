@@ -21,6 +21,7 @@ use prover::unification::negate;
 /// Picks and removes the "best" clause from the unused clauses according to heuristics.
 /// Currently just picks the shortest one.
 fn pick_clause(unused: &mut Vec<Vec<Formula>>) -> Vec<Formula> {
+    // TODO: can be done better by defining a new struct Clause and using max.
     let mut best_clause_index = 0;
     let mut best_clause_size = unused[0].len();
     
@@ -35,11 +36,11 @@ fn pick_clause(unused: &mut Vec<Vec<Formula>>) -> Vec<Formula> {
 }
 
 /// Checks if a clause is trivial, i.e. it is a syntactical tautology.
-fn trivial(cls: &[Formula]) -> bool {
-    for (i, cl) in cls.iter().enumerate() {
-        let counterpart = negate(cl.clone());
-        for j in (i + 1)..cls.len() {
-            if cls[j] == counterpart {
+fn trivial(cl: &[Formula]) -> bool {
+    for (i, lit) in cl.iter().enumerate() {
+        let counterpart = negate(lit.clone());
+        for j in (i + 1)..cl.len() {
+            if cl[j] == counterpart {
                 return true;
             }
         }

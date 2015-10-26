@@ -17,6 +17,7 @@
 
 /// Data type for FOL terms. Only used during parsing and CNF transformation.
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
+#[allow(missing_docs)]
 pub enum Term {
     Variable(String),
     Function(String, Vec<Term>)
@@ -24,6 +25,7 @@ pub enum Term {
 
 /// Data type for FOL formulas. Only used during parsing and CNF transformation.
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
+#[allow(missing_docs)]
 pub enum Formula {
     True,
     False,
