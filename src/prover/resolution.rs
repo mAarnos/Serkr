@@ -129,10 +129,36 @@ fn trivial(cl: &[Formula]) -> bool {
     false
 }
 
+fn factor(cl: &mut Vec<Formula>) -> bool {
+    let mut factored_something = false;
+    let mut i = 0;
+    
+    while i < cl.len() {
+        let mut j = i + 1;
+        while j < cl.len() {
+            if let Ok(theta) = mgu(vec!(cl[i].clone(), cl[j].clone()), HashMap::new()) {
+                cl.swap_remove(j);
+                for l in cl.iter_mut() {
+                    *l = tsubst(l.clone(), &theta);
+                }
+                factored_something = true;
+                continue;
+            }
+            j += 1;
+        }
+        i += 1;
+    }
+    
+    factored_something
+}
+
 fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
-        let chosen_clause = pick_clause(&mut unused);
+        let mut chosen_clause = pick_clause(&mut unused);
+        factor(&mut chosen_clause);
+        assert!(!factor(&mut chosen_clause));
         used.push(chosen_clause.clone());
+        
         for cl in &used {
             resolve_clauses(chosen_clause.clone(), cl.clone(), &mut unused);
         }
@@ -168,6 +194,8 @@ fn resolution(s: &str) -> Result<bool, &'static str> {
     let cnf_f = cnf(Formula::Not(box parse(s).unwrap()));
     if cnf_f == Formula::False {
         Ok(true)
+    } else if cnf_f == Formula::True {
+        Err("False.")
     } else {
         resolution_loop(Vec::new(), collect(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
     }
@@ -317,13 +345,11 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_39() {
         let result = resolution("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn trivial_1() {
