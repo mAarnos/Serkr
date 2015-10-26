@@ -84,7 +84,7 @@ fn add_resolvents(cl1: &[Formula], cl2: &[Formula], p: Formula, unused: &mut Vec
                                                 .map(|l| tsubst(l, &theta))
                                                 .collect();
             cl1_done.append(&mut cl2_done);
-            if !trivial(cl1) {
+            if !trivial(&cl1_done) {
                 unused.push(cl1_done);
             }
         }
@@ -133,7 +133,6 @@ fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -
     while !unused.is_empty() {
         let chosen_clause = pick_clause(&mut unused);
         used.push(chosen_clause.clone());
-        
         for cl in &used {
             resolve_clauses(chosen_clause.clone(), cl.clone(), &mut unused);
         }
@@ -167,7 +166,11 @@ fn collect(f: Formula) -> Vec<Vec<Formula>> {
 
 fn resolution(s: &str) -> Result<bool, &'static str> {
     let cnf_f = cnf(Formula::Not(box parse(s).unwrap()));
-    resolution_loop(Vec::new(), collect(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
+    if cnf_f == Formula::False {
+        Ok(true)
+    } else {
+        resolution_loop(Vec::new(), collect(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
+    }
 }
 
 #[cfg(test)]
@@ -203,6 +206,36 @@ mod test {
     #[test]
     fn pelletier_4() {
         let result = resolution("((~P ==> Q) <=> (~Q ==> P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_5() {
+        let result = resolution("(((P \\/ Q) ==> (P \\/ R)) ==> (P \\/ (Q ==> R)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_6() {
+        let result = resolution("(P \\/ ~P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_7() {
+        let result = resolution("(P \\/ ~~~P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_8() {
+        let result = resolution("(((P ==> Q) ==> P) ==> P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_9() {
+        let result = resolution("((((P \\/ Q) /\\ (~P \\/ Q)) /\\ (P \\/ ~Q)) ==> ~(~P \\/ ~Q))");
         assert!(result.is_ok());
     }
     
