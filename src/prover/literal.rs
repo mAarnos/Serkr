@@ -15,11 +15,20 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search.
+use utils::formula::Term;
 
-mod unification;
-mod subsumption;
-mod resolution;
+/// A single, possibly negated, literal.
+pub struct Literal {
+    id: i64,
+    args: Vec<Term>,
+}
 
-mod literal;
-mod clause;
+impl Literal {
+    pub fn new() -> Literal {
+        Literal { id: 0, args: Vec::new() }
+    }
+    
+    pub fn is_negated(&self) -> bool {
+        self.id < 0
+    }
+}

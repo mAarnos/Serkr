@@ -139,4 +139,12 @@ mod test {
         let theta = mgu(vec!(f1, f2));
         assert!(theta.is_err());
     }
+    
+    #[test]
+    fn mgu_5() {
+        let f1 = parse("R(y)").unwrap();
+        let f2 = parse("R(f(y))").unwrap();
+        let theta = mgu(vec!(f1, f2));
+        assert!(theta.is_err());
+    }
 }    

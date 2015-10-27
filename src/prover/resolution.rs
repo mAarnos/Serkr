@@ -129,12 +129,14 @@ fn trivial(cl: &[Formula]) -> bool {
     false
 }
 
+/// Factors a clause if possible. Returns true if something was factored.
 fn factor(cl: &mut Vec<Formula>) -> bool {
     let mut factored_something = false;
     let mut i = 0;
     
     while i < cl.len() {
         let mut j = i + 1;
+        
         while j < cl.len() {
             if let Ok(theta) = mgu(vec!(cl[i].clone(), cl[j].clone())) {
                 cl.swap_remove(j);
@@ -146,6 +148,7 @@ fn factor(cl: &mut Vec<Formula>) -> bool {
             }
             j += 1;
         }
+        
         i += 1;
     }
     

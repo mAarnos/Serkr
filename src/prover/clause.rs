@@ -15,11 +15,20 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search.
+use prover::literal::Literal;
 
-mod unification;
-mod subsumption;
-mod resolution;
+/// A single clause.
+pub struct Clause {
+    literals: Vec<Literal>,
+}
 
-mod literal;
-mod clause;
+impl Clause {
+    pub fn new() -> Clause {
+        Clause { literals: Vec::new() }
+    }
+    
+    /// Used for checkign whether a clause is empty.
+    pub fn is_empty(&self) -> bool {
+        self.literals.is_empty()
+    }
+}
