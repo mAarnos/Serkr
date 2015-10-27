@@ -16,6 +16,7 @@
 */
 
 use prover::literal::Literal;
+use std::slice::Iter;
 
 /// A single clause.
 pub struct Clause {
@@ -23,12 +24,23 @@ pub struct Clause {
 }
 
 impl Clause {
+    /// Creates an empty clause.
     pub fn new() -> Clause {
         Clause { literals: Vec::new() }
     }
     
+    /// Creates a new clause from a vector of literals.
+    pub fn new_from_vec(lits: Vec<Literal>) -> Clause {
+        Clause { literals: lits }
+    }
+      
     /// Used for checkign whether a clause is empty.
     pub fn is_empty(&self) -> bool {
         self.literals.is_empty()
+    }
+    
+    /// Used for iterating the literals of the clause.
+    pub fn iter(&self) -> Iter<Literal> {
+        self.literals.iter()
     }
 }

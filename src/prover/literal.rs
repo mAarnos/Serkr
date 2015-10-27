@@ -18,17 +18,32 @@
 use utils::formula::Term;
 
 /// A single, possibly negated, literal.
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Literal {
     id: i64,
     args: Vec<Term>,
 }
 
 impl Literal {
+    /// Creates a new dummy literal.
     pub fn new() -> Literal {
         Literal { id: 0, args: Vec::new() }
     }
     
+    /// Creates a literal with a specific id.
+    pub fn new_from_id(id: i64) -> Literal {
+        Literal { id: id, args: Vec::new() }
+    }
+    
+    /// Used for checking if a literal is negated.
     pub fn is_negated(&self) -> bool {
         self.id < 0
+    }
+    
+    /// Returns a negated version of the literal (taking into account double negation elimination).
+    pub fn negate(&self) -> Literal {
+        let mut lit = self.clone();
+        lit.id = -lit.id;
+        lit
     }
 }

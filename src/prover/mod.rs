@@ -21,5 +21,7 @@ mod unification;
 mod subsumption;
 mod resolution;
 
+mod trivial;
+
 mod literal;
 mod clause;
