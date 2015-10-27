@@ -91,18 +91,28 @@ fn add_resolvents(cl1: &[Formula], cl2: &[Formula], p: Formula, unused: &mut Vec
     }
 }
 
+fn positive(f: &Formula) -> bool {
+    match *f {
+        Formula::Not(_) => false,
+        _ => true
+    }
+}
+
 fn resolve_clauses(mut cl1: Vec<Formula>, mut cl2: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
-    rename("x".to_owned(), &mut cl1);
-    rename("y".to_owned(), &mut cl2);
-    for p in cl1.iter().cloned() {
-        add_resolvents(&cl1, &cl2, p, unused);
+    // Positive resolution: one of the resolution clauses must be all-positive.
+    if cl1.iter().all(positive) || cl2.iter().all(positive) {
+        rename("x".to_owned(), &mut cl1);
+        rename("y".to_owned(), &mut cl2);
+        for p in cl1.iter().cloned() {
+            add_resolvents(&cl1, &cl2, p, unused);
+        }
     }
 }
 
 /// Picks and removes the "best" clause from the unused clauses according to heuristics.
 /// Currently just picks the shortest one.
 fn pick_clause(unused: &mut Vec<Vec<Formula>>) -> Vec<Formula> {
-    // TODO: can be done better by defining a new struct Clause and using max.
+    // TODO: can be done better by using max.
     let mut best_clause_index = 0;
     let mut best_clause_size = unused[0].len();
     
@@ -277,7 +287,6 @@ mod test {
         assert!(result.is_ok());
     }
     */
-    
     #[test]
     fn pelletier_11() {
         let result = resolution("(P <=> P)");
@@ -341,7 +350,7 @@ mod test {
         assert!(result.is_ok());
     }
     */
-    
+
     #[test]
     fn pelletier_35() {
         let result = resolution("exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
