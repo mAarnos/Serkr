@@ -125,42 +125,32 @@ fn trivial(cl: &[Formula]) -> bool {
     false
 }
 
-/// Factors a clause if possible. Returns true if something was factored.
-fn factor(cl: &mut Vec<Formula>) -> bool {
-    let mut factored_something = false;
-    let mut i = 0;
-    
-    while i < cl.len() {
-        let mut j = i + 1;
-        
-        while j < cl.len() {
+/// Factors a clause if possible. 
+#[allow(needless_range_loop)]
+fn factor(cl: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
+    for i in 0..cl.len() {
+        for j in (i + 1)..cl.len() {
             if let Ok(theta) = mgu(vec!(cl[i].clone(), cl[j].clone())) {
-                cl.swap_remove(j);
-                for l in cl.iter_mut() {
+                let mut new_cl = cl.clone();
+                new_cl.swap_remove(j);
+                for l in &mut new_cl {
                     *l = tsubst(l.clone(), &theta);
                 }
-                factored_something = true;
-                continue;
+                unused.push(new_cl);
             }
-            j += 1;
         }
-        
-        i += 1;
     }
-    
-    factored_something
 }
 
 fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
         let mut chosen_clause = pick_clause(&mut unused);
-        factor(&mut chosen_clause);
-        assert!(!factor(&mut chosen_clause));
         used.push(chosen_clause.clone());
         
         for cl in &used {
             resolve_clauses(chosen_clause.clone(), cl.clone(), &mut unused);
         }
+        factor(chosen_clause, &mut unused);
         
         // TODO: ridiculously inefficient, replace.
         if unused.iter().any(|cl| cl.is_empty()) {
@@ -273,6 +263,7 @@ mod test {
         assert!(result.is_ok());
     }
     */
+    
     #[test]
     fn pelletier_11() {
         let result = resolution("(P <=> P)");
@@ -303,13 +294,11 @@ mod test {
     }
     */
     
-    /*
     #[test]
     fn pelletier_15() {
         let result = resolution("((P ==> Q) <=> (~P \\/ Q))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_16() {
@@ -336,6 +325,12 @@ mod test {
         assert!(result.is_ok());
     }
     */
+    
+   #[test]
+   fn pelletier_30() {
+        let result = resolution("(((forall x. ((F(x) \\/ G(x)) ==> ~H(x))) /\\ (forall x. ((G(x) ==> ~I(x)) ==> (F(x) /\\ H(x))))) ==> (forall x. I(x)))");
+        assert!(result.is_ok());
+    }
 
     #[test]
     fn pelletier_35() {
@@ -346,6 +341,12 @@ mod test {
     #[test]
     fn pelletier_39() {
         let result = resolution("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_42() {
+        let result = resolution("~exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
         assert!(result.is_ok());
     }
     
