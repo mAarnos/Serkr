@@ -145,17 +145,16 @@ fn factor(cl: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
 fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
         let chosen_clause = pick_clause(&mut unused);
+        // If we derived a contradiction we are done.
+        if chosen_clause.is_empty() {
+            return Ok(true);
+        }
         used.push(chosen_clause.clone());
         
         for cl in &used {
             resolve_clauses(chosen_clause.clone(), cl.clone(), &mut unused);
         }
         factor(chosen_clause, &mut unused);
-        
-        // TODO: ridiculously inefficient, replace.
-        if unused.iter().any(|cl| cl.is_empty()) {
-            return Ok(true);
-        }
     }
     Err("No proof found.")
 }
