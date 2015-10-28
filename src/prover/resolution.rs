@@ -23,21 +23,6 @@ use prover::unification::{negate, mgu};
 use std::collections::HashMap;
 use parser::internal_parser::parse;
 
-fn rename_variables(f: Formula, sfn: &HashMap<String, String>) -> Formula {
-    match f {
-        Formula::Predicate(s, terms) => Formula::Predicate(s, terms.into_iter().map(|t| rename_variables_in_term(t, sfn)).collect()),
-        Formula::Not(box p) => Formula::Not(box rename_variables(p, sfn)),
-        _ => f
-    }
-}
-
-fn rename_variables_in_term(t: Term, sfn: &HashMap<String, String>) -> Term {
-    match t {
-        Term::Variable(s) => if let Some(s2) = sfn.get(&s) { Term::Variable(s2.clone()) } else { Term::Variable(s) },
-        Term::Function(s, args) => Term::Function(s, args.into_iter().map(|t2| rename_variables_in_term(t2, sfn)).collect())
-    }
-}
-
 fn tsubst(f: Formula, sfn: &HashMap<Term, Term>) -> Formula {
     match f {
         Formula::Predicate(s, args) => Formula::Predicate(s, args.into_iter().map(|arg| tsubst_variable(arg, sfn)).collect()),
@@ -59,12 +44,12 @@ fn tsubst_variable(t: Term, sfn: &HashMap<Term, Term>) -> Term {
 
 fn rename(pfx: String, cl: &mut Vec<Formula>) {
     let fvs: Set<String> = cl.iter().flat_map(|f| fv(f.clone())).collect();
-    let mut mapping = HashMap::<String, String>::new();
+    let mut mapping = HashMap::<Term, Term>::new();
     for x in fvs.into_iter() {
-        mapping.insert(x.clone(), pfx.clone() + &x); 
+        mapping.insert(Term::Variable(x.clone()), Term::Variable(pfx.clone() + &x)); 
     }
     for f in cl.iter_mut() {
-        *f = rename_variables(f.clone(), &mapping);
+        *f = tsubst(f.clone(), &mapping);
     }
 }
 

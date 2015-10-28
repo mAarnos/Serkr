@@ -22,6 +22,7 @@ mod subsumption;
 mod resolution;
 
 mod trivial;
+mod factoring;
 
 mod literal;
 mod clause;

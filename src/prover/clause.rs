@@ -29,6 +29,11 @@ impl Clause {
         Clause { literals: Vec::new() }
     }
     
+    /// Get the amount of literals in the clause.
+    pub fn size(&self) -> usize {
+        self.literals.len()
+    }
+    
     /// Creates a new clause from a vector of literals.
     pub fn new_from_vec(lits: Vec<Literal>) -> Clause {
         Clause { literals: lits }
