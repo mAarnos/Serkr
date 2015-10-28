@@ -19,8 +19,8 @@ use prover::clause::Clause;
 // use prover::unification::mgu;
 
 /// Factors a clause if possible. Returns true if something was factored.
-fn factor(cl: &mut Clause) -> bool {
-    let mut factored_something = false;
+pub fn factor(cl: &mut Clause) -> bool {
+    let factored_something = false;
     let mut i = 0;
     
     while i < cl.size() {

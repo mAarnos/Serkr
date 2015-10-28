@@ -17,6 +17,8 @@
 
 //! Contains the main proof search.
 
+mod flatten_cnf;
+
 mod unification;
 mod subsumption;
 mod resolution;
