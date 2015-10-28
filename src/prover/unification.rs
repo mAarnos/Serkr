@@ -89,12 +89,9 @@ pub fn negate(f: Formula) -> Formula {
 }
 
 #[allow(needless_range_loop)]
-pub fn mgu(l: Vec<Formula>) -> Result<HashMap<Term, Term>, ()> {
-    let mut env = HashMap::<Term, Term>::new();
-    for i in 0..(l.len() - 1) {
-        env = try!(unify_literals(env, (l[i].clone(), l[i + 1].clone())));
-    }
-    Ok(solve(env))
+pub fn mgu(p: Formula, q: Formula) -> Result<HashMap<Term, Term>, ()> {
+    let env = HashMap::<Term, Term>::new();   
+    Ok(solve(try!(unify_literals(env, (p, q)))))
 }
 
 #[cfg(test)]
@@ -107,7 +104,7 @@ mod test {
     fn mgu_1() {
         let f1 = parse("P(f(x, g(y)))").unwrap();
         let f2 = parse("P(f(f(z), w))").unwrap();
-        let theta = mgu(vec!(f1, f2)).unwrap();
+        let theta = mgu(f1, f2).unwrap();
         assert_eq!(theta.len(), 2);
         assert_eq!(*theta.get(&Term::Variable("w".to_owned())).unwrap(), Term::Function("g".to_owned(), vec!(Term::Variable("y".to_owned()))));
         assert_eq!(*theta.get(&Term::Variable("x".to_owned())).unwrap(), Term::Function("f".to_owned(), vec!(Term::Variable("z".to_owned()))));
@@ -117,7 +114,7 @@ mod test {
     fn mgu_2() {
         let f1 = parse("~P(f(x, y))").unwrap();
         let f2 = parse("~P(f(y, x))").unwrap();
-        let theta = mgu(vec!(f1, f2)).unwrap();
+        let theta = mgu(f1, f2).unwrap();
         // Other way round is okay too.
         assert_eq!(theta.len(), 1);
         assert_eq!(*theta.get(&Term::Variable("y".to_owned())).unwrap(), Term::Variable("x".to_owned()));
@@ -127,7 +124,7 @@ mod test {
     fn mgu_3() {
         let f1 = parse("P(f(x, g(y)))").unwrap();
         let f2 = parse("P(f(y, x))").unwrap();
-        let theta = mgu(vec!(f1, f2));
+        let theta = mgu(f1, f2);
         assert!(theta.is_err());
     }
     
@@ -136,7 +133,7 @@ mod test {
         // In HOL this would work.
         let f1 = parse("P(x)").unwrap();
         let f2 = parse("Q(y)").unwrap();
-        let theta = mgu(vec!(f1, f2));
+        let theta = mgu(f1, f2);
         assert!(theta.is_err());
     }
     
@@ -144,7 +141,7 @@ mod test {
     fn mgu_5() {
         let f1 = parse("R(y)").unwrap();
         let f2 = parse("R(f(y))").unwrap();
-        let theta = mgu(vec!(f1, f2));
+        let theta = mgu(f1, f2);
         assert!(theta.is_err());
     }
 }    

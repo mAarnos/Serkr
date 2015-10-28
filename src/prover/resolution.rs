@@ -56,7 +56,7 @@ fn rename(pfx: String, cl: &mut Vec<Formula>) {
 fn add_resolvents(cl1: &[Formula], cl2: &[Formula], p: Formula, unused: &mut Vec<Vec<Formula>>) {
     let neg_p = negate(p.clone());
     for x in cl2.iter().cloned() {
-        let possible_theta = mgu(vec!(x.clone(), neg_p.clone()));
+        let possible_theta = mgu(x.clone(), neg_p.clone());
         if let Ok(theta) = possible_theta {
             let mut cl1_done: Vec<Formula> = cl1.iter()
                                                 .cloned()
@@ -130,7 +130,7 @@ fn trivial(cl: &[Formula]) -> bool {
 fn factor(cl: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
     for i in 0..cl.len() {
         for j in (i + 1)..cl.len() {
-            if let Ok(theta) = mgu(vec!(cl[i].clone(), cl[j].clone())) {
+            if let Ok(theta) = mgu(cl[i].clone(), cl[j].clone()) {
                 let mut new_cl = cl.clone();
                 new_cl.swap_remove(j);
                 for l in &mut new_cl {
