@@ -144,7 +144,7 @@ fn factor(cl: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
 
 fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
-        let mut chosen_clause = pick_clause(&mut unused);
+        let chosen_clause = pick_clause(&mut unused);
         used.push(chosen_clause.clone());
         
         for cl in &used {

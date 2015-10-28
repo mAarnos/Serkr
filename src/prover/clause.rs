@@ -19,6 +19,7 @@ use prover::literal::Literal;
 use std::slice::Iter;
 
 /// A single clause containing some amount of literals in no specific order.
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Clause {
     literals: Vec<Literal>,
 }
@@ -55,7 +56,13 @@ impl Clause {
         self.literals.iter()
     }
     
+    /// Add the literals in a given clause to this clause (without checking for duplicates).
     pub fn add_literals(&mut self, mut cl: Clause) {
         self.literals.append(&mut cl.literals);
+    }
+    
+    /// Get the literal at a given index.
+    pub fn at(&self, index: usize) -> Literal {
+        self.literals[index].clone()
     }
 }

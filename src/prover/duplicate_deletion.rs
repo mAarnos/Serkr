@@ -15,17 +15,28 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search.
+use prover::clause::Clause;
 
-mod flatten_cnf;
+/// Deletes all duplicated literals from a clause.
+/// Running time is O(n^2) where n is the amount of literal in a clause.
+/// O(n) is possible but that would probably be slower unless clauses are big.
+pub fn delete_duplicates(cl: &mut Clause) {
+    let mut i = 0;
+    while i < cl.size() {
+        let mut j = i + 1;
+        while j < cl.size() {
+            if cl.at(i) == cl.at(j) {
+                cl.swap_remove(j);
+                continue;
+            }
+            j += 1;
+        }
+        i += 1;
+    }
+}
 
-mod unification;
-mod subsumption;
-mod resolution;
+#[cfg(test)]
+mod test {
+    
+} 
 
-mod trivial;
-mod duplicate_deletion;
-mod factoring;
-
-mod literal;
-mod clause;

@@ -15,10 +15,27 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// use prover::clause::Clause;
-// use prover::unification::mgu;
+/*
+use prover::clause::Clause;
+use prover::unification::mgu;
 
-
+/// 
+#[allow(needless_range_loop)]
+pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
+    for i in 0..cl.size() {
+        for j in (i + 1)..cl.size() {
+            if let Ok(theta) = mgu(vec!(cl.at(i), cl.at(j))) {
+                let mut new_cl = cl.clone();
+                new_cl.swap_remove(j);
+                for l in &mut new_cl {
+                    *l = tsubst(l.clone(), &theta);
+                }
+                unused.push(new_cl);
+            }
+        }
+    }
+}
+*/
 
 #[cfg(test)]
 mod test {
