@@ -98,6 +98,7 @@ fn resolve_clauses(mut cl1: Vec<Formula>, mut cl2: Vec<Formula>, unused: &mut Ve
 /// Currently just picks the shortest one.
 fn pick_clause(unused: &mut Vec<Vec<Formula>>) -> Vec<Formula> {
     // TODO: can be done better by using max.
+    // TODO: can be done even better with a priority queue
     let mut best_clause_index = 0;
     let mut best_clause_size = unused[0].len();
     

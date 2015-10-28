@@ -18,7 +18,7 @@
 use prover::literal::Literal;
 use std::slice::Iter;
 
-/// A single clause.
+/// A single clause containing some amount of literals in no specific order.
 pub struct Clause {
     literals: Vec<Literal>,
 }

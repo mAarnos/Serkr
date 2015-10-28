@@ -30,14 +30,15 @@ impl Literal {
         Literal { id: 0, args: Vec::new() }
     }
     
-    /// Creates a literal with a specific id.
+    /// Creates a literal with a specific id. 
+    /// Using this for anything is not recommended at all.
     pub fn new_from_id(id: i64) -> Literal {
         Literal { id: id, args: Vec::new() }
     }
     
-    /// Used for checking if a literal is negated.
-    pub fn is_negated(&self) -> bool {
-        self.id < 0
+    /// Used for checking if a literal is positive.
+    pub fn is_positive(&self) -> bool {
+        self.id > 0
     }
     
     /// Returns a negated version of the literal (taking into account double negation elimination).
