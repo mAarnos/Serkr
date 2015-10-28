@@ -25,20 +25,14 @@ pub struct Literal {
 }
 
 impl Literal {
-    /// Creates a new dummy literal.
-    pub fn new() -> Literal {
-        Literal { id: 0, args: Vec::new() }
+    /// Creates a literal with a specific id. 
+    pub fn new_from_id(id: i64) -> Literal {
+        Literal { id: id, args: Vec::new() }
     }
-    
+
     /// Creates a literal with a specific id and arguments.
     pub fn new_from_id_and_args(id: i64, args: Vec<Term>) -> Literal {
         Literal { id: id, args: args }
-    }
-    
-    /// Creates a literal with a specific id. 
-    /// Using this for anything is not recommended at all.
-    pub fn new_from_id(id: i64) -> Literal {
-        Literal { id: id, args: Vec::new() }
     }
     
     /// Used for checking if a literal is positive.

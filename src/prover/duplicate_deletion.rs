@@ -37,6 +37,39 @@ pub fn delete_duplicates(cl: &mut Clause) {
 
 #[cfg(test)]
 mod test {
+    use super::delete_duplicates;
+    use prover::clause::Clause;
+    use prover::literal::Literal;
     
+    #[test]
+    fn delete_duplicates_1() {
+        let p = Literal::new_from_id(-1);
+        let q = Literal::new_from_id(2);
+        let r = Literal::new_from_id(3);
+        let s = Literal::new_from_id(-4);
+        let mut cl = Clause::new_from_vec(vec!(p.clone(), q, r.clone(), s, p, r));
+        delete_duplicates(&mut cl);
+        assert_eq!(cl.size(), 4);
+    }
+    
+    #[test]
+    fn delete_duplicates_2() {
+        let p = Literal::new_from_id(1);
+        let q = Literal::new_from_id(-2);
+        let r = Literal::new_from_id(3);
+        let s = Literal::new_from_id(4);
+        let mut cl = Clause::new_from_vec(vec!(p, q, r, s));
+        let correct_cl = cl.clone();
+        delete_duplicates(&mut cl);
+        assert_eq!(cl, correct_cl);
+    }
+    
+    #[test]
+    fn delete_duplicates_3() {
+        let p = Literal::new_from_id(-1);
+        let mut cl = Clause::new_from_vec(vec!(p.clone(), p.clone(), p));
+        delete_duplicates(&mut cl);
+        assert_eq!(cl.size(), 1);
+    }
 } 
 
