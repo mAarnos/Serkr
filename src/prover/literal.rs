@@ -30,6 +30,11 @@ impl Literal {
         Literal { id: 0, args: Vec::new() }
     }
     
+    /// Creates a literal with a specific id and arguments.
+    pub fn new_from_id_and_args(id: i64, args: Vec<Term>) -> Literal {
+        Literal { id: id, args: args }
+    }
+    
     /// Creates a literal with a specific id. 
     /// Using this for anything is not recommended at all.
     pub fn new_from_id(id: i64) -> Literal {

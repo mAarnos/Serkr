@@ -16,7 +16,9 @@
 */
 
 use prover::clause::Clause;
-use utils::formula::Formula;
+use prover::literal::Literal;
+use utils::formula::{Term, Formula};
+use std::collections::HashMap;
 
 /// Turns a formula in CNF into the flat representation more suited for the prover.
 pub fn flatten_cnf_formula(_: Formula) -> Vec<Clause> {
@@ -33,16 +35,29 @@ fn collect(f: Formula) -> Vec<Clause> {
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
+*/
 
-fn collect_or(f: Formula) -> Clause {
+/*
+fn collect_or(f: Formula, mapping: &mut HashMap<String, i64>, n: &mut i64) -> Clause {
     match f {
-        Formula::Predicate(_, _) | 
-        Formula::Not(box Formula::Predicate(_, _)) => Clause::new_from_vec(vec!(f)),
-        Formula::Or(box p, box q) => { let mut left = collect_or(p); left.append(&mut collect_or(q)); left }
+        Formula::Predicate(s, args) => Clause::new_from_vec(vec!(f)),
+        Formula::Not(box Formula::Predicate(s, args)) => Clause::new_from_vec(vec!(f)),
+        Formula::Or(box p, box q) => { let mut left = collect_or(p); left.add_literals(collect_or(q)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
 */
+
+fn create_literal(s: String, args: Vec<Term>, mapping: &mut HashMap<String, i64>, n: &mut i64) -> Literal {
+    if let Some(&id) = mapping.get(&s) {
+        Literal::new_from_id_and_args(id, args)
+    } else {
+        let ret = Literal::new_from_id_and_args(*n, args);
+        mapping.insert(s, *n);
+        *n += 1;
+        ret
+    }
+}
 
 #[cfg(test)]
 mod test {

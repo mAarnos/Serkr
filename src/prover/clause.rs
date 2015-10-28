@@ -44,8 +44,18 @@ impl Clause {
         self.literals.is_empty()
     }
     
+    /// Removes a literal from the clause. Since we don't care about ordering we use swap_remove.
+    /// Using this requires some care. A good example of correct use is found in factoring.rs
+    pub fn swap_remove(&mut self, index: usize) {
+        self.literals.swap_remove(index);
+    }
+    
     /// Used for iterating the literals of the clause.
     pub fn iter(&self) -> Iter<Literal> {
         self.literals.iter()
+    }
+    
+    pub fn add_literals(&mut self, mut cl: Clause) {
+        self.literals.append(&mut cl.literals);
     }
 }
