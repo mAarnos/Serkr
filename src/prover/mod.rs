@@ -21,7 +21,7 @@ mod flatten_cnf;
 
 mod unification;
 mod subsumption;
-mod resolution;
+// mod resolution;
 
 mod trivial;
 mod duplicate_deletion;

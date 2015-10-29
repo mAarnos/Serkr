@@ -53,7 +53,7 @@ fn rename(pfx: String, cl: &mut Vec<Formula>) {
     }
 }
 
-fn add_resolvents(cl1: &[Formula], cl2: &[Formula], p: Formula, unused: &mut Vec<Vec<Formula>>) {
+fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Formula, unused: &mut Vec<Clause>) {
     let neg_p = negate(p.clone());
     for x in cl2.iter().cloned() {
         let possible_theta = mgu(x.clone(), neg_p.clone());
@@ -76,14 +76,7 @@ fn add_resolvents(cl1: &[Formula], cl2: &[Formula], p: Formula, unused: &mut Vec
     }
 }
 
-fn positive(f: &Formula) -> bool {
-    match *f {
-        Formula::Not(_) => false,
-        _ => true
-    }
-}
-
-fn resolve_clauses(mut cl1: Vec<Formula>, mut cl2: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
+fn resolve_clauses(mut cl1: Clause, mut cl2: Clause, unused: &mut Vec<Clause>) {
     // Positive resolution: one of the resolution clauses must be all-positive.
     if cl1.iter().all(positive) || cl2.iter().all(positive) {
         rename("x".to_owned(), &mut cl1);
@@ -96,33 +89,20 @@ fn resolve_clauses(mut cl1: Vec<Formula>, mut cl2: Vec<Formula>, unused: &mut Ve
 
 /// Picks and removes the "best" clause from the unused clauses according to heuristics.
 /// Currently just picks the shortest one.
-fn pick_clause(unused: &mut Vec<Vec<Formula>>) -> Vec<Formula> {
+fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
     // TODO: can be done better by using max.
     // TODO: can be done even better with a priority queue
     let mut best_clause_index = 0;
-    let mut best_clause_size = unused[0].len();
+    let mut best_clause_size = unused[0].size();
     
     for i in 1..unused.len() {
-        if unused[i].len() < best_clause_size {
+        if unused[i].size() < best_clause_size {
             best_clause_index = i;
-            best_clause_size = unused[i].len();
+            best_clause_size = unused[i].size();
         }
     }
     
     unused.swap_remove(best_clause_index)
-}
-
-/// Checks if a clause is trivial, i.e. it is a syntactical tautology.
-fn trivial(cl: &[Formula]) -> bool {
-    for (i, lit) in cl.iter().enumerate() {
-        let counterpart = negate(lit.clone());
-        for j in (i + 1)..cl.len() {
-            if cl[j] == counterpart {
-                return true;
-            }
-        }
-    }  
-    false
 }
 
 /// Factors a clause if possible. 
@@ -142,7 +122,7 @@ fn factor(cl: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
     }
 }
 
-fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -> Result<bool, &'static str> {
+fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
         let chosen_clause = pick_clause(&mut unused);
         // If we derived a contradiction we are done.
@@ -157,25 +137,6 @@ fn resolution_loop(mut used: Vec<Vec<Formula>>, mut unused: Vec<Vec<Formula>>) -
         factor(chosen_clause, &mut unused);
     }
     Err("No proof found.")
-}
-
-fn collect_or(f: Formula) -> Vec<Formula> {
-    match f {
-        Formula::Predicate(_, _) => vec!(f),
-        Formula::Not(box Formula::Predicate(_, _)) => vec!(f),
-        Formula::Or(box p, box q) => { let mut left = collect_or(p); left.append(&mut collect_or(q)); left }
-        _ => panic!("Encountered something which should already be gone")
-    }
-}
-
-fn collect(f: Formula) -> Vec<Vec<Formula>> {
-    match f {
-        Formula::Predicate(_, _) => vec!(vec!(f)),
-        Formula::Not(box Formula::Predicate(_, _)) => vec!(vec!(f)),
-        Formula::Or(_, _) => vec!(collect_or(f)),
-        Formula::And(box p, box q) => { let mut left = collect(p); left.append(&mut collect(q)); left }
-        _ => panic!("Encountered something which should already be gone")
-    }
 }
 
 pub fn resolution(s: &str) -> Result<bool, &'static str> {

@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use utils::formula::{Term, Formula};
+use utils::formula::Term;
 use cnf::free_variables::occurs_in;
 use prover::literal::Literal;
 
@@ -74,15 +74,7 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
     }
 }
 
-fn unify_literals(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<HashMap<Term, Term>, ()> {
-    match tmp {
-        (Formula::Predicate(p1, args1), Formula::Predicate(p2, args2)) => Ok(try!(unify(env, vec!((Term::Function(p1, args1), Term::Function(p2, args2)))))),
-        (Formula::Not(box p), Formula::Not(box q)) => unify_literals(env, (p, q)),
-        _ => Err(())
-    }
-}
-
-fn unify_literals2(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
+fn unify_literals(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
     if p.get_id() == q.get_id() {
         let mut eqs = Vec::<(Term, Term)>::new();
         for eq in p.get_arguments().into_iter().zip(q.get_arguments().into_iter()) {
@@ -94,21 +86,9 @@ fn unify_literals2(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<H
     }
 }
 
-pub fn negate(f: Formula) -> Formula {
-    match f {
-        Formula::Not(box p) => p,
-        _ => Formula::Not(box f)
-    }
-}
-
-pub fn mgu(p: Formula, q: Formula) -> Result<HashMap<Term, Term>, ()> {
+pub fn mgu(p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
     let env = HashMap::<Term, Term>::new();   
-    Ok(solve(try!(unify_literals(env, (p, q)))))
-}
-
-pub fn mgu2(p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
-    let env = HashMap::<Term, Term>::new();   
-    Ok(solve(try!(unify_literals2(env, p, q))))
+    Ok(solve(try!(unify_literals(env, p, q))))
 }
 
 #[cfg(test)]
@@ -116,21 +96,24 @@ mod test {
     use super::mgu;
     use utils::formula::Term;
     use parser::internal_parser::parse;
+    use prover::flatten_cnf::flatten_cnf;
     
     #[test]
     fn mgu_1() {
-        let f1 = parse("P(f(x, g(y)))").unwrap();
-        let f2 = parse("P(f(f(z), w))").unwrap();
+        let f = flatten_cnf(parse("(P(f(x, g(y))) /\\ P(f(f(z), w)))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
         let theta = mgu(f1, f2).unwrap();
         assert_eq!(theta.len(), 2);
         assert_eq!(*theta.get(&Term::Variable("w".to_owned())).unwrap(), Term::Function("g".to_owned(), vec!(Term::Variable("y".to_owned()))));
         assert_eq!(*theta.get(&Term::Variable("x".to_owned())).unwrap(), Term::Function("f".to_owned(), vec!(Term::Variable("z".to_owned()))));
     }
-    
+
     #[test]
     fn mgu_2() {
-        let f1 = parse("~P(f(x, y))").unwrap();
-        let f2 = parse("~P(f(y, x))").unwrap();
+        let f = flatten_cnf(parse("(~P(f(x, y)) /\\ ~P(f(y, x)))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
         let theta = mgu(f1, f2).unwrap();
         // Other way round is okay too.
         assert_eq!(theta.len(), 1);
@@ -139,8 +122,9 @@ mod test {
     
     #[test]
     fn mgu_3() {
-        let f1 = parse("P(f(x, g(y)))").unwrap();
-        let f2 = parse("P(f(y, x))").unwrap();
+        let f = flatten_cnf(parse("((P(f(x, g(y)))) /\\ P(f(y, x)))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
         assert!(theta.is_err());
     }
@@ -148,16 +132,27 @@ mod test {
     #[test]
     fn mgu_4() {
         // In HOL this would work.
-        let f1 = parse("P(x)").unwrap();
-        let f2 = parse("Q(y)").unwrap();
+        let f = flatten_cnf(parse("(P(x) /\\ Q(y))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
         assert!(theta.is_err());
     }
     
     #[test]
     fn mgu_5() {
-        let f1 = parse("R(y)").unwrap();
-        let f2 = parse("R(f(y))").unwrap();
+        let f = flatten_cnf(parse("(R(y) /\\ R(f(y)))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
+        let theta = mgu(f1, f2);
+        assert!(theta.is_err());
+    }
+    
+    #[test]
+    fn mgu_6() {
+        let f = flatten_cnf(parse("(F(y, y) /\\ F(f(x), x))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
         assert!(theta.is_err());
     }

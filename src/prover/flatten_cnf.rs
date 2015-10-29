@@ -22,7 +22,7 @@ use std::collections::HashMap;
 
 /// Turns a formula in CNF into the flat representation more suited for the prover.
 /// We assume that the trivial cases of True and False have been handled already.
-pub fn flatten_cnf_formula(f: Formula) -> Vec<Clause> {
+pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
     let mut mapping = HashMap::<String, i64>::new();
     let mut n = 0;
     collect(f, &mut mapping, &mut n)
