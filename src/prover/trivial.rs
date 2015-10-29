@@ -18,6 +18,8 @@
 use prover::clause::Clause;
 
 /// Checks if a clause is a syntactical tautology.
+/// Running time is O(n^2) where n is the amount of literals in the clause.
+/// O(n) is possible but that would probably be slower unless the clause is big.
 pub fn trivial(cl: &Clause) -> bool {
     for (i, lit) in cl.iter().enumerate() {
         let negated_lit = lit.negate();

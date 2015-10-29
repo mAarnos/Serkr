@@ -18,6 +18,7 @@
 use std::collections::HashMap;
 use utils::formula::{Term, Formula};
 use cnf::free_variables::occurs_in;
+use prover::literal::Literal;
 
 fn subst(t: Term, from: &Term, to: &Term) -> Term {
     match t {
@@ -81,6 +82,18 @@ fn unify_literals(env: HashMap<Term, Term>, tmp: (Formula, Formula)) -> Result<H
     }
 }
 
+fn unify_literals2(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
+    if p.get_id() == q.get_id() {
+        let mut eqs = Vec::<(Term, Term)>::new();
+        for eq in p.get_arguments().into_iter().zip(q.get_arguments().into_iter()) {
+            eqs.push(eq);
+        }
+        Ok(try!(unify(env, eqs)))
+    } else {
+        Err(())
+    }
+}
+
 pub fn negate(f: Formula) -> Formula {
     match f {
         Formula::Not(box p) => p,
@@ -88,10 +101,14 @@ pub fn negate(f: Formula) -> Formula {
     }
 }
 
-#[allow(needless_range_loop)]
 pub fn mgu(p: Formula, q: Formula) -> Result<HashMap<Term, Term>, ()> {
     let env = HashMap::<Term, Term>::new();   
     Ok(solve(try!(unify_literals(env, (p, q)))))
+}
+
+pub fn mgu2(p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
+    let env = HashMap::<Term, Term>::new();   
+    Ok(solve(try!(unify_literals2(env, p, q))))
 }
 
 #[cfg(test)]

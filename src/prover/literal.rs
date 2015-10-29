@@ -40,6 +40,16 @@ impl Literal {
         self.id > 0
     }
     
+    /// Get the id of the literal.
+    pub fn get_id(&self) -> i64 {
+        self.id
+    }
+    
+    /// Get the arguments of the literal.
+    pub fn get_arguments(&self) -> Vec<Term> {
+        self.args.clone()
+    }
+    
     /// Returns a negated version of the literal (taking into account double negation elimination).
     pub fn negate(&self) -> Literal {
         let mut lit = self.clone();
