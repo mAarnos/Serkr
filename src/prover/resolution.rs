@@ -22,11 +22,12 @@ use prover::clause::Clause;
 use prover::trivial::trivial;
 use prover::factoring::factor;
 use prover::flatten_cnf::flatten_cnf;
+use prover::subsumption::subsumes_clause;
+use prover::duplicate_deletion::delete_duplicates;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::set::Set;
 use utils::formula::{Term, Formula};
-
 
 fn rename(pfx: String, cl: &mut Clause) {
     let fvs: Set<String> = cl.iter().flat_map(|l| l.variables()).collect();
@@ -39,7 +40,7 @@ fn rename(pfx: String, cl: &mut Clause) {
     }
 }
 
-fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, unused: &mut Vec<Clause>) {
+fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, used: &[Clause], unused: &mut Vec<Clause>) {
     let neg_p = p.negate();
     for x in cl2.iter().cloned() {
         let possible_theta = mgu(x.clone(), neg_p.clone());
@@ -55,20 +56,21 @@ fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, unused: &mut Vec<Claus
                                                    .map(|mut l| { l.tsubst(&theta); l })
                                                    .collect());                                   
             cl1_done.add_literals(cl2_done);
-            if !trivial(&cl1_done) {
+            delete_duplicates(&mut cl1_done);
+            if !trivial(&cl1_done) && !used.iter().any(|cl| subsumes_clause(cl, &cl1_done)) && !unused.iter().any(|cl| subsumes_clause(cl, &cl1_done)) {
                 unused.push(cl1_done);
             }
         }
     }
 }
 
-fn resolve_clauses(mut cl1: Clause, mut cl2: Clause, unused: &mut Vec<Clause>) {
+fn resolve_clauses(mut cl1: Clause, mut cl2: Clause, used: &[Clause], unused: &mut Vec<Clause>) {
     // Positive resolution: one of the resolution clauses must be all-positive.
     if cl1.iter().all(|l| l.is_positive()) || cl2.iter().all(|l| l.is_positive()) {
         rename("x".to_owned(), &mut cl1);
         rename("y".to_owned(), &mut cl2);
         for p in cl1.iter().cloned() {
-            add_resolvents(&cl1, &cl2, p, unused);
+            add_resolvents(&cl1, &cl2, p, used, unused);
         }
     }
 }
@@ -101,7 +103,7 @@ fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<boo
         used.push(chosen_clause.clone());
         
         for cl in &used {
-            resolve_clauses(chosen_clause.clone(), cl.clone(), &mut unused);
+            resolve_clauses(chosen_clause.clone(), cl.clone(), &used, &mut unused);
         }
         factor(chosen_clause, &mut unused);
     }
@@ -183,13 +185,11 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_10() {
         let result = resolution("(((((Q ==> R) /\\ (R ==> (P /\\ Q))) /\\ (P ==> (Q \\/ R)))) ==> (P <=> Q))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_11() {
@@ -197,29 +197,23 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_12() {
         let result = resolution("(((P <=> Q) <=> R) <=> (P <=> (Q <=> R)))");
         assert!(result.is_ok());
     }
-    */
     
-    /*
     #[test]
     fn pelletier_13() {
         let result = resolution("((P \\/ (Q /\\ R)) <=> ((P \\/ Q) /\\ (P \\/ R)))");
         assert!(result.is_ok());
     }
-    */
     
-    /*
     #[test]
     fn pelletier_14() {
         let result = resolution("((P <=> Q) <=> ((~P \\/ Q) /\\ (~Q \\/ P)))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_15() {
@@ -245,13 +239,11 @@ mod test {
         assert!(result.is_ok());
     }
 
-    /*
     #[test]
     fn pelletier_22() {
         let result = resolution("((forall x. (P <=> F(x))) ==> (P <=> forall x. F(x)))");
         assert!(result.is_ok());
     }
-    */
     
    #[test]
    fn pelletier_30() {
@@ -277,11 +269,9 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn davis_putnam() {
         let result = resolution("exists x. exists y. forall z. ((F(x, y) ==> (F(y, z) /\\ F(z, z))) /\\ ((F(x, y) /\\ G(x, y)) ==> (G(x, z) /\\ G(z, z))))");
         assert!(result.is_ok());
     }
-    */
 }    

@@ -59,7 +59,7 @@ fn match_literals(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<Ha
 }
 
 /// Checks if the clause cl1 subsumes the clause cl2.
-pub fn subsumes_clause(cl1: Clause, cl2: Clause) -> bool {
+pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
     let mut env = HashMap::<Term, Term>::new();
     
     for l1 in cl1.iter() {
