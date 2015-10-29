@@ -15,60 +15,45 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
+use parser::internal_parser::parse;
 use utils::set::Set;
 use utils::formula::{Term, Formula};
 use cnf::naive_cnf::cnf;
-use cnf::free_variables::fv;
-use prover::unification::{negate, mgu};
-use std::collections::HashMap;
-use parser::internal_parser::parse;
+use prover::unification::mgu;
+use prover::literal::Literal;
+use prover::clause::Clause;
+use prover::trivial::trivial;
+use prover::factoring::factor;
+use prover::flatten_cnf::flatten_cnf;
 
-fn tsubst(f: Formula, sfn: &HashMap<Term, Term>) -> Formula {
-    match f {
-        Formula::Predicate(s, args) => Formula::Predicate(s, args.into_iter().map(|arg| tsubst_variable(arg, sfn)).collect()),
-        Formula::Not(box p) => Formula::Not(box tsubst(p, sfn)),
-        _ => f
-    }
-}
-
-fn tsubst_variable(t: Term, sfn: &HashMap<Term, Term>) -> Term {
-    if let Some(t2) = sfn.get(&t) {
-        t2.clone()
-    } else {
-        match t {
-            Term::Variable(_) => t,
-            Term::Function(s, args) => Term::Function(s, args.into_iter().map(|arg| tsubst_variable(arg, sfn)).collect())
-        }
-    }
-}
-
-fn rename(pfx: String, cl: &mut Vec<Formula>) {
-    let fvs: Set<String> = cl.iter().flat_map(|f| fv(f.clone())).collect();
+fn rename(pfx: String, cl: &mut Clause) {
+    let fvs: Set<String> = cl.iter().flat_map(|l| l.variables()).collect();
     let mut mapping = HashMap::<Term, Term>::new();
     for x in fvs.into_iter() {
         mapping.insert(Term::Variable(x.clone()), Term::Variable(pfx.clone() + &x)); 
     }
     for f in cl.iter_mut() {
-        *f = tsubst(f.clone(), &mapping);
+        f.tsubst(&mapping);
     }
 }
 
-fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Formula, unused: &mut Vec<Clause>) {
-    let neg_p = negate(p.clone());
+fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, unused: &mut Vec<Clause>) {
+    let neg_p = p.negate();
     for x in cl2.iter().cloned() {
         let possible_theta = mgu(x.clone(), neg_p.clone());
         if let Ok(theta) = possible_theta {
-            let mut cl1_done: Vec<Formula> = cl1.iter()
-                                                .cloned()
-                                                .filter(|l| *l != p)
-                                                .map(|l| tsubst(l, &theta))
-                                                .collect();
-            let mut cl2_done: Vec<Formula> = cl2.iter()
-                                                .cloned()
-                                                .filter(|l| *l != x)
-                                                .map(|l| tsubst(l, &theta))
-                                                .collect();
-            cl1_done.append(&mut cl2_done);
+            let mut cl1_done = Clause::new_from_vec(cl1.iter()
+                                                       .cloned()
+                                                       .filter(|l| *l != p)
+                                                       .map(|mut l| { l.tsubst(&theta); l })
+                                                       .collect());
+            let cl2_done = Clause::new_from_vec(cl2.iter()
+                                                   .cloned()
+                                                   .filter(|l| *l != x)
+                                                   .map(|mut l| { l.tsubst(&theta); l })
+                                                   .collect());                                   
+            cl1_done.add_literals(cl2_done);
             if !trivial(&cl1_done) {
                 unused.push(cl1_done);
             }
@@ -78,7 +63,7 @@ fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Formula, unused: &mut Vec<Claus
 
 fn resolve_clauses(mut cl1: Clause, mut cl2: Clause, unused: &mut Vec<Clause>) {
     // Positive resolution: one of the resolution clauses must be all-positive.
-    if cl1.iter().all(positive) || cl2.iter().all(positive) {
+    if cl1.iter().all(|l| l.is_positive()) || cl2.iter().all(|l| l.is_positive()) {
         rename("x".to_owned(), &mut cl1);
         rename("y".to_owned(), &mut cl2);
         for p in cl1.iter().cloned() {
@@ -105,23 +90,6 @@ fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
     unused.swap_remove(best_clause_index)
 }
 
-/// Factors a clause if possible. 
-#[allow(needless_range_loop)]
-fn factor(cl: Vec<Formula>, unused: &mut Vec<Vec<Formula>>) {
-    for i in 0..cl.len() {
-        for j in (i + 1)..cl.len() {
-            if let Ok(theta) = mgu(cl[i].clone(), cl[j].clone()) {
-                let mut new_cl = cl.clone();
-                new_cl.swap_remove(j);
-                for l in &mut new_cl {
-                    *l = tsubst(l.clone(), &theta);
-                }
-                unused.push(new_cl);
-            }
-        }
-    }
-}
-
 fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
         let chosen_clause = pick_clause(&mut unused);
@@ -146,15 +114,13 @@ pub fn resolution(s: &str) -> Result<bool, &'static str> {
     } else if cnf_f == Formula::True {
         Err("False.")
     } else {
-        resolution_loop(Vec::new(), collect(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
+        resolution_loop(Vec::new(), flatten_cnf(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::{resolution, trivial};
-    use prover::unification::negate;
-    use utils::formula::Formula;
+    use super::resolution;
     
     #[test]
     fn unprovable() {
@@ -317,29 +283,4 @@ mod test {
         assert!(result.is_ok());
     }
     */
-    
-    #[test]
-    fn trivial_1() {
-        let p = Formula::Predicate("P".to_owned(), Vec::new());
-        let q = Formula::Predicate("Q".to_owned(), Vec::new());
-        let cls = vec!(p.clone(), q, negate(p));
-        assert!(trivial(&cls));
-    }
-    
-    #[test]
-    fn trivial_2() {
-        let p = Formula::Predicate("P".to_owned(), Vec::new());
-        let q = Formula::Predicate("Q".to_owned(), Vec::new());
-        let cls = vec!(p, q);
-        assert!(!trivial(&cls));
-    }
-    
-    #[test]
-    fn trivial_3() {
-        let p = Formula::Predicate("P".to_owned(), Vec::new());
-        let q = Formula::Predicate("Q".to_owned(), Vec::new());
-        let neg_p = Formula::Not(box Formula::Predicate("P".to_owned(), Vec::new()));
-        let cls = vec!(neg_p, p, q);
-        assert!(trivial(&cls));
-    }
 }    

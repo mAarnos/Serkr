@@ -16,7 +16,7 @@
 */
 
 use prover::literal::Literal;
-use std::slice::Iter;
+use std::slice::{Iter, IterMut};
 
 /// A single clause containing some amount of literals in no specific order.
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -54,6 +54,11 @@ impl Clause {
     /// Used for iterating the literals of the clause.
     pub fn iter(&self) -> Iter<Literal> {
         self.literals.iter()
+    }
+    
+    /// Used for iterating the literals of the clause.
+    pub fn iter_mut(&mut self) -> IterMut<Literal> {
+        self.literals.iter_mut()
     }
     
     /// Add the literals in a given clause to this clause (without checking for duplicates).

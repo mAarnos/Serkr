@@ -51,7 +51,7 @@ pub fn fv(f: Formula) -> Set<String> {
 }
 
 /// Get the free variables of a term.
-fn fvt(t: Term) -> Set<String> {
+pub fn fvt(t: Term) -> Set<String> {
     match t {
         Term::Variable(s) => Set::singleton(s),
         Term::Function(_, params) => params.into_iter().flat_map(fvt).collect(),

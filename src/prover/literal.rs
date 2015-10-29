@@ -15,7 +15,10 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
 use utils::formula::Term;
+use utils::set::Set;
+use cnf::free_variables::fvt;
 
 /// A single, possibly negated, literal.
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -60,5 +63,29 @@ impl Literal {
         let mut lit = self.clone();
         lit.id = -lit.id;
         lit
+    }
+    
+    /// Substitute terms in a literal according to a given mapping.
+    pub fn tsubst(&mut self, sfn: &HashMap<Term, Term>) {
+        for t in &mut self.args {
+            *t = tsubst_variable(t.clone(), sfn);
+        }
+    }
+    
+    /// Get the variables used in the literal.
+    pub fn variables(&self) -> Set<String> {
+        self.args.iter().flat_map(|t| fvt(t.clone())).collect()
+    }
+}
+
+// TODO: do something about this
+fn tsubst_variable(t: Term, sfn: &HashMap<Term, Term>) -> Term {
+    if let Some(t2) = sfn.get(&t) {
+        t2.clone()
+    } else {
+        match t {
+            Term::Variable(_) => t,
+            Term::Function(s, args) => Term::Function(s, args.into_iter().map(|arg| tsubst_variable(arg, sfn)).collect())
+        }
     }
 }
