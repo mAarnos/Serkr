@@ -75,7 +75,7 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
 }
 
 fn unify_literals(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
-    if p.get_id() == q.get_id() {
+    if p.get_id() == q.get_id() && p.get_arity() == q.get_arity() {
         let mut eqs = Vec::<(Term, Term)>::new();
         for eq in p.get_arguments().into_iter().zip(q.get_arguments().into_iter()) {
             eqs.push(eq);
@@ -151,6 +151,15 @@ mod test {
     #[test]
     fn mgu_6() {
         let f = flatten_cnf(parse("(F(y, y) /\\ F(f(x), x))").unwrap());
+        let f1 = f[0].at(0);
+        let f2 = f[1].at(0);
+        let theta = mgu(f1, f2);
+        assert!(theta.is_err());
+    }
+    
+    #[test]
+    fn mgu_7() {
+        let f = flatten_cnf(parse("(P(x) /\\ P(x, x))").unwrap());
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2);

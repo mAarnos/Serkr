@@ -45,6 +45,11 @@ impl Literal {
         self.id
     }
     
+    /// Get the arity of the literal.
+    pub fn get_arity(&self) -> usize {
+        self.args.len()
+    }
+    
     /// Get the arguments of the literal.
     pub fn get_arguments(&self) -> Vec<Term> {
         self.args.clone()
