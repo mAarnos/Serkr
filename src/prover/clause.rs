@@ -15,8 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::literal::Literal;
 use std::slice::{Iter, IterMut};
+use prover::literal::Literal;
 
 /// A single clause containing some amount of literals in no specific order.
 #[derive(Debug, Eq, PartialEq, Clone)]

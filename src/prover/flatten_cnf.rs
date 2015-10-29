@@ -15,10 +15,10 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
 use prover::clause::Clause;
 use prover::literal::Literal;
 use utils::formula::{Term, Formula};
-use std::collections::HashMap;
 
 /// Turns a formula in CNF into the flat representation more suited for the prover.
 /// We assume that the trivial cases of True and False have been handled already.

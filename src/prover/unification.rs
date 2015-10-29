@@ -16,9 +16,9 @@
 */
 
 use std::collections::HashMap;
-use utils::formula::Term;
-use cnf::free_variables::occurs_in;
 use prover::literal::Literal;
+use cnf::free_variables::occurs_in;
+use utils::formula::Term;
 
 fn subst(t: Term, from: &Term, to: &Term) -> Term {
     match t {

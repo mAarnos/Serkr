@@ -16,16 +16,17 @@
 */
 
 use std::collections::HashMap;
-use parser::internal_parser::parse;
-use utils::set::Set;
-use utils::formula::{Term, Formula};
-use cnf::naive_cnf::cnf;
 use prover::unification::mgu;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::trivial::trivial;
 use prover::factoring::factor;
 use prover::flatten_cnf::flatten_cnf;
+use parser::internal_parser::parse;
+use cnf::naive_cnf::cnf;
+use utils::set::Set;
+use utils::formula::{Term, Formula};
+
 
 fn rename(pfx: String, cl: &mut Clause) {
     let fvs: Set<String> = cl.iter().flat_map(|l| l.variables()).collect();
@@ -112,7 +113,7 @@ pub fn resolution(s: &str) -> Result<bool, &'static str> {
     if cnf_f == Formula::False {
         Ok(true)
     } else if cnf_f == Formula::True {
-        Err("False.")
+        Ok(false)
     } else {
         resolution_loop(Vec::new(), flatten_cnf(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
     }
@@ -243,7 +244,7 @@ mod test {
         let result = resolution("exists x. forall y. forall z. ((P(y) ==> Q(z)) ==> (P(x) ==> Q(x)))");
         assert!(result.is_ok());
     }
-    
+
     /*
     #[test]
     fn pelletier_22() {

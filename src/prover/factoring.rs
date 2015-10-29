@@ -17,7 +17,9 @@
 
 use prover::clause::Clause;
 use prover::unification::mgu;
+use prover::trivial::trivial;
 
+/// Infers new clauses by factoring two literals in the input clause.
 #[allow(needless_range_loop)]
 pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
     for i in 0..cl.size() {
@@ -28,7 +30,9 @@ pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
                 for l in new_cl.iter_mut() {
                     l.tsubst(&theta);
                 }
-                unused.push(new_cl);
+                if !trivial(&new_cl) {
+                    unused.push(new_cl);
+                }
             }
         }
     }

@@ -16,9 +16,9 @@
 */
 
 use std::collections::HashMap;
+use cnf::free_variables::fvt;
 use utils::formula::Term;
 use utils::set::Set;
-use cnf::free_variables::fvt;
 
 /// A single, possibly negated, literal.
 #[derive(Debug, Eq, PartialEq, Clone)]
