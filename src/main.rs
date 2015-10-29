@@ -47,4 +47,15 @@ pub mod utils;
 
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
+    
+    let mut sw = utils::stopwatch::Stopwatch::new();
+    sw.start();
+    let res = prover::resolution::resolution("((((forall x. P(e, x, x)) /\\ 
+                                              (forall x. P(x, x, e))) /\\
+                                              forall u. forall v. forall w. forall x. forall y. forall z. ((P(x, y, u) /\\ P(y, z, w)) 
+                                                                                                            ==> (P(x, w, v) <=> P(u, z, v))))
+                                             ==> forall a. forall b. forall c. (P(a, b, c) ==> P(b, a, c)))");
+    sw.stop();
+    println!("{:?}", res);
+    println!("Time elapsed (in ms): {}", sw.elapsed_ms());
 }

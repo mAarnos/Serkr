@@ -23,7 +23,7 @@ peg! formula(r#"
     
     #[pub]
     formula -> Formula
-        = [ ]* f:spaced_formula [ ]* { f }
+        = [ \n]* f:spaced_formula [ \n]* { f }
               
     spaced_formula -> Formula
         = parenthesis_formula
@@ -81,7 +81,7 @@ peg! formula(r#"
         = spaced_term ** [,]
             
     spaced_term -> Term
-        = [ ]* t:term [ ]* { t }
+        = [ \n]* t:term [ \n]* { t }
          
     variable -> Term
         = s:term_name { Term::Variable(s) }    

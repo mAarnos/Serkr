@@ -110,6 +110,7 @@ fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<boo
     Err("No proof found.")
 }
 
+/// Attempts to parse and prove the string passed in.
 pub fn resolution(s: &str) -> Result<bool, &'static str> {
     let cnf_f = cnf(Formula::Not(box parse(s).unwrap()));
     if cnf_f == Formula::False {
