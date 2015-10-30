@@ -17,6 +17,7 @@
 
 use std::collections::HashMap;
 use prover::unification::mgu;
+use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::trivial::trivial;
@@ -26,8 +27,7 @@ use prover::subsumption::subsumes_clause;
 use prover::duplicate_deletion::delete_duplicates;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
-use utils::set::Set;
-use utils::formula::{Term, Formula};
+use utils::formula::Formula;
 
 fn rename(pfx: String, cl: &mut Clause) {
     let fvs: Set<String> = cl.iter().flat_map(|l| l.variables()).collect();

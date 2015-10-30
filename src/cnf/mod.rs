@@ -19,10 +19,9 @@
 //!
 //! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
-/// Contains stuff for manipulating free variables.
-///
-/// TODO: move this stuff somewhere else.
-pub mod free_variables;
+
+// TODO: move this stuff somewhere else.
+mod free_variables;
 
 mod simplify;
 mod nnf;
