@@ -96,7 +96,7 @@ mod test {
         let theta = mgu(f1, f2).unwrap();
         assert_eq!(theta.len(), 2);
         assert_eq!(*theta.get(&Term::new(-4, Vec::new())).unwrap(), Term::new(2, vec!(Term::new(-2, Vec::new()))));
-        assert_eq!(*theta.get(&Term::new(-1, Vec::new())).unwrap(), Term::new(1, vec!(Term::new(-3, Vec::new()))));
+        assert_eq!(*theta.get(&Term::new(-1, Vec::new())).unwrap(), Term::new(3, vec!(Term::new(-3, Vec::new()))));
     }
 
     #[test]
