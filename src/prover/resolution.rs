@@ -229,6 +229,14 @@ mod test {
     }
     
     #[test]
+    fn pelletier_17() {
+        let result = resolution("(((P /\\ (Q ==> R)) ==> S) <=>
+                                  (((~P \\/ Q) \\/ S) /\\
+                                  (~P \\/ (~R \\/ S))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
     fn pelletier_18() {
         let result = resolution("exists y. forall x. (F(y) ==> F(x))");
         assert!(result.is_ok());
@@ -239,10 +247,24 @@ mod test {
         let result = resolution("exists x. forall y. forall z. ((P(y) ==> Q(z)) ==> (P(x) ==> Q(x)))");
         assert!(result.is_ok());
     }
+    
+    #[test]
+    fn pelletier_21() {
+        let result = resolution("(((exists x. (P ==> F(x))) /\\ 
+                                   (exists x. (F(x) ==> P))) 
+                                    ==> (exists x. (P <=> F(x))))");
+        assert!(result.is_ok());
+    }
 
     #[test]
     fn pelletier_22() {
         let result = resolution("((forall x. (P <=> F(x))) ==> (P <=> forall x. F(x)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_23() {
+        let result = resolution("((forall x. (P \\/ F(x))) <=> (P \\/ forall x. F(x)))");
         assert!(result.is_ok());
     }
     
@@ -263,6 +285,15 @@ mod test {
         let result = resolution("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
         assert!(result.is_ok());
     }
+    
+    /*
+    #[test]
+    fn pelletier_40() {
+        let result = resolution("((exists y. forall x. (F(x, y) <=> F(x, x))) ==>
+                                  ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))");
+        assert!(result.is_ok());
+    }
+    */
     
     #[test]
     fn pelletier_42() {
