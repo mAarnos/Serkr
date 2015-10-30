@@ -21,25 +21,23 @@ use prover::literal::Literal;
 use prover::clause::Clause;
 
 fn term_match(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
-    while let Some(eq) = eqs.pop() {
-        match eq {
-            (Term::Function(s1, args1), Term::Function(s2, args2)) => 
-                if s1 == s2 && args1.len() == args2.len() {              
-                    for eq in args1.into_iter().zip(args2.into_iter()) {
-                        eqs.push(eq);
-                    }
-                } else {
-                    return Err(()); 
-                },
-            (x, t) => {
-                if let Some(y) = env.get(&x) {
-                    if *y != t {
-                        return Err(()); 
-                    }
-                    continue;
-                } 
-                env.insert(x, t);
+    while let Some((eq1, eq2)) = eqs.pop() {
+        if eq1.is_function() && eq2.is_function() {
+            if eq1.get_id() == eq2.get_id() && eq1.get_arity() == eq2.get_arity() {
+                for eq in eq1.get_args().into_iter().zip(eq2.get_args().into_iter()) {
+                    eqs.push(eq);
+                }
+            } else {
+                return Err(());
             }
+        } else {
+            if let Some(eq3) = env.get(&eq1) {
+                if *eq3 != eq2 {
+                    return Err(()); 
+                }
+                continue;
+            } 
+            env.insert(eq1, eq2);
         }
     }
     
@@ -48,10 +46,7 @@ fn term_match(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Resul
 
 fn match_literals(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
     if p.get_id() == q.get_id() && p.get_arity() == q.get_arity() {
-        let mut eqs = Vec::<(Term, Term)>::new();
-        for eq in p.get_arguments().into_iter().zip(q.get_arguments().into_iter()) {
-            eqs.push(eq);
-        }
+        let eqs = p.get_arguments().into_iter().zip(q.get_arguments().into_iter()).collect();
         Ok(try!(term_match(env, eqs)))
     } else {
         Err(())

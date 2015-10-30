@@ -20,7 +20,7 @@
 mod flatten_cnf;
 
 mod unification;
-// mod subsumption;
+mod subsumption;
 
 /// Contains stuff dealing with resolution and the main loop of the program.
 // pub mod resolution;
