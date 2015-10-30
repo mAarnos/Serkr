@@ -25,6 +25,7 @@ pub fn delete_duplicates(cl: &mut Clause) {
     while i < cl.size() {
         let mut j = i + 1;
         while j < cl.size() {
+            // TODO: inefficient, add overloaded access operator
             if cl.at(i) == cl.at(j) {
                 cl.swap_remove(j);
                 continue;

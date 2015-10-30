@@ -16,6 +16,7 @@
 */
 
 /// A single term.
+/// Functions are given a positive id, variables a negative one.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Term {
     id: i64,
@@ -23,6 +24,11 @@ pub struct Term {
 }
 
 impl Term {
+    /// Creates a new term.
+    pub fn new(id: i64, args: Vec<Term>) -> Term {
+        Term { id: id, args: args }
+    }
+
     /// Checks if this term is a function.
     pub fn is_function(&self) -> bool {
         self.id > 0

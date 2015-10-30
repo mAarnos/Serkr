@@ -16,9 +16,9 @@
 */
 
 use std::collections::HashMap;
+use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
-use utils::formula::Term;
 
 fn term_match(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
     while let Some(eq) = eqs.pop() {

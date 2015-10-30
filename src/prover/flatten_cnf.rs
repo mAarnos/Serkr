@@ -16,6 +16,7 @@
 */
 
 use std::collections::HashMap;
+use prover::term;
 use prover::clause::Clause;
 use prover::literal::Literal;
 use utils::formula::{Term, Formula};
@@ -23,37 +24,71 @@ use utils::formula::{Term, Formula};
 /// Turns a formula in CNF into the flat representation more suited for the prover.
 /// We assume that the trivial cases of True and False have been handled already.
 pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
-    let mut mapping = HashMap::<String, i64>::new();
-    let mut n = 0;
-    collect(f, &mut mapping, &mut n)
+    let mut lit_map = HashMap::<String, i64>::new();
+    let mut fun_map = HashMap::<String, i64>::new();
+    let mut var_map = HashMap::<String, i64>::new();
+    let mut lit_cnt = 0;
+    let mut var_cnt = 0;
+    let mut fun_cnt = 0;
+    collect(f, &mut lit_map, &mut lit_cnt, &mut var_map, &mut var_cnt, &mut fun_map, &mut fun_cnt)
 }
 
-fn collect(f: Formula, mapping: &mut HashMap<String, i64>, n: &mut i64) -> Vec<Clause> {
+// TODO: clean this crap up.
+fn collect(f: Formula, lit_map: &mut HashMap<String, i64>, lit_cnt: &mut i64,
+                       var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
+                       fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> Vec<Clause> {
     match f {
-        Formula::Predicate(s, args) => vec!(Clause::new_from_vec(vec!(create_literal(s, args, mapping, n)))),
-        Formula::Not(box Formula::Predicate(ref s, ref args)) => vec!(Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), mapping, n).negate()))),
-        Formula::Or(_, _) => vec!(collect_or(f, mapping, n)),
-        Formula::And(box p, box q) => { let mut left = collect(p, mapping, n); left.append(&mut collect(q, mapping, n)); left }
+        Formula::Predicate(s, args) => vec!(Clause::new_from_vec(vec!(create_literal(s, args, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)))),
+        Formula::Not(box Formula::Predicate(ref s, ref args)) => vec!(Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt).negate()))),
+        Formula::Or(_, _) => vec!(collect_or(f, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)),
+        Formula::And(box p, box q) => { let mut left = collect(p, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt); left.append(&mut collect(q, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
 
-fn collect_or(f: Formula, mapping: &mut HashMap<String, i64>, n: &mut i64) -> Clause {
+// TODO: clean this crap up.
+fn collect_or(f: Formula, lit_map: &mut HashMap<String, i64>, lit_cnt: &mut i64,
+                          var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
+                          fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> Clause {
     match f {
-        Formula::Predicate(s, args) => Clause::new_from_vec(vec!(create_literal(s, args, mapping, n))),
-        Formula::Not(box Formula::Predicate(ref s, ref args)) => Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), mapping, n).negate())),
-        Formula::Or(box p, box q) => { let mut left = collect_or(p, mapping, n); left.add_literals(collect_or(q, mapping, n)); left }
+        Formula::Predicate(s, args) => Clause::new_from_vec(vec!(create_literal(s, args, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt))),
+        Formula::Not(box Formula::Predicate(ref s, ref args)) => Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt).negate())),
+        Formula::Or(box p, box q) => { let mut left = collect_or(p, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt); left.add_literals(collect_or(q, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
 
-fn create_literal(s: String, args: Vec<Term>, mapping: &mut HashMap<String, i64>, n: &mut i64) -> Literal {
-    if let Some(&id) = mapping.get(&s) {
-        Literal::new_from_id_and_args(id, args)
+fn create_literal(s: String, args: Vec<Term>, lit_map: &mut HashMap<String, i64>, lit_cnt: &mut i64,
+                                              var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
+                                              fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> Literal {
+    if let Some(&id) = lit_map.get(&s) {
+        Literal::new_from_id_and_args(id, args.into_iter().map(|t| create_term(t, var_map, var_cnt, fun_map, fun_cnt)).collect())
     } else {
-        *n += 1;
-        mapping.insert(s, *n);
-        Literal::new_from_id_and_args(*n, args)
+        *lit_cnt += 1;
+        lit_map.insert(s, *lit_cnt);
+        Literal::new_from_id_and_args(*lit_cnt, args.into_iter().map(|t| create_term(t, var_map, var_cnt, fun_map, fun_cnt)).collect())
+    }
+}
+
+fn create_term(t: Term, var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
+                        fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> term::Term {
+    match t {
+         Term::Variable(s) => 
+            if let Some(&x) = var_map.get(&s) {
+                term::Term::new(x, Vec::new())
+            } else {
+                *var_cnt -= 1;
+                var_map.insert(s, *var_cnt);
+                term::Term::new(*var_cnt, Vec::new())
+            },
+        Term::Function(s, args) =>             
+            if let Some(&x) = fun_map.get(&s) {
+                term::Term::new(x, args.into_iter().map(|t2| create_term(t2, var_map, var_cnt, fun_map, fun_cnt)).collect())
+            } else {
+                *fun_cnt += 1;
+                fun_map.insert(s, *fun_cnt);
+                term::Term::new(*fun_cnt, args.into_iter().map(|t2| create_term(t2, var_map, var_cnt, fun_map, fun_cnt)).collect())
+            },
     }
 }
 
