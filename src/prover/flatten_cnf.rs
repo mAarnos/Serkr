@@ -21,73 +21,77 @@ use prover::clause::Clause;
 use prover::literal::Literal;
 use utils::formula::{Term, Formula};
 
+pub struct RenamingInfo {
+    pub lit_map: HashMap<String, i64>,
+    pub var_map: HashMap<String, i64>,
+    pub fun_map: HashMap<String, i64>,
+    pub lit_cnt: i64,
+    pub var_cnt: i64,
+    pub fun_cnt: i64
+}
+
+impl RenamingInfo {
+    pub fn new() -> RenamingInfo {
+        RenamingInfo { lit_map: HashMap::new(), var_map: HashMap::new(), fun_map: HashMap::new(),
+                       lit_cnt: 0, var_cnt: 0, fun_cnt: 0 }
+    }
+}
+
 /// Turns a formula in CNF into the flat representation more suited for the prover.
 /// We assume that the trivial cases of True and False have been handled already.
 pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
-    let mut lit_map = HashMap::<String, i64>::new();
-    let mut fun_map = HashMap::<String, i64>::new();
-    let mut var_map = HashMap::<String, i64>::new();
-    let mut lit_cnt = 0;
-    let mut var_cnt = 0;
-    let mut fun_cnt = 0;
-    collect(f, &mut lit_map, &mut lit_cnt, &mut var_map, &mut var_cnt, &mut fun_map, &mut fun_cnt)
+    let mut renaming_info = RenamingInfo::new();
+    collect(f, &mut renaming_info)
 }
 
 // TODO: clean this crap up.
-fn collect(f: Formula, lit_map: &mut HashMap<String, i64>, lit_cnt: &mut i64,
-                       var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
-                       fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> Vec<Clause> {
+fn collect(f: Formula, renaming_info: &mut RenamingInfo) -> Vec<Clause> {
     match f {
-        Formula::Predicate(s, args) => vec!(Clause::new_from_vec(vec!(create_literal(s, args, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)))),
-        Formula::Not(box Formula::Predicate(ref s, ref args)) => vec!(Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt).negate()))),
-        Formula::Or(_, _) => vec!(collect_or(f, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)),
-        Formula::And(box p, box q) => { let mut left = collect(p, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt); left.append(&mut collect(q, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)); left }
+        Formula::Predicate(s, args) => vec!(Clause::new_from_vec(vec!(create_literal(s, args, renaming_info)))),
+        Formula::Not(box Formula::Predicate(ref s, ref args)) => vec!(Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), renaming_info).negate()))),
+        Formula::Or(_, _) => vec!(collect_or(f, renaming_info)),
+        Formula::And(box p, box q) => { let mut left = collect(p, renaming_info); left.append(&mut collect(q, renaming_info)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
 
 // TODO: clean this crap up.
-fn collect_or(f: Formula, lit_map: &mut HashMap<String, i64>, lit_cnt: &mut i64,
-                          var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
-                          fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> Clause {
+fn collect_or(f: Formula, renaming_info: &mut RenamingInfo) -> Clause {
     match f {
-        Formula::Predicate(s, args) => Clause::new_from_vec(vec!(create_literal(s, args, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt))),
-        Formula::Not(box Formula::Predicate(ref s, ref args)) => Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt).negate())),
-        Formula::Or(box p, box q) => { let mut left = collect_or(p, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt); left.add_literals(collect_or(q, lit_map, lit_cnt, var_map, var_cnt, fun_map, fun_cnt)); left }
+        Formula::Predicate(s, args) => Clause::new_from_vec(vec!(create_literal(s, args, renaming_info))),
+        Formula::Not(box Formula::Predicate(ref s, ref args)) => Clause::new_from_vec(vec!(create_literal(s.clone(), args.clone(), renaming_info).negate())),
+        Formula::Or(box p, box q) => { let mut left = collect_or(p, renaming_info); left.add_literals(collect_or(q, renaming_info)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
 
-fn create_literal(s: String, args: Vec<Term>, lit_map: &mut HashMap<String, i64>, lit_cnt: &mut i64,
-                                              var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
-                                              fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> Literal {
-    if let Some(&id) = lit_map.get(&s) {
-        Literal::new_from_id_and_args(id, args.into_iter().map(|t| create_term(t, var_map, var_cnt, fun_map, fun_cnt)).collect())
+fn create_literal(s: String, args: Vec<Term>, ri: &mut RenamingInfo) -> Literal {
+    if let Some(&id) = ri.lit_map.get(&s) {
+        Literal::new_from_id_and_args(id, args.into_iter().map(|t| create_term(t, ri)).collect())
     } else {
-        *lit_cnt += 1;
-        lit_map.insert(s, *lit_cnt);
-        Literal::new_from_id_and_args(*lit_cnt, args.into_iter().map(|t| create_term(t, var_map, var_cnt, fun_map, fun_cnt)).collect())
+        ri.lit_cnt += 1;
+        ri.lit_map.insert(s, ri.lit_cnt);
+        Literal::new_from_id_and_args(ri.lit_cnt, args.into_iter().map(|t| create_term(t, ri)).collect())
     }
 }
 
-fn create_term(t: Term, var_map: &mut HashMap<String, i64>, var_cnt: &mut i64,
-                        fun_map: &mut HashMap<String, i64>, fun_cnt: &mut i64) -> term::Term {
+fn create_term(t: Term, ri: &mut RenamingInfo) -> term::Term {
     match t {
          Term::Variable(s) => 
-            if let Some(&x) = var_map.get(&s) {
+            if let Some(&x) = ri.var_map.get(&s) {
                 term::Term::new(x, Vec::new())
             } else {
-                *var_cnt -= 1;
-                var_map.insert(s, *var_cnt);
-                term::Term::new(*var_cnt, Vec::new())
+                ri.var_cnt -= 1;
+                ri.var_map.insert(s, ri.var_cnt);
+                term::Term::new(ri.var_cnt, Vec::new())
             },
         Term::Function(s, args) =>             
-            if let Some(&x) = fun_map.get(&s) {
-                term::Term::new(x, args.into_iter().map(|t2| create_term(t2, var_map, var_cnt, fun_map, fun_cnt)).collect())
+            if let Some(&x) = ri.fun_map.get(&s) {
+                term::Term::new(x, args.into_iter().map(|t2| create_term(t2, ri)).collect())
             } else {
-                *fun_cnt += 1;
-                fun_map.insert(s, *fun_cnt);
-                term::Term::new(*fun_cnt, args.into_iter().map(|t2| create_term(t2, var_map, var_cnt, fun_map, fun_cnt)).collect())
+                ri.fun_cnt += 1;
+                ri.fun_map.insert(s, ri.fun_cnt);
+                term::Term::new(ri.fun_cnt, args.into_iter().map(|t2| create_term(t2, ri)).collect())
             },
     }
 }
