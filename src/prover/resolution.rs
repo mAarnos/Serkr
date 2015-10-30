@@ -95,6 +95,7 @@ fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
 
 fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<bool, &'static str> {
     while !unused.is_empty() {
+        println!("Used: {} Unused: {}", used.len(), unused.len());
         let chosen_clause = pick_clause(&mut unused);
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {

@@ -15,20 +15,22 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search.
+/// A single term.
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct Term {
+    id: i64,
+    args: Vec<Term>,
+}
 
-mod flatten_cnf;
+impl Term {
+    /// Checks if this term is a function.
+    pub fn is_function(&self) -> bool {
+        self.id > 0
+    }
+    
+    /// Checks if this term is a variable.
+    pub fn is_variable(&self) -> bool {
+        self.id < 0
+    }
+}
 
-mod unification;
-mod subsumption;
-
-/// Contains stuff dealing with resolution and the main loop of the program.
-pub mod resolution;
-
-mod trivial;
-mod duplicate_deletion;
-mod factoring;
-
-mod term;
-mod literal;
-mod clause;
