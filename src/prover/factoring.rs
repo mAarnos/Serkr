@@ -20,6 +20,7 @@ use prover::unification::mgu;
 use prover::trivial::trivial;
 
 /// Infers new clauses by factoring two literals in the input clause.
+/// Running time is O(n^2) where n is the amount of literals in the clause.
 #[allow(needless_range_loop)]
 pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
     for i in 0..cl.size() {
@@ -28,7 +29,7 @@ pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
                 let mut new_cl = cl.clone();
                 new_cl.swap_remove(j);
                 for l in new_cl.iter_mut() {
-                    l.tsubst(&theta);
+                    l.subst(&theta);
                 }
                 // TODO: add subsumption checks here?
                 if !trivial(&new_cl) {

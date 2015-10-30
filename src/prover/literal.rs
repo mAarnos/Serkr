@@ -15,6 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
 use prover::term::Term;
 
 /// A single, possibly negated, literal.
@@ -60,6 +61,13 @@ impl Literal {
         let mut lit = self.clone();
         lit.id = -lit.id;
         lit
+    }
+          
+    /// Substitutes terms according to the mapping.
+    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
+        for x in &mut self.args {
+            x.subst_general(sfn);
+        }
     }
 }
 

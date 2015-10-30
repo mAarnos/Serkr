@@ -27,7 +27,7 @@ mod unification;
 
 mod trivial;
 mod duplicate_deletion;
-// mod factoring;
+mod factoring;
 
 mod term;
 mod literal;

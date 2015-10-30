@@ -15,6 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
+
 /// A single term.
 /// Functions are given a positive id, variables a negative one.
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
@@ -64,6 +66,13 @@ impl Term {
             for arg in &mut self.args {
                 arg.subst(x, t);
             }
+        }
+    }
+    
+    /// Substitutes according to the mapping.
+    pub fn subst_general(&mut self, sfn: &HashMap<Term, Term>) {
+        if let Some(t) = sfn.get(&self) {
+            *self = t.clone();
         }
     }
     
