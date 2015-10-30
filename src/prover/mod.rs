@@ -23,7 +23,7 @@ mod unification;
 mod subsumption;
 
 /// Contains stuff dealing with resolution and the main loop of the program.
-// pub mod resolution;
+pub mod resolution;
 
 mod trivial;
 mod duplicate_deletion;

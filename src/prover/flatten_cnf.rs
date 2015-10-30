@@ -22,12 +22,12 @@ use prover::literal::Literal;
 use utils::formula::{Term, Formula};
 
 pub struct RenamingInfo {
-    pub lit_map: HashMap<String, i64>,
+    pub lit_map: HashMap<(String, usize), i64>,
+    pub fun_map: HashMap<(String, usize), i64>,
     pub var_map: HashMap<String, i64>,
-    pub fun_map: HashMap<String, i64>,
     pub lit_cnt: i64,
+    pub fun_cnt: i64,
     pub var_cnt: i64,
-    pub fun_cnt: i64
 }
 
 impl RenamingInfo {
@@ -66,11 +66,11 @@ fn collect_or(f: Formula, renaming_info: &mut RenamingInfo) -> Clause {
 }
 
 fn create_literal(s: String, args: Vec<Term>, ri: &mut RenamingInfo) -> Literal {
-    if let Some(&id) = ri.lit_map.get(&s) {
+    if let Some(&id) = ri.lit_map.get(&(s.clone(), args.len())) {
         Literal::new_from_id_and_args(id, args.into_iter().map(|t| create_term(t, ri)).collect())
     } else {
         ri.lit_cnt += 1;
-        ri.lit_map.insert(s, ri.lit_cnt);
+        ri.lit_map.insert((s, args.len()), ri.lit_cnt);
         Literal::new_from_id_and_args(ri.lit_cnt, args.into_iter().map(|t| create_term(t, ri)).collect())
     }
 }
@@ -86,11 +86,11 @@ fn create_term(t: Term, ri: &mut RenamingInfo) -> term::Term {
                 term::Term::new(ri.var_cnt, Vec::new())
             },
         Term::Function(s, args) =>             
-            if let Some(&x) = ri.fun_map.get(&s) {
+            if let Some(&x) = ri.fun_map.get(&(s.clone(), args.len())) {
                 term::Term::new(x, args.into_iter().map(|t2| create_term(t2, ri)).collect())
             } else {
                 ri.fun_cnt += 1;
-                ri.fun_map.insert(s, ri.fun_cnt);
+                ri.fun_map.insert((s, args.len()), ri.fun_cnt);
                 term::Term::new(ri.fun_cnt, args.into_iter().map(|t2| create_term(t2, ri)).collect())
             },
     }

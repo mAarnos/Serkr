@@ -29,31 +29,19 @@ use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
 
-fn rename(pfx: String, cl: &mut Clause) {
-    let fvs: Set<String> = cl.iter().flat_map(|l| l.variables()).collect();
-    let mut mapping = HashMap::<Term, Term>::new();
-    for x in fvs.into_iter() {
-        mapping.insert(Term::Variable(x.clone()), Term::Variable(pfx.clone() + &x)); 
-    }
-    for f in cl.iter_mut() {
-        f.tsubst(&mapping);
-    }
-}
-
 fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, used: &[Clause], unused: &mut Vec<Clause>) {
     let neg_p = p.negate();
-    for x in cl2.iter().cloned() {
-        let possible_theta = mgu(x.clone(), neg_p.clone());
-        if let Ok(theta) = possible_theta {
+    for x in cl2.iter() {
+        if let Ok(theta) = mgu(x.clone(), neg_p.clone()) {
             let mut cl1_done = Clause::new_from_vec(cl1.iter()
                                                        .cloned()
                                                        .filter(|l| *l != p)
-                                                       .map(|mut l| { l.tsubst(&theta); l })
+                                                       .map(|mut l| { l.subst(&theta); l })
                                                        .collect());
             let cl2_done = Clause::new_from_vec(cl2.iter()
                                                    .cloned()
-                                                   .filter(|l| *l != x)
-                                                   .map(|mut l| { l.tsubst(&theta); l })
+                                                   .filter(|l| *l != *x)
+                                                   .map(|mut l| { l.subst(&theta); l })
                                                    .collect());                                   
             cl1_done.add_literals(cl2_done);
             delete_duplicates(&mut cl1_done);
@@ -64,15 +52,17 @@ fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, used: &[Clause], unuse
     }
 }
 
-fn resolve_clauses(mut cl1: Clause, mut cl2: Clause, used: &[Clause], unused: &mut Vec<Clause>) {
+/// Assumes that cl1 was renamed so that it can have no variables in common with anything else.
+fn resolve_clauses(cl1: &Clause, cl2: &Clause, used: &[Clause], unused: &mut Vec<Clause>) {
     // Positive resolution: one of the resolution clauses must be all-positive.
     if cl1.iter().all(|l| l.is_positive()) || cl2.iter().all(|l| l.is_positive()) {
-        rename("x".to_owned(), &mut cl1);
-        rename("y".to_owned(), &mut cl2);
         for p in cl1.iter().cloned() {
             add_resolvents(&cl1, &cl2, p, used, unused);
         }
     }
+}
+
+fn rename_clause(cl: &mut Clause) {
 }
 
 /// Picks and removes the best clause from the unused clauses according to heuristics.
@@ -104,7 +94,7 @@ fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<boo
         used.push(chosen_clause.clone());
         
         for cl in &used {
-            resolve_clauses(chosen_clause.clone(), cl.clone(), &used, &mut unused);
+            resolve_clauses(&chosen_clause, cl, &used, &mut unused);
         }
         factor(chosen_clause, &mut unused);
     }
