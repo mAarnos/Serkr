@@ -75,7 +75,7 @@ fn resolve_clauses(mut cl1: Clause, mut cl2: Clause, used: &[Clause], unused: &m
     }
 }
 
-/// Picks and removes the "best" clause from the unused clauses according to heuristics.
+/// Picks and removes the best clause from the unused clauses according to heuristics.
 /// Currently just picks the shortest one.
 fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
     // TODO: can be done better by using max.

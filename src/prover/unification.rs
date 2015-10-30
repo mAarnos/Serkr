@@ -17,41 +17,39 @@
 
 use std::collections::HashMap;
 use prover::literal::Literal;
-use cnf::free_variables::occurs_in;
-use utils::formula::Term;
+use prover::term::Term;
 
-fn subst(t: Term, from: &Term, to: &Term) -> Term {
-    match t {
-        x @ Term::Variable(_) => if x == *from { to.clone() } else { x },
-        Term::Function(s, subterms) => Term::Function(s, subterms.into_iter().map(|term| subst(term, from, to)).collect())
-    }
-}
-
-fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
-    while let Some(eq) = eqs.pop() {
-        if eq.0 == eq.1 {
+fn unify(mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
+    let mut env = HashMap::<Term, Term>::new(); 
+    
+    while let Some((eq1, eq2)) = eqs.pop() {
+        if eq1 == eq2 {
             continue; // delete
         } 
         
-        match eq {
-            (Term::Function(s1, args1), Term::Function(s2, args2)) => 
-                if s1 == s2 && args1.len() == args2.len() {
-                    // decompose                  
-                    for eq in args1.into_iter().zip(args2.into_iter()) {
-                        eqs.push(eq);
-                    }
-                } else {
-                    return Err(()); // conflict
-                },
-            (t @ Term::Function(_, _), x) => eqs.push((x, t)), // swap
-            (x, t) => 
-                if occurs_in(&t, &x) {
-                    return Err(()); // check
-                } else {
-                    // eliminate
-                    env.insert(x.clone(), t.clone());
-                    eqs = eqs.into_iter().map(|eq| (subst(eq.0, &x, &t), subst(eq.1, &x, &t))).collect();
+        if eq1.is_function() && eq2.is_function() {
+            if eq1.get_id() == eq2.get_id() && eq1.get_arity() == eq2.get_arity() {
+                // decompose  
+                for eq in eq1.get_args().into_iter().zip(eq2.get_args().into_iter()) {
+                    eqs.push(eq);
                 }
+            } else {
+                return Err(()); // conflict
+            }
+        } else if eq1.is_function() {
+            // swap
+            eqs.push((eq2, eq1));
+        } else {
+            if eq2.occurs(eq1.get_id()) {
+                return Err(()); // check
+            } else {
+                // eliminate
+                env.insert(eq1.clone(), eq2.clone());
+                for eq in &mut eqs {
+                    eq.0.subst(eq1.get_id(), &eq2);
+                    eq.1.subst(eq1.get_id(), &eq2);
+                }
+            }
         }
     }
     
@@ -74,27 +72,19 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
     }
 }
 
-fn unify_literals(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
+pub fn mgu(p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
     if p.get_id() == q.get_id() && p.get_arity() == q.get_arity() {
-        let mut eqs = Vec::<(Term, Term)>::new();
-        for eq in p.get_arguments().into_iter().zip(q.get_arguments().into_iter()) {
-            eqs.push(eq);
-        }
-        Ok(try!(unify(env, eqs)))
+        let eqs = p.get_arguments().into_iter().zip(q.get_arguments().into_iter()).collect();
+        Ok(solve(try!(unify(eqs))))
     } else {
         Err(())
     }
 }
 
-pub fn mgu(p: Literal, q: Literal) -> Result<HashMap<Term, Term>, ()> {
-    let env = HashMap::<Term, Term>::new();   
-    Ok(solve(try!(unify_literals(env, p, q))))
-}
-
 #[cfg(test)]
 mod test {
     use super::mgu;
-    use utils::formula::Term;
+    use prover::term::Term;
     use parser::internal_parser::parse;
     use prover::flatten_cnf::flatten_cnf;
     
@@ -105,8 +95,8 @@ mod test {
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2).unwrap();
         assert_eq!(theta.len(), 2);
-        assert_eq!(*theta.get(&Term::Variable("w".to_owned())).unwrap(), Term::Function("g".to_owned(), vec!(Term::Variable("y".to_owned()))));
-        assert_eq!(*theta.get(&Term::Variable("x".to_owned())).unwrap(), Term::Function("f".to_owned(), vec!(Term::Variable("z".to_owned()))));
+        assert_eq!(*theta.get(&Term::new(-4, Vec::new())).unwrap(), Term::new(2, vec!(Term::new(-2, Vec::new()))));
+        assert_eq!(*theta.get(&Term::new(-1, Vec::new())).unwrap(), Term::new(1, vec!(Term::new(-3, Vec::new()))));
     }
 
     #[test]
@@ -117,7 +107,7 @@ mod test {
         let theta = mgu(f1, f2).unwrap();
         // Other way round is okay too.
         assert_eq!(theta.len(), 1);
-        assert_eq!(*theta.get(&Term::Variable("y".to_owned())).unwrap(), Term::Variable("x".to_owned()));
+        assert_eq!(*theta.get(&Term::new(-2, Vec::new())).unwrap(), Term::new(-1, Vec::new()));
     }
     
     #[test]

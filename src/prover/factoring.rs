@@ -30,6 +30,7 @@ pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
                 for l in new_cl.iter_mut() {
                     l.tsubst(&theta);
                 }
+                // TODO: add subsumption checks here?
                 if !trivial(&new_cl) {
                     unused.push(new_cl);
                 }
