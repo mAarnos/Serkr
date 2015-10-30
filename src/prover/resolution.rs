@@ -17,7 +17,6 @@
 
 use std::collections::HashMap;
 use prover::unification::mgu;
-use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::trivial::trivial;
@@ -62,7 +61,11 @@ fn resolve_clauses(cl1: &Clause, cl2: &Clause, used: &[Clause], unused: &mut Vec
     }
 }
 
-fn rename_clause(cl: &mut Clause) {
+fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
+    let mut var_map = HashMap::<i64, i64>::new();
+    for l in cl.iter_mut() {
+        l.rename_no_common(&mut var_map, var_cnt);
+    }
 }
 
 /// Picks and removes the best clause from the unused clauses according to heuristics.
@@ -83,16 +86,18 @@ fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
     unused.swap_remove(best_clause_index)
 }
 
-fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>) -> Result<bool, &'static str> {
+fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
     while !unused.is_empty() {
         println!("Used: {} Unused: {}", used.len(), unused.len());
-        let chosen_clause = pick_clause(&mut unused);
+        let mut chosen_clause = pick_clause(&mut unused);
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
             return Ok(true);
         }
+        // println!("Chosen clause: {:?}", chosen_clause);
         used.push(chosen_clause.clone());
         
+        rename_clause(&mut chosen_clause, &mut var_cnt);
         for cl in &used {
             resolve_clauses(&chosen_clause, cl, &used, &mut unused);
         }
@@ -109,11 +114,11 @@ pub fn resolution(s: &str) -> Result<bool, &'static str> {
     } else if cnf_f == Formula::True {
         Ok(false)
     } else {
-        resolution_loop(Vec::new(), flatten_cnf(cnf_f).into_iter().filter(|cl| !trivial(cl)).collect())
+        let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
+        resolution_loop(Vec::new(), flattened_cnf_f.into_iter().filter(|cl| !trivial(cl)).collect(), renaming_info.var_cnt)
     }
 }
 
-/*
 #[cfg(test)]
 mod test {
     use super::resolution;
@@ -292,9 +297,17 @@ mod test {
     }
     
     #[test]
+    fn pelletier_44() {
+        let result = resolution("(((forall x. (F(x) ==> (exists y. (G(y) /\\ H(x, y)) /\\ exists y. (G(y) /\\ ~H(x, y))))) /\\ 
+                                    exists x. (J(x) /\\ forall y. (G(y) ==> H(x, y))))
+                                    ==> exists x. (J(x) /\\ ~F(x)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
     fn davis_putnam() {
         let result = resolution("exists x. exists y. forall z. ((F(x, y) ==> (F(y, z) /\\ F(z, z))) /\\ ((F(x, y) /\\ G(x, y)) ==> (G(x, z) /\\ G(z, z))))");
         assert!(result.is_ok());
     }
 }
-*/    
+  

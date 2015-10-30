@@ -76,6 +76,23 @@ impl Term {
         }
     }
     
+    /// Rename all variables in a term so that it has no variables in common with any other clause that the one it is a part of.
+    pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
+        if self.is_variable() {
+            if let Some(&t) = sfn.get(&self.id) {
+                self.id = t;
+            } else {
+                *var_cnt -= 1;
+                sfn.insert(self.id, *var_cnt);
+                self.id = *var_cnt;
+            }
+        } else {
+            for arg in &mut self.args {
+                arg.rename_no_common(sfn, var_cnt);
+            }
+        }
+    }
+    
     /// Get the arguments of the term.
     pub fn get_args(&self) -> Vec<Term> {
         self.args.clone()

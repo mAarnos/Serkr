@@ -69,5 +69,11 @@ impl Literal {
             x.subst_general(sfn);
         }
     }
+    
+    pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
+        for t in &mut self.args {
+            t.rename_no_common(sfn, var_cnt);
+        }
+    }
 }
 

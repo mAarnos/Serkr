@@ -90,7 +90,7 @@ mod test {
     
     #[test]
     fn mgu_1() {
-        let f = flatten_cnf(parse("(P(f(x, g(y))) /\\ P(f(f(z), w)))").unwrap());
+        let f = flatten_cnf(parse("(P(f(x, g(y))) /\\ P(f(f(z), w)))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2).unwrap();
@@ -101,7 +101,7 @@ mod test {
 
     #[test]
     fn mgu_2() {
-        let f = flatten_cnf(parse("(~P(f(x, y)) /\\ ~P(f(y, x)))").unwrap());
+        let f = flatten_cnf(parse("(~P(f(x, y)) /\\ ~P(f(y, x)))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2).unwrap();
@@ -112,7 +112,7 @@ mod test {
     
     #[test]
     fn mgu_3() {
-        let f = flatten_cnf(parse("((P(f(x, g(y)))) /\\ P(f(y, x)))").unwrap());
+        let f = flatten_cnf(parse("((P(f(x, g(y)))) /\\ P(f(y, x)))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
@@ -122,7 +122,7 @@ mod test {
     #[test]
     fn mgu_4() {
         // In HOL this would work.
-        let f = flatten_cnf(parse("(P(x) /\\ Q(y))").unwrap());
+        let f = flatten_cnf(parse("(P(x) /\\ Q(y))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
@@ -131,7 +131,7 @@ mod test {
     
     #[test]
     fn mgu_5() {
-        let f = flatten_cnf(parse("(R(y) /\\ R(f(y)))").unwrap());
+        let f = flatten_cnf(parse("(R(y) /\\ R(f(y)))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
@@ -140,7 +140,7 @@ mod test {
     
     #[test]
     fn mgu_6() {
-        let f = flatten_cnf(parse("(F(y, y) /\\ F(f(x), x))").unwrap());
+        let f = flatten_cnf(parse("(F(y, y) /\\ F(f(x), x))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2);
@@ -149,7 +149,7 @@ mod test {
     
     #[test]
     fn mgu_7() {
-        let f = flatten_cnf(parse("(P(x) /\\ P(x, x))").unwrap());
+        let f = flatten_cnf(parse("(P(x) /\\ P(x, x))").unwrap()).0;
         let f1 = f[0].at(0);
         let f2 = f[1].at(0);
         let theta = mgu(f1, f2);

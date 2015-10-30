@@ -48,12 +48,12 @@ pub mod utils;
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
     
-    /*
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
-    let res = prover::resolution::resolution("((exists y. forall x. (F(x, y) <=> F(x, x))) ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))");
+    // ((exists y. forall x. (F(x, y) <=> F(x, x))) ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))
+    let res = prover::resolution::resolution("((forall x. forall y. (Q(x, y) <=> forall z. (F(z, x) <=> F(z, y))))
+                                                ==> (forall x. forall y. (Q(x, y) <=> Q(y, x))))");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
-    */
 }

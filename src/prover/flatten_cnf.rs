@@ -39,9 +39,9 @@ impl RenamingInfo {
 
 /// Turns a formula in CNF into the flat representation more suited for the prover.
 /// We assume that the trivial cases of True and False have been handled already.
-pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
+pub fn flatten_cnf(f: Formula) -> (Vec<Clause>, RenamingInfo) {
     let mut renaming_info = RenamingInfo::new();
-    collect(f, &mut renaming_info)
+    (collect(f, &mut renaming_info), renaming_info)
 }
 
 // TODO: clean this crap up.
