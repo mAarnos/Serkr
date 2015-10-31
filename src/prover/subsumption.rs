@@ -55,27 +55,28 @@ fn match_literals(env: HashMap<Term, Term>, p: Literal, q: Literal) -> Result<Ha
     }
 }
 
-/// Checks if the clause cl1 subsumes the clause cl2.
-pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
-    let mut env = HashMap::<Term, Term>::new();
-    
-    for l1 in cl1.iter() {
-        let mut found_match = false;
-        
+fn subsumes_clause0(env: HashMap<Term, Term>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {
+    if n >= cl1.size() {
+        true 
+    } else {
+        let l1 = cl1.at(n);
+
         for l2 in cl2.iter().cloned() {
             if let Ok(theta) = match_literals(env.clone(), l1.clone(), l2) {
-                env = theta;
-                found_match = true;
-                break;
+                if subsumes_clause0(theta, cl1, cl2, n + 1) {
+                    return true;
+                }
             }
         }
         
-        if !found_match {
-            return false;
-        }
+        false
     }
-    
-    true
+}
+
+/// Checks if the clause cl1 subsumes the clause cl2.
+pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
+    let env = HashMap::<Term, Term>::new();
+    subsumes_clause0(env, cl1, cl2, 0)
 }
 
 #[cfg(test)]

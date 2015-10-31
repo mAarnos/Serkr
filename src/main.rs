@@ -51,8 +51,10 @@ fn main() {
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
     // ((exists y. forall x. (F(x, y) <=> F(x, x))) ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))
-    let res = prover::resolution::resolution("((forall x. forall y. (Q(x, y) <=> forall z. (F(z, x) <=> F(z, y))))
-                                                ==> (forall x. forall y. (Q(x, y) <=> Q(y, x))))");
+    let res = prover::resolution::resolution("(((exists x. forall y. (P(x) <=> P(y))) <=> 
+                                                exists x. (Q(x) <=> forall y. Q(y))) <=> 
+                                                 ((exists x. forall y. (Q(x) <=> Q(y))) <=>
+                                                  (exists x. P(x) <=> forall y. P(y))))");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());

@@ -18,6 +18,7 @@
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::trivial::trivial;
+use prover::subsumption::subsumes_clause;
 
 /// Infers new clauses by factoring two literals in the input clause.
 /// Running time is O(n^2) where n is the amount of literals in the clause.
@@ -31,7 +32,8 @@ pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
                 for l in new_cl.iter_mut() {
                     l.subst(&theta);
                 }
-                // TODO: add subsumption checks here?
+                assert!(subsumes_clause(&new_cl, &cl));
+
                 if !trivial(&new_cl) {
                     unused.push(new_cl);
                 }
