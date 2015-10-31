@@ -32,7 +32,9 @@ pub fn factor(cl: Clause, unused: &mut Vec<Clause>) {
                 for l in new_cl.iter_mut() {
                     l.subst(&theta);
                 }
-                assert!(subsumes_clause(&new_cl, &cl));
+                
+                // Due to the way that the new clause was obtained this should always be true.
+                assert!(subsumes_clause(&cl, &new_cl));
 
                 if !trivial(&new_cl) {
                     unused.push(new_cl);

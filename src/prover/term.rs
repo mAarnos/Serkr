@@ -73,6 +73,10 @@ impl Term {
     pub fn subst_general(&mut self, sfn: &HashMap<Term, Term>) {
         if let Some(t) = sfn.get(&self) {
             *self = t.clone();
+        } else {
+            for x in &mut self.args {
+                x.subst_general(sfn);
+            }
         }
     }
     
