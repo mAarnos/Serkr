@@ -30,7 +30,7 @@ fn term_match(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Resul
             } else {
                 return Err(());
             }
-        } else {
+        } else if eq1.is_variable() {
             if let Some(eq3) = env.get(&eq1) {
                 if *eq3 != eq2 {
                     return Err(()); 
@@ -38,6 +38,8 @@ fn term_match(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Resul
                 continue;
             } 
             env.insert(eq1, eq2);
+        } else {
+            return Err(());
         }
     }
     
