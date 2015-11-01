@@ -326,16 +326,23 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
-    fn pelletier_28() {
-        let result = resolution("((((forall x. P(x)) ==> forall x. (Q(x))) /\\
+    fn pelletier_28_orig() {
+        let result = resolution("((((forall x. P(x)) ==> forall x. Q(x)) /\\
+                                    (((forall x. (Q(x) \\/ R(x))) ==> exists x. (Q(x) /\\ S(x))) /\\
+                                   ((exists x. S(x)) ==> forall x. (F(x) ==> G(x))))) 
+                                    ==>(forall x. ((P(x) /\\ F(x)) ==> G(x))))");
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn pelletier_28_errata() {
+        let result = resolution("(((forall x. (P(x) ==> forall x. Q(x))) /\\
                                     (((forall x. (Q(x) \\/ R(x))) ==> exists x. (Q(x) /\\ S(x))) /\\
                                    ((exists x. S(x)) ==> forall x. (F(x) ==> G(x))))) 
                                     ==>(forall x. ((P(x) /\\ F(x)) ==> G(x))))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_29() {
