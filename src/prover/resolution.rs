@@ -275,6 +275,34 @@ mod test {
         assert!(result.is_ok());
     }
     
+    #[test]
+    fn pelletier_24() {
+        let result = resolution("(((((~exists x. (S(x) /\\ Q(x))) /\\
+                                     (forall x. (P(x) ==> (Q(x) \\/ R(x))))) /\\
+                                    ((~exists x. P(x)) ==> exists x. Q(x))) /\\
+                                     (forall x. ((Q(x) \\/ R(x)) ==> S(x))))
+                                      ==> exists x. (P(x) /\\ R(x)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_25() {
+        let result = resolution("(((((exists x. P(x)) /\\ 
+                                   (forall x. (F(x) ==> (~G(x) /\\ R(x))))) /\\
+                                   (forall x. (P(x) ==> (G(x) /\\ F(x))))) /\\
+                                   ((forall x. (P(x) ==> Q(x))) \\/ exists x. (P(x) /\\ R(x))))
+                                      ==> (exists x. (Q(x) /\\ P(x))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_26() {
+        let result = resolution("((((exists x. P(x)) <=> (exists x. Q(x))) /\\
+                                    (forall x. forall y. ((P(x) /\\ Q(y)) ==> (R(x) <=> S(y)))))
+                                 ==> ((forall x. (P(x) ==> R(x))) <=> (forall x. (Q(x) ==> S(x)))))");
+        assert!(result.is_ok());
+    }
+    
    #[test]
    fn pelletier_30() {
         let result = resolution("(((forall x. ((F(x) \\/ G(x)) ==> ~H(x))) /\\ (forall x. ((G(x) ==> ~I(x)) ==> (F(x) /\\ H(x))))) ==> (forall x. I(x)))");
