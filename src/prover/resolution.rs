@@ -27,11 +27,13 @@ use prover::duplicate_deletion::delete_duplicates;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
+use utils::stopwatch::Stopwatch;
 
 fn add_resolvents(cl1: &Clause, cl2: &Clause, p: Literal, used: &[Clause], unused: &mut Vec<Clause>) {
     let neg_p = p.negate();
     for x in cl2.iter() {
-        if let Ok(theta) = mgu(x.clone(), neg_p.clone()) {
+        if let Ok(theta) = mgu(neg_p.clone(), x.clone()) {
+            assert!(mgu(p.clone(), x.negate()).unwrap() == theta);
             let mut cl1_done = Clause::new_from_vec(cl1.iter()
                                                        .cloned()
                                                        .filter(|l| *l != p)
@@ -87,8 +89,16 @@ fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
 }
 
 fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
+    let mut sw = Stopwatch::new();
+    let mut ms_count = 10000;
+    sw.start();
+    
     while !unused.is_empty() {
-        println!("Used: {} Unused: {}", used.len(), unused.len());
+        if sw.elapsed_ms() > ms_count {
+            println!("{} seconds have elapsed, used clauses = {}  and unused clauses = {}", sw.elapsed_ms() / 1000, used.len(), unused.len());
+            ms_count += 10000;
+        }
+        
         let mut chosen_clause = pick_clause(&mut unused);
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
