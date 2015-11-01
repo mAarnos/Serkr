@@ -399,6 +399,25 @@ mod test {
     }
     
     #[test]
+    fn pelletier_37() {
+        let result = resolution("((((forall x. exists y. F(x, y)) /\\ 
+                                    (forall x. exists y. G(x, y))) /\\ 
+                                    (forall x. forall y. ((F(x, y) \\/ G(x, y)) ==> forall z. ((F(y, z) \\/ G(y, z)) ==> H(x, z)))))
+                                    ==> forall x. exists y. H(x, y))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_38() {
+        let result = resolution("((forall x. ((P(a()) /\\ (P(x) ==> exists y. (P(y) /\\ R(x, y)))) ==> exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))) <=>
+                                  (forall x. ((~P(a()) \\/ (P(x) \\/ exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))) /\\ 
+                                              (~P(a()) \\/ (~exists y. (P(y) /\\ R(x, y)) \\/ exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
     fn pelletier_39() {
         let result = resolution("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
         assert!(result.is_ok());
@@ -439,18 +458,16 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_45() {
         let result = resolution("((((forall x. ((F(x) /\\ forall y. ((G(y) /\\ H(x, y)) ==> J(x, y)))
-                                             ==> (forall y. (G(y) /\\ H(x, y)) ==> K(y)))) /\\ 
+                                             ==> (forall y. ((G(y) /\\ H(x, y)) ==> K(y))))) /\\ 
                                    ~exists y. (L(y) /\\ K(y))) /\\ 
                                    (exists x. ((F(x) /\\ forall y. (H(x, y) ==> L(y))) /\\
                                                 (forall y. ((G(y) /\\ H(x, y)) ==> J(x, y))))))
-                                    ==> ~exists x. (F(x) /\\ ~exists y. (G(y) /\\ H(x, y))))");
+                                    ==> exists x. (F(x) /\\ ~exists y. (G(y) /\\ H(x, y))))");
         assert!(result.is_ok());
     }
-    */
     
     /*
     #[test]
@@ -463,6 +480,16 @@ mod test {
         assert!(result.is_ok());
     }
     */
+    
+    #[test]
+    fn los() {
+        let result = resolution("(((((forall x. forall y. forall z. ((P(x, y) /\\ P(y, z)) ==> P(x, z))) /\\
+                                     (forall x. forall y. forall z. ((Q(x, y) /\\ Q(y, z)) ==> Q(x, z)))) /\\
+                                    ((forall x. forall y. Q(x, y) ==> Q(y, x)) /\\
+                                     (forall x. forall y. P(x, y) \\/ Q(x, y)))))
+                                       ==> ((forall x. forall y. P(x, y)) \\/ (forall x. forall y. Q(x, y))))");
+        assert!(result.is_ok());
+    }
        
     #[test]
     fn davis_putnam() {
