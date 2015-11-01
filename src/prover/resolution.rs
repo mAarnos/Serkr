@@ -93,13 +93,15 @@ fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_cnt: 
     let mut ms_count = 10000;
     sw.start();
     
+    /*
     for x in &unused {
         println!("{:?}", x);
     }
+    */
     
     while !unused.is_empty() {
         if sw.elapsed_ms() > ms_count {
-            println!("{} seconds have elapsed, used clauses = {}  and unused clauses = {}", sw.elapsed_ms() / 1000, used.len(), unused.len());
+            println!("{} seconds have elapsed, used clauses = {}, unused clauses = {}", sw.elapsed_ms() / 1000, used.len(), unused.len());
             ms_count += 10000;
         }
         
@@ -335,6 +337,13 @@ mod test {
     }
     */
     
+    #[test]
+    fn pelletier_29() {
+        let result = resolution("(((exists x. F(x)) /\\ (exists x. G(x)))
+                                   ==> (((forall x. (F(x) ==> H(x))) /\\ forall x. (G(x) ==> J(x))) <=> forall x. forall y. ((F(x) /\\ G(y)) ==> (H(x) /\\ J(y)))))");
+        assert!(result.is_ok());
+    }
+    
    #[test]
    fn pelletier_30() {
         let result = resolution("(((forall x. ((F(x) \\/ G(x)) ==> ~H(x))) /\\ (forall x. ((G(x) ==> ~I(x)) ==> (F(x) /\\ H(x))))) ==> (forall x. I(x)))");
@@ -356,6 +365,14 @@ mod test {
                                   ((forall x. (I(x) /\\ (H(x) ==> J(x)))) /\\ 
                                    (forall x. (K(x) ==> H(x))))) 
                                     ==> (forall x. ((F(x) /\\ K(x)) ==> J(x))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_33() {
+        let result = resolution("((forall x. ((P(a) /\\ (P(x) ==> P(b))) ==> P(c))) <=>
+                                  forall x. ((~P(a) \\/ (P(x) \\/ P(c))) /\\ 
+                                             (~P(a) \\/ (~P(b) \\/ P(c)))))");
         assert!(result.is_ok());
     }
 
@@ -414,6 +431,31 @@ mod test {
                                     ==> exists x. (J(x) /\\ ~F(x)))");
         assert!(result.is_ok());
     }
+    
+    /*
+    #[test]
+    fn pelletier_45() {
+        let result = resolution("((((forall x. ((F(x) /\\ forall y. ((G(y) /\\ H(x, y)) ==> J(x, y)))
+                                             ==> (forall y. (G(y) /\\ H(x, y)) ==> K(y)))) /\\ 
+                                   ~exists y. (L(y) /\\ K(y))) /\\ 
+                                   (exists x. ((F(x) /\\ forall y. (H(x, y) ==> L(y))) /\\
+                                                (forall y. ((G(y) /\\ H(x, y)) ==> J(x, y))))))
+                                    ==> ~exists x. (F(x) /\\ ~exists y. (G(y) /\\ H(x, y))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    /*
+    #[test]
+    fn pelletier_46() {
+        let result = resolution("((((forall x. ((F(x) /\\ forall y. ((F(y) /\\ H(y, x)) ==> G(y))) ==> G(x))) /\\
+                                 ((exists x. (F(x) /\\ ~G(x))) ==> ((exists x. ((F(x) /\\ ~G(x)) /\\ 
+                                                                    (forall y. (F(y) /\\ ~G(y)) ==> J(x, y))))))) /\\
+                                   (forall x. forall y. (((F(x) /\\ F(y)) /\\ H(x, y)) ==> ~J(y, x))))
+                                   ==> forall x. (F(x) ==> G(x)))");
+        assert!(result.is_ok());
+    }
+    */
        
     #[test]
     fn davis_putnam() {
