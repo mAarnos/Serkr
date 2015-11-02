@@ -15,11 +15,28 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search. 
+use prover_full::clause::Clause;
 
-mod term;
-mod literal;
-mod clause;
+/// Deletes all duplicated literals from a clause.
+/// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
+// TODO: see how much time is spent here.
+pub fn delete_duplicates(cl: &mut Clause) {
+    let mut i = 0;
+    while i < cl.size() {
+        let mut j = i + 1;
+        while j < cl.size() {
+            if cl[i] == cl[j] {
+                cl.swap_remove(j);
+                continue;
+            }
+            j += 1;
+        }
+        i += 1;
+    }
+}
 
-mod tautology_deletion;
-mod literal_deletion;
+#[cfg(test)]
+mod test {
+
+} 
+

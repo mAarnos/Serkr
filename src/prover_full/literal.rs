@@ -17,33 +17,39 @@
 
 use prover_full::term::Term;
 
-/// A single, possibly negated, equation.
+/// A single (possibly negated) Literal, or simply, a literal.
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct Equation {
+pub struct Literal {
     lhs: Term,
     rhs: Term,
     negated: bool
 }
 
-impl Equation {
-    /// Creates a new equation.
-    pub fn new(negated: bool, lhs: Term, rhs: Term) -> Equation {
-        Equation { lhs: lhs, rhs: rhs, negated: negated }
+impl Literal {
+    /// Creates a new Literal.
+    pub fn new(negated: bool, lhs: Term, rhs: Term) -> Literal {
+        Literal { lhs: lhs, rhs: rhs, negated: negated }
     }
     
-    /// Used for checking if the equation is positive.
+    /// Used for checking if the Literal is positive.
     pub fn is_positive(&self) -> bool {
         !self.negated
     }
     
-    /// Get a reference to the left hand side of the equation.
+    /// Get a reference to the left hand side of the Literal.
     pub fn get_lhs(&self) -> &Term {
         &self.lhs
     }
     
-    /// Get a reference to the right hand side of the equation.
+    /// Get a reference to the right hand side of the Literal.
     pub fn get_rhs(&self) -> &Term {
         &self.rhs
     }
+}
+
+/// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.
+pub fn terms_equal(l1: &Literal, l2: &Literal) -> bool {
+    (l1.get_lhs() == l2.get_lhs() && l1.get_rhs() == l2.get_rhs()) ||
+    (l1.get_lhs() == l2.get_rhs() && l1.get_rhs() == l2.get_lhs())
 }
 
