@@ -29,13 +29,16 @@ fn td1(cl: &Clause) -> bool {
 }
 
 /// Checks if a clause contains an equation and its negation.
-/// Time complexity is O(n!) where n is the amount of equations, but usually the clauses are rather short.
+/// Time complexity is O(n^2) where n is the amount of equations, but usually the clauses are rather short.
 // TODO: see how much time is spent here.
 fn td2(cl: &Clause) -> bool {
     for (i, eqn1) in cl.iter().enumerate() {
         for eqn2 in cl.iter().skip(i + 1) {
-            if eqn1.is_positive() != eqn2.is_positive() && eqn1.get_lhs() == eqn2.get_lhs() && eqn1.get_rhs() == eqn2.get_rhs() {
-                return true;
+            if eqn1.is_positive() != eqn2.is_positive() {
+                if (eqn1.get_lhs() == eqn2.get_lhs() && eqn1.get_rhs() == eqn2.get_rhs()) ||
+                   (eqn1.get_lhs() == eqn2.get_rhs() && eqn1.get_rhs() == eqn2.get_lhs()) {
+                    return true;
+                }
             }
         }
     }  
@@ -44,6 +47,6 @@ fn td2(cl: &Clause) -> bool {
 
 #[cfg(test)]
 mod test {
-
+    // remember to have a test which tests x = y and y = x
 } 
 
