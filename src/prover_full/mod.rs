@@ -20,3 +20,5 @@
 mod term;
 mod equation;
 mod clause;
+
+mod tautology_deletion;

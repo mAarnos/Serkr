@@ -35,5 +35,15 @@ impl Equation {
     pub fn is_positive(&self) -> bool {
         !self.negated
     }
+    
+    /// Get a reference to the left hand side of the equation.
+    pub fn get_lhs(&self) -> &Term {
+        &self.lhs
+    }
+    
+    /// Get a reference to the right hand side of the equation.
+    pub fn get_rhs(&self) -> &Term {
+        &self.rhs
+    }
 }
 
