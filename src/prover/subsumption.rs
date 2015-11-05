@@ -62,18 +62,23 @@ fn match_literals(env: &mut Vec<(Term, Term)>, p: Literal, q: Literal) -> bool {
     }
 }
 
-fn subsumes_clause0(env: &mut Vec<(Term, Term)>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {
+fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {
     if n >= cl1.size() {
         true 
     } else {
         let s = env.len();  
         let l1 = cl1.at(n);
 
-        for l2 in cl2.iter().cloned() {
-            if match_literals(env, l1.clone(), l2) && subsumes_clause0(env, cl1, cl2, n + 1) {
-                return true;
+        for (i, l2) in cl2.iter().enumerate() {
+            if !exclusion[i] {
+                exclusion[i] = true;
+                let result = match_literals(env, l1.clone(), l2.clone()) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
+                exclusion[i] = false;
+                if result {
+                    return true;
+                }
+                env.truncate(s);
             }
-            env.truncate(s);
         }
         
         false
@@ -82,8 +87,13 @@ fn subsumes_clause0(env: &mut Vec<(Term, Term)>, cl1: &Clause, cl2: &Clause, n: 
 
 /// Checks if the clause cl1 subsumes the clause cl2.
 pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
-    let mut env = Vec::<(Term, Term)>::new();
-    subsumes_clause0(&mut env, cl1, cl2, 0)
+    if cl1.size() <= cl2.size() {    
+        let mut env = Vec::<(Term, Term)>::new();
+        let mut exclusion = vec![false; cl2.size()];
+        subsumes_clause0(&mut env, &mut exclusion, cl1, cl2, 0)
+    } else {
+        false
+    }
 }
 
 #[cfg(test)]

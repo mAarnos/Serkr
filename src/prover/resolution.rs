@@ -90,19 +90,13 @@ fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
 
 fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
     let mut sw = Stopwatch::new();
-    let mut ms_count = 10000;
+    let mut ms_count = 1000;
     sw.start();
-    
-    /*
-    for x in &unused {
-        println!("{:?}", x);
-    }
-    */
     
     while !unused.is_empty() {
         if sw.elapsed_ms() > ms_count {
             println!("{} seconds have elapsed, used clauses = {}, unused clauses = {}", sw.elapsed_ms() / 1000, used.len(), unused.len());
-            ms_count += 10000;
+            ms_count += 1000;
         }
         
         let mut chosen_clause = pick_clause(&mut unused);
@@ -110,15 +104,17 @@ fn resolution_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_cnt: 
         if chosen_clause.is_empty() {
             return Ok(true);
         }
-        // println!("Chosen clause: {:?}", chosen_clause);
-        used.push(chosen_clause.clone());
-        
-        rename_clause(&mut chosen_clause, &mut var_cnt);
-        for cl in &used {
-            resolve_clauses(&chosen_clause, cl, &used, &mut unused);
+        if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
+            used.push(chosen_clause.clone());
+            
+            rename_clause(&mut chosen_clause, &mut var_cnt);
+            for cl in &used {
+                resolve_clauses(&chosen_clause, cl, &used, &mut unused);
+            }
+            factor(chosen_clause, &mut unused);
         }
-        factor(chosen_clause, &mut unused);
     }
+    
     Err("No proof found.")
 }
 
