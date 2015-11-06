@@ -17,6 +17,7 @@
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 
+/// The id zero is for a special function symbol representing truth.
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub struct Term {
     id: i64,
@@ -27,6 +28,12 @@ impl Term {
     /// Creates a new term.
     pub fn new(id: i64, args: Vec<Term>) -> Term {
         Term { id: id, args: args }
+    }
+    
+    /// Create a new term representing truth. 
+    /// Used in the transformation of first order logic to pure equational logic.
+    pub fn new_truth() -> Term {
+        Term { id: 0, args: Vec::new() }
     }
     
     /// Get the id of the term.

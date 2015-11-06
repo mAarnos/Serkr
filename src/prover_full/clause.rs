@@ -56,6 +56,11 @@ impl Clause {
     pub fn swap_remove(&mut self, index: usize) {
         self.literals.swap_remove(index);
     }
+    
+    /// Add the literals in a given clause to this clause (without checking for duplicates).
+    pub fn add_literals(&mut self, mut cl: Clause) {
+        self.literals.append(&mut cl.literals);
+    }
 }
 
 impl Index<usize> for Clause {

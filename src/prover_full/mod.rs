@@ -21,5 +21,7 @@ mod term;
 mod literal;
 mod clause;
 
+mod flatten_cnf;
+
 mod tautology_deletion;
 mod literal_deletion;
