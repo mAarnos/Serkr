@@ -36,8 +36,7 @@ pub fn delete_duplicates(cl: &mut Clause) {
 }
 
 /// Deletes all resolved literals (s <> s) from a clause.
-/// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
-// TODO: see how much time is spent here.
+/// Time complexity is O(n) where n is the amount of literals.
 pub fn delete_resolved(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {

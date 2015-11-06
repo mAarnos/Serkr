@@ -41,7 +41,8 @@ impl RenamingInfo {
 /// We assume that the trivial cases of True and False have been handled already.
 pub fn flatten_cnf(f: Formula) -> (Vec<Clause>, RenamingInfo) {
     let mut renaming_info = RenamingInfo::new();
-    (collect(f, &mut renaming_info), renaming_info)
+    let flattened_f = collect(f, &mut renaming_info);
+    (flattened_f, renaming_info)
 }
 
 // TODO: clean this crap up.
@@ -65,7 +66,7 @@ fn collect_or(f: Formula, ri: &mut RenamingInfo) -> Clause {
     }
 }
 
-// We convert P(x_1, ..., x_n) to f_P(x_1, ..., x_n) = T() where T() is a special function symbol representing truth.  
+/// We convert P(x_1, ..., x_n) to f_P(x_1, ..., x_n) = T() where T() is a special function symbol representing truth.  
 fn create_literal(negated: bool, s: String, args: Vec<Term>, ri: &mut RenamingInfo) -> Literal {
     Literal::new(negated, create_term(Term::Function(s, args), ri), term::Term::new_truth())
 }
