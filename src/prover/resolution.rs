@@ -135,16 +135,18 @@ pub fn resolution(s: &str) -> Result<bool, &'static str> {
 mod test {
     use super::resolution;
     
-    #[test]
-    fn unprovable() {
-        let result = resolution("(P ==> (Q ==> R))");
-        assert!(result.is_err());
-    }
+    // Contains some pelletier problems negated so that we can make sure we don't prove a theorem not actually provable.
     
     #[test]
     fn pelletier_1() {
         let result = resolution("((P ==> Q) <=> (~Q ==> ~P))");
         assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_1_negated() {
+        let result = resolution("~((P ==> Q) <=> (~Q ==> ~P))");
+        assert!(result.is_err());
     }
     
     #[test]
@@ -187,6 +189,12 @@ mod test {
     fn pelletier_8() {
         let result = resolution("(((P ==> Q) ==> P) ==> P)");
         assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_8_negated() {
+        let result = resolution("~(((P ==> Q) ==> P) ==> P)");
+        assert!(result.is_err());
     }
     
     #[test]
@@ -249,6 +257,12 @@ mod test {
     fn pelletier_18() {
         let result = resolution("exists y. forall x. (F(y) ==> F(x))");
         assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_18_negated() {
+        let result = resolution("~exists y. forall x. (F(y) ==> F(x))");
+        assert!(result.is_err());
     }
     
     #[test]
@@ -353,6 +367,12 @@ mod test {
         assert!(result.is_ok());
     }
     
+    #[test]
+    fn pelletier_30_negated() {
+        let result = resolution("~(((forall x. ((F(x) \\/ G(x)) ==> ~H(x))) /\\ (forall x. ((G(x) ==> ~I(x)) ==> (F(x) /\\ H(x))))) ==> (forall x. I(x)))");
+        assert!(result.is_err());
+    }
+    
    #[test]
    fn pelletier_31() {
         let result = resolution("(((~exists x. (F(x) /\\ (G(x) \\/ H(x)))) /\\ 
@@ -383,6 +403,12 @@ mod test {
     fn pelletier_35() {
         let result = resolution("exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
         assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_35_negated() {
+        let result = resolution("~exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
+        assert!(result.is_err());
     }
     
     #[test]
@@ -437,6 +463,12 @@ mod test {
     fn pelletier_42() {
         let result = resolution("~exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
         assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_42_negated() {
+        let result = resolution("exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
+        assert!(result.is_err());
     }
     
     #[test]
