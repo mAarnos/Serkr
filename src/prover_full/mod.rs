@@ -27,3 +27,6 @@ mod tautology_deletion;
 mod literal_deletion;
 
 mod unification;
+// mod subsumption;
+
+// mod paramoodulation;

@@ -3,11 +3,11 @@ name = "serkr"
 version = "0.1.0"
 authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
-[dependencies.peg]
-peg = "*"
-
 [dependencies.time]
 time = "*"
 
-[dependencies]
+[dependencies.peg]
+peg = "*"
+
+[dependencies.clippy]
 clippy = "*"
