@@ -50,5 +50,27 @@ impl Term {
     pub fn is_variable(&self) -> bool {
         self.id < 0
     }
+    
+    /// Get the arguments of the term.
+    pub fn get_args(&self) -> Vec<Term> {
+        self.args.clone()
+    }
+    
+    /// Checks if a given variable or function occurs in the term.
+    pub fn occurs(&self, id: i64) -> bool {
+        self.id == id || self.args.iter().any(|t| t.occurs(id))
+    }
+    
+    /// Substitute all instances of the variable x with a given term.
+    pub fn subst(&mut self, x: i64, t: &Term) {
+        assert!(x < 0);
+        if self.id == x {
+            *self = t.clone();
+        } else {
+            for arg in &mut self.args {
+                arg.subst(x, t);
+            }
+        }
+    }
 }
 

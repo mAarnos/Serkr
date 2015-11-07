@@ -25,3 +25,5 @@ mod flatten_cnf;
 
 mod tautology_deletion;
 mod literal_deletion;
+
+mod unification;
