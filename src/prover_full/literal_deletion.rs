@@ -17,10 +17,16 @@
 
 use prover_full::clause::Clause;
 
+/// Simplifies a clause if possible.
+pub fn simplify(cl: &mut Clause) {
+    delete_resolved(cl);
+    delete_duplicates(cl);
+}
+
 /// Deletes all duplicated literals from a clause.
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 // TODO: see how much time is spent here.
-pub fn delete_duplicates(cl: &mut Clause) {
+fn delete_duplicates(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
         let mut j = i + 1;
@@ -37,7 +43,7 @@ pub fn delete_duplicates(cl: &mut Clause) {
 
 /// Deletes all resolved literals (s <> s) from a clause.
 /// Time complexity is O(n) where n is the amount of literals.
-pub fn delete_resolved(cl: &mut Clause) {
+fn delete_resolved(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
         if !cl[i].is_positive() && cl[i].get_lhs() == cl[i].get_rhs() {

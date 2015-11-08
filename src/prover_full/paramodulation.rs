@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use prover_full::flatten_cnf::flatten_cnf;
 use prover_full::clause::Clause;
 use prover_full::tautology_deletion::trivial;
+use prover_full::literal_deletion::simplify;
 use prover_full::subsumption::subsumes_clause;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
@@ -46,8 +47,7 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 /// Picks and removes the best clause from the unused clauses according to heuristics.
 /// Currently just picks the shortest one.
 fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
-    // TODO: can be done better by using max.
-    // TODO: can be done even better with a priority queue
+    // TODO: use a priority queue instead of this
     let mut best_clause_index = 0;
     let mut best_clause_size = unused[0].size();
     
@@ -73,6 +73,7 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
         }
         
         let mut chosen_clause = pick_clause(&mut unused);
+        simplify(&mut chosen_clause);
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
             return Ok(true);
