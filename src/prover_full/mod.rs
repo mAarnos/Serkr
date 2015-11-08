@@ -25,8 +25,8 @@ mod flatten_cnf;
 
 mod tautology_deletion;
 mod literal_deletion;
+mod subsumption;
 
 mod unification;
-// mod subsumption;
 
 // mod paramoodulation;
