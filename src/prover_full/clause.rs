@@ -59,6 +59,11 @@ impl Clause {
         self.literals.swap_remove(index);
     }
     
+    /// Add the literal to the clause (without checking for duplicates).
+    pub fn add_literal(&mut self, l: Literal) {
+        self.literals.push(l);
+    }
+    
     /// Add the literals in a given clause to this clause (without checking for duplicates).
     pub fn add_literals(&mut self, mut cl: Clause) {
         self.literals.append(&mut cl.literals);

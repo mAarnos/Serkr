@@ -23,28 +23,53 @@ use prover_full::clause::Clause;
 use prover_full::tautology_deletion::trivial;
 use prover_full::literal_deletion::simplify;
 use prover_full::subsumption::subsumes_clause;
+use prover_full::unification::mgu;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
 
-fn overlaps(_eqn: &Literal, _t: &Term, _paramodulants: &mut Vec<Clause>) {
+fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) -> Clause, paramodulants: &mut Vec<Clause>) {
+    if t.is_function() {
+        if let Ok(theta) = mgu(l.clone(), t.clone()) {
+            let new_cl = rfn(theta, r.clone());
+            if !trivial(&new_cl) {
+                paramodulants.push(new_cl);
+            }
+        }
+        
+    } else {
+        // Paramodulating into variables is in general not necessary.
+        // TODO: add a switch for doing that.
+    }
 }
 
-fn overlaps_literal(eqn: &Literal, p: &Literal, _rfn: &Fn(HashMap<Term, Term>, Clause) -> Clause, paramodulants: &mut Vec<Clause>) {
-    overlaps(eqn, p.get_lhs(), paramodulants);
-    overlaps(eqn, p.get_rhs(), paramodulants);
+fn overlaps_literal(eqn: &Literal, p: &Literal, rfn: &Fn(HashMap<Term, Term>, Literal) -> Clause, paramodulants: &mut Vec<Clause>) {
+    let lhs_rfn = |theta, lhs| { rfn(theta, Literal::new(!p.is_positive(), lhs, p.get_rhs().clone())) };
+    let rhs_rfn = |theta, rhs| { rfn(theta, Literal::new(!p.is_positive(), p.get_lhs().clone(), rhs)) };
+    // s = t
+    overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), &lhs_rfn, paramodulants);
+    overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_rhs(), &rhs_rfn, paramodulants);
+    // t = s
+    overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_lhs(), &lhs_rfn, paramodulants);
+    overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_rhs(), &rhs_rfn, paramodulants);
 }
 
 /// Assumes that cl1 was renamed so that it can have no variables in common with anything else.
 fn paramodulate_clauses(cl1: &Clause, cl2: &Clause, paramodulants: &mut Vec<Clause>) {
-    for (i, l) in cl1.iter().enumerate() {
-        if l.is_positive() {
+    for (i, l1) in cl1.iter().enumerate() {
+        if l1.is_positive() {
             let mut c = cl1.clone();
             c.swap_remove(i);
-            let rfn = |theta, cl| { let mut ret = c.clone(); ret.add_literals(cl); ret.subst(&theta); ret };
-            for cl2_l in cl2.iter() {
-                overlaps_literal(l, cl2_l, &rfn, paramodulants);
+            for (j, l2) in cl2.iter().enumerate() {
+                let mut d = cl2.clone();
+                d.swap_remove(j);
+                let rfn = |theta, l| { let mut ret = c.clone(); 
+                                       ret.add_literals(d.clone()); 
+                                       ret.add_literal(l);
+                                       ret.subst(&theta); 
+                                       ret };
+                overlaps_literal(l1, l2, &rfn, paramodulants);
             }
         }
     }
@@ -100,7 +125,9 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
             let mut paramodulants = Vec::new();
             for cl in &used {
                 paramodulate_clauses(&chosen_clause, cl, &mut paramodulants);
+                paramodulate_clauses(cl, &chosen_clause, &mut paramodulants);
             }
+            unused.append(&mut paramodulants);
         }
     }
     
@@ -116,11 +143,74 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         Ok(false)
     } else {
         let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
+        println!("{:?}", flattened_cnf_f.iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>());
         paramodulation_loop(Vec::new(), flattened_cnf_f.into_iter().filter(|cl| !trivial(cl)).collect(), renaming_info.var_cnt)
     }
 }
 
 #[cfg(test)]
 mod test {
-
+    use super::prove;
+    
+    // Contains some pelletier problems negated so that we can make sure we don't prove a theorem not actually provable.
+    
+    #[test]
+    fn pelletier_1() {
+        let result = prove("((P ==> Q) <=> (~Q ==> ~P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_1_negated() {
+        let result = prove("~((P ==> Q) <=> (~Q ==> ~P))");
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn pelletier_2() {
+        let result = prove("(~~P <=> P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_3() {
+        let result = prove("(~(P ==> Q) ==> (Q ==> P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_4() {
+        let result = prove("((~P ==> Q) <=> (~Q ==> P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_5() {
+        let result = prove("(((P \\/ Q) ==> (P \\/ R)) ==> (P \\/ (Q ==> R)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_6() {
+        let result = prove("(P \\/ ~P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_7() {
+        let result = prove("(P \\/ ~~~P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_8() {
+        let result = prove("(((P ==> Q) ==> P) ==> P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_8_negated() {
+        let result = prove("~(((P ==> Q) ==> P) ==> P)");
+        assert!(result.is_err());
+    }
 } 
