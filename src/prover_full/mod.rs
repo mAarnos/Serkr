@@ -29,4 +29,4 @@ mod subsumption;
 
 mod unification;
 
-// mod paramoodulation;
+mod paramodulation;

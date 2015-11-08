@@ -15,6 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
 use prover_full::term::Term;
 
 /// A single (possibly negated) Literal, or simply, a literal.
@@ -44,6 +45,11 @@ impl Literal {
     /// Get a reference to the right hand side of the Literal.
     pub fn get_rhs(&self) -> &Term {
         &self.rhs
+    }
+    
+    pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
+        self.lhs.rename_no_common(sfn, var_cnt);
+        self.rhs.rename_no_common(sfn, var_cnt);
     }
 }
 

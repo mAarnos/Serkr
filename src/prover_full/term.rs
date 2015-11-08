@@ -15,6 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashMap;
+
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 
 /// The id zero is for a special function symbol representing truth.
@@ -69,6 +71,23 @@ impl Term {
         } else {
             for arg in &mut self.args {
                 arg.subst(x, t);
+            }
+        }
+    }
+    
+    /// Rename all variables in a term so that it has no variables in common with any other clause that the one it is a part of.
+    pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
+        if self.is_variable() {
+            if let Some(&t) = sfn.get(&self.id) {
+                self.id = t;
+            } else {
+                *var_cnt -= 1;
+                sfn.insert(self.id, *var_cnt);
+                self.id = *var_cnt;
+            }
+        } else {
+            for arg in &mut self.args {
+                arg.rename_no_common(sfn, var_cnt);
             }
         }
     }
