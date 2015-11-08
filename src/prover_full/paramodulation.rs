@@ -17,6 +17,8 @@
 
 use std::collections::HashMap;
 use prover_full::flatten_cnf::flatten_cnf;
+use prover_full::term::Term;
+use prover_full::literal::Literal;
 use prover_full::clause::Clause;
 use prover_full::tautology_deletion::trivial;
 use prover_full::literal_deletion::simplify;
@@ -26,12 +28,24 @@ use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
 
+fn overlaps(_eqn: &Literal, _t: &Term, _paramodulants: &mut Vec<Clause>) {
+}
+
+fn overlaps_literal(eqn: &Literal, p: &Literal, _rfn: &Fn(HashMap<Term, Term>, Clause) -> Clause, paramodulants: &mut Vec<Clause>) {
+    overlaps(eqn, p.get_lhs(), paramodulants);
+    overlaps(eqn, p.get_rhs(), paramodulants);
+}
+
 /// Assumes that cl1 was renamed so that it can have no variables in common with anything else.
-fn paramodulate_clauses(cl1: &Clause, _cl2: &Clause, _used: &[Clause], _unused: &mut Vec<Clause>) {
+fn paramodulate_clauses(cl1: &Clause, cl2: &Clause, paramodulants: &mut Vec<Clause>) {
     for (i, l) in cl1.iter().enumerate() {
         if l.is_positive() {
             let mut c = cl1.clone();
             c.swap_remove(i);
+            let rfn = |theta, cl| { let mut ret = c.clone(); ret.add_literals(cl); ret.subst(&theta); ret };
+            for cl2_l in cl2.iter() {
+                overlaps_literal(l, cl2_l, &rfn, paramodulants);
+            }
         }
     }
 }
@@ -81,10 +95,11 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
         
         if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
             used.push(chosen_clause.clone());
-            
             rename_clause(&mut chosen_clause, &mut var_cnt);
+            
+            let mut paramodulants = Vec::new();
             for cl in &used {
-                paramodulate_clauses(&chosen_clause, cl, &used, &mut unused);
+                paramodulate_clauses(&chosen_clause, cl, &mut paramodulants);
             }
         }
     }

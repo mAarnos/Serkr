@@ -75,6 +75,17 @@ impl Term {
         }
     }
     
+    /// Substitutes according to the mapping.
+    pub fn subst_general(&mut self, sfn: &HashMap<Term, Term>) {
+        if let Some(t) = sfn.get(&self) {
+            *self = t.clone();
+        } else {
+            for x in &mut self.args {
+                x.subst_general(sfn);
+            }
+        }
+    }
+    
     /// Rename all variables in a term so that it has no variables in common with any other clause that the one it is a part of.
     pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
         if self.is_variable() {

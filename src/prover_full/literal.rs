@@ -51,6 +51,12 @@ impl Literal {
         self.lhs.rename_no_common(sfn, var_cnt);
         self.rhs.rename_no_common(sfn, var_cnt);
     }
+    
+    /// Substitutes terms in the literal according to the mapping.
+    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
+        self.lhs.subst_general(sfn);
+        self.rhs.subst_general(sfn);
+    }
 }
 
 /// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.

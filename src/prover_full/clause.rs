@@ -17,6 +17,8 @@
 
 use std::ops::Index;
 use std::slice::{Iter, IterMut};
+use std::collections::HashMap;
+use prover_full::term::Term;
 use prover_full::literal::Literal;
 
 /// A multiset containing literals.
@@ -60,6 +62,13 @@ impl Clause {
     /// Add the literals in a given clause to this clause (without checking for duplicates).
     pub fn add_literals(&mut self, mut cl: Clause) {
         self.literals.append(&mut cl.literals);
+    }
+    
+    /// Substitutes terms in the literal according to the mapping.
+    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
+        for l in &mut self.literals {
+            l.subst(sfn);
+        }
     }
 }
 
