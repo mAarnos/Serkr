@@ -45,7 +45,7 @@ impl Term {
 
     /// Checks if this term is a function.
     pub fn is_function(&self) -> bool {
-        self.id > 0
+        self.id >= 0
     }
     
     /// Checks if this term is a variable.

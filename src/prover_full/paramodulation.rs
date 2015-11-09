@@ -36,8 +36,7 @@ fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) ->
             if !trivial(&new_cl) {
                 paramodulants.push(new_cl);
             }
-        }
-        
+        }       
     } else {
         // Paramodulating into variables is in general not necessary.
         // TODO: add a switch for doing that.
@@ -112,7 +111,6 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
         }
         
         let mut chosen_clause = pick_clause(&mut unused);
-        simplify(&mut chosen_clause);
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
             return Ok(true);
@@ -126,6 +124,9 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
             for cl in &used {
                 paramodulate_clauses(&chosen_clause, cl, &mut paramodulants);
                 paramodulate_clauses(cl, &chosen_clause, &mut paramodulants);
+            }
+            for x in &mut paramodulants {
+                simplify(x);
             }
             unused.append(&mut paramodulants);
         }
@@ -143,8 +144,11 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         Ok(false)
     } else {
         let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
-        println!("{:?}", flattened_cnf_f.iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>());
-        paramodulation_loop(Vec::new(), flattened_cnf_f.into_iter().filter(|cl| !trivial(cl)).collect(), renaming_info.var_cnt)
+        let mut nontrivial_flattened_cnf_f = flattened_cnf_f.into_iter().filter(|cl| !trivial(cl)).collect();
+        for x in &mut nontrivial_flattened_cnf_f {
+            simplify(x);
+        }
+        paramodulation_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
 }
 
@@ -212,5 +216,61 @@ mod test {
     fn pelletier_8_negated() {
         let result = prove("~(((P ==> Q) ==> P) ==> P)");
         assert!(result.is_err());
+    }
+    
+    #[test]
+    fn pelletier_9() {
+        let result = prove("((((P \\/ Q) /\\ (~P \\/ Q)) /\\ (P \\/ ~Q)) ==> ~(~P \\/ ~Q))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_10() {
+        let result = prove("(((((Q ==> R) /\\ (R ==> (P /\\ Q))) /\\ (P ==> (Q \\/ R)))) ==> (P <=> Q))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_11() {
+        let result = prove("(P <=> P)");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_12() {
+        let result = prove("(((P <=> Q) <=> R) <=> (P <=> (Q <=> R)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_13() {
+        let result = prove("((P \\/ (Q /\\ R)) <=> ((P \\/ Q) /\\ (P \\/ R)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_14() {
+        let result = prove("((P <=> Q) <=> ((~P \\/ Q) /\\ (~Q \\/ P)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_15() {
+        let result = prove("((P ==> Q) <=> (~P \\/ Q))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_16() {
+        let result = prove("((P ==> Q) \\/ (Q ==> P))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_17() {
+        let result = prove("(((P /\\ (Q ==> R)) ==> S) <=>
+                            (((~P \\/ Q) \\/ S) /\\
+                              (~P \\/ (~R \\/ S))))");
+        assert!(result.is_ok());
     }
 } 
