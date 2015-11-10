@@ -139,6 +139,7 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
             for x in &mut paramodulants {
                 simplify(x);
             }
+            paramodulants = paramodulants.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
             unused.append(&mut paramodulants);
         }
     }
@@ -358,7 +359,7 @@ mod test {
                                  ==> ((forall x. (P(x) ==> R(x))) <=> (forall x. (Q(x) ==> S(x)))))");
         assert!(result.is_ok());
     }
-    
+   
     #[test]
     fn pelletier_27() {
         let result = prove("(((((exists x. (F(x) /\\ ~G(x))) /\\ 
