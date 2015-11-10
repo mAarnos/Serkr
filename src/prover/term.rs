@@ -23,24 +23,37 @@ use std::collections::HashMap;
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub struct Term {
     id: i64,
+    // Terms are in two sorts, VF and P, which cannot be unified together
+    // TODO: move this info somewhere else?
+    sort_predicate: bool, 
     args: Vec<Term>,
 }
 
 impl Term {
     /// Creates a new term.
-    pub fn new(id: i64, args: Vec<Term>) -> Term {
-        Term { id: id, args: args }
+    pub fn new(id: i64, sort_predicate: bool, args: Vec<Term>) -> Term {
+        Term { id: id, sort_predicate: sort_predicate, args: args }
     }
     
     /// Create a new term representing truth. 
     /// Used in the transformation of first order logic to pure equational logic.
     pub fn new_truth() -> Term {
-        Term { id: 0, args: Vec::new() }
+        Term { id: 0, sort_predicate: true, args: Vec::new() }
     }
     
     /// Get the id of the term.
     pub fn get_id(&self) -> i64 {
         self.id
+    }
+    
+    /// Check if the term is in the sort P instead of the sort VF.
+    pub fn get_sort_predicate(&self) -> bool {
+        self.sort_predicate
+    }
+    
+    /// Get the arguments of the term.
+    pub fn get_args(&self) -> Vec<Term> {
+        self.args.clone()
     }
 
     /// Checks if this term is a function.
@@ -52,12 +65,7 @@ impl Term {
     pub fn is_variable(&self) -> bool {
         self.id < 0
     }
-    
-    /// Get the arguments of the term.
-    pub fn get_args(&self) -> Vec<Term> {
-        self.args.clone()
-    }
-    
+     
     /// Checks if a given variable or function occurs in the term.
     pub fn occurs(&self, id: i64) -> bool {
         self.id == id || self.args.iter().any(|t| t.occurs(id))

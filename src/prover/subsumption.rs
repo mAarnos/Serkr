@@ -42,6 +42,10 @@ fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bool {
             }
             
             if !success {
+                // Can't unify between two different sorts.
+                if eq2.get_sort_predicate() {
+                    return false;
+                }
                 env.push((eq1, eq2));
             }
             

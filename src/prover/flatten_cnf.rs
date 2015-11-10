@@ -72,6 +72,7 @@ fn create_literal(negated: bool, s: String, args: Vec<Term>, ri: &mut RenamingIn
         assert_eq!(args.len(), 2);
         Literal::new(negated, create_term(args[0].clone(), ri), create_term(args[1].clone(), ri))
     } else {
+        assert!(s.chars().next().unwrap().is_uppercase());
         Literal::new(negated, create_term(Term::Function(s, args), ri), term::Term::new_truth())
     }
 }
@@ -80,19 +81,21 @@ fn create_term(t: Term, ri: &mut RenamingInfo) -> term::Term {
     match t {
          Term::Variable(s) => 
             if let Some(&x) = ri.var_map.get(&s) {
-                term::Term::new(x, Vec::new())
+                term::Term::new(x, false, Vec::new())
             } else {
                 ri.var_cnt -= 1;
                 ri.var_map.insert(s, ri.var_cnt);
-                term::Term::new(ri.var_cnt, Vec::new())
+                term::Term::new(ri.var_cnt, false, Vec::new())
             },
-        Term::Function(s, args) =>             
-            if let Some(&x) = ri.fun_map.get(&(s.clone(), args.len())) {
-                term::Term::new(x, args.into_iter().map(|t2| create_term(t2, ri)).collect())
-            } else {
-                ri.fun_cnt += 1;
-                ri.fun_map.insert((s, args.len()), ri.fun_cnt);
-                term::Term::new(ri.fun_cnt, args.into_iter().map(|t2| create_term(t2, ri)).collect())
+        Term::Function(s, args) => {
+                let sort_pred = s.chars().next().unwrap().is_uppercase();
+                if let Some(&x) = ri.fun_map.get(&(s.clone(), args.len())) {
+                    term::Term::new(x, sort_pred, args.into_iter().map(|t2| create_term(t2, ri)).collect())
+                } else {
+                    ri.fun_cnt += 1;
+                    ri.fun_map.insert((s, args.len()), ri.fun_cnt);
+                    term::Term::new(ri.fun_cnt, sort_pred, args.into_iter().map(|t2| create_term(t2, ri)).collect())
+                }
             },
     }
 }

@@ -44,7 +44,7 @@ fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) ->
                     let new_rfn = |theta, mut h: Term| { let mut args2 = args.clone(); 
                                                          h.subst_general(&theta); 
                                                          args2[i] = h;
-                                                         rfn(theta, Term::new(t.get_id(), args2)) };
+                                                         rfn(theta, Term::new(t.get_id(), t.get_sort_predicate(), args2)) };
                     overlaps(l, r, x, &new_rfn, paramodulants);
                 }
             }
@@ -594,4 +594,15 @@ mod test {
         let result = prove("(((forall x. f(f(x)) = f(x)) /\\ (forall x. exists y. f(y) = x)) ==> forall x. f(x) = x)");
         assert!(result.is_ok());
     }
+    
+    /*
+    #[test]
+    fn group_x_times_x_equals_1_abelian() {
+        let result = prove("(((forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z)) /\\
+                             ((forall x. mult(i(), x) = x) /\\
+                              (forall x. mult(i(x), x) = i())))
+                               ==> (forall x. mult(x, i()) = x))");
+        assert!(result.is_ok());
+    }
+    */
 } 
