@@ -57,6 +57,11 @@ impl Literal {
         self.lhs.subst_general(sfn);
         self.rhs.subst_general(sfn);
     }
+    
+    /// Get the amount of symbols in this literal
+    pub fn symbol_count(&self) -> usize {
+        1 + self.lhs.symbol_count() + self.rhs.symbol_count()
+    }
 }
 
 /// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.

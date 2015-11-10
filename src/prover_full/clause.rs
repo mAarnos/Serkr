@@ -18,6 +18,7 @@
 use std::ops::Index;
 use std::slice::{Iter, IterMut};
 use std::collections::HashMap;
+use std::cmp::Ordering;
 use prover_full::term::Term;
 use prover_full::literal::Literal;
 
@@ -75,6 +76,11 @@ impl Clause {
             l.subst(sfn);
         }
     }
+    
+    /// Get the amount of symbols in this clause.
+    pub fn symbol_count(&self) -> usize {
+        self.literals.iter().fold(0, |acc, l| acc + l.symbol_count())
+    }
 }
 
 impl Index<usize> for Clause {
@@ -82,5 +88,20 @@ impl Index<usize> for Clause {
 
     fn index(&self, index: usize) -> &Literal {
         &self.literals[index]
+    }
+}
+
+/// The priority queue depends on "Ord".
+/// We order clauses in heuristic order, not in anything concrete.
+impl Ord for Clause {
+    fn cmp(&self, other: &Clause) -> Ordering {
+        other.symbol_count().cmp(&self.symbol_count())
+    }
+}
+
+/// "PartialOrd" needs to be implemented as well.
+impl PartialOrd for Clause {
+    fn partial_cmp(&self, other: &Clause) -> Option<Ordering> {
+        Some(other.symbol_count().cmp(&self.symbol_count()))
     }
 }

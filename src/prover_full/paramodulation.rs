@@ -16,6 +16,7 @@
 */
 
 use std::collections::HashMap;
+use std::collections::BinaryHeap;
 use prover_full::flatten_cnf::flatten_cnf;
 use prover_full::term::Term;
 use prover_full::literal::Literal;
@@ -93,35 +94,17 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     }
 }
 
-/// Picks and removes the best clause from the unused clauses according to heuristics.
-/// Currently just picks the shortest one.
-fn pick_clause(unused: &mut Vec<Clause>) -> Clause {
-    // TODO: use a priority queue instead of this
-    let mut best_clause_index = 0;
-    let mut best_clause_size = unused[0].size();
-    
-    for i in 1..unused.len() {
-        if unused[i].size() < best_clause_size {
-            best_clause_index = i;
-            best_clause_size = unused[i].size();
-        }
-    }
-    
-    unused.swap_remove(best_clause_index)
-}
-
-fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
+fn paramodulation_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     sw.start();
     
-    while !unused.is_empty() {
+    while let Some(mut chosen_clause) = unused.pop() {
         if sw.elapsed_ms() > ms_count {
             println!("{} seconds have elapsed, used clauses = {}, unused clauses = {}", sw.elapsed_ms() / 1000, used.len(), unused.len());
             ms_count += 1000;
         }
         
-        let mut chosen_clause = pick_clause(&mut unused);
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
             return Ok(true);
@@ -140,7 +123,9 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: Vec<Clause>, mut var_c
                 simplify(x);
             }
             paramodulants = paramodulants.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
-            unused.append(&mut paramodulants);
+            for x in paramodulants.into_iter() {
+                unused.push(x);
+            }
         }
     }
     
@@ -156,10 +141,10 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         Ok(false)
     } else {
         let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
-        let mut nontrivial_flattened_cnf_f = flattened_cnf_f.into_iter().filter(|cl| !trivial(cl)).collect();
-        for x in &mut nontrivial_flattened_cnf_f {
-            simplify(x);
-        }
+        let nontrivial_flattened_cnf_f = flattened_cnf_f.into_iter()
+                                                        .filter(|cl| !trivial(cl))
+                                                        .map(|mut cl| { simplify(&mut cl); cl })
+                                                        .collect();
         paramodulation_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
 }
@@ -359,7 +344,9 @@ mod test {
                                  ==> ((forall x. (P(x) ==> R(x))) <=> (forall x. (Q(x) ==> S(x)))))");
         assert!(result.is_ok());
     }
-   
+    */
+    
+   /*
     #[test]
     fn pelletier_27() {
         let result = prove("(((((exists x. (F(x) /\\ ~G(x))) /\\ 
@@ -369,6 +356,7 @@ mod test {
                                      ==> (forall x. (J(x) ==> ~I(x))))");
         assert!(result.is_ok());
     }
+    */
 
     #[test]
     fn pelletier_28_orig() {
@@ -378,7 +366,6 @@ mod test {
                                     ==>(forall x. ((P(x) /\\ F(x)) ==> G(x))))");
         assert!(result.is_err());
     }
-    */
     
     #[test]
     fn pelletier_28_errata() {
@@ -386,6 +373,161 @@ mod test {
                                     (((forall x. (Q(x) \\/ R(x))) ==> exists x. (Q(x) /\\ S(x))) /\\
                                    ((exists x. S(x)) ==> forall x. (F(x) ==> G(x))))) 
                                     ==>(forall x. ((P(x) /\\ F(x)) ==> G(x))))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_29() {
+        let result = prove("(((exists x. F(x)) /\\ (exists x. G(x)))
+                                   ==> (((forall x. (F(x) ==> H(x))) /\\ forall x. (G(x) ==> J(x))) <=> forall x. forall y. ((F(x) /\\ G(y)) ==> (H(x) /\\ J(y)))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_30() {
+        let result = prove("(((forall x. ((F(x) \\/ G(x)) ==> ~H(x))) /\\ (forall x. ((G(x) ==> ~I(x)) ==> (F(x) /\\ H(x))))) ==> (forall x. I(x)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_30_negated() {
+        let result = prove("~(((forall x. ((F(x) \\/ G(x)) ==> ~H(x))) /\\ (forall x. ((G(x) ==> ~I(x)) ==> (F(x) /\\ H(x))))) ==> (forall x. I(x)))");
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn pelletier_31() {
+        let result = prove("(((~exists x. (F(x) /\\ (G(x) \\/ H(x)))) /\\ 
+                                  ((exists x. (I(x) /\\ F(x))) /\\ 
+                                   (forall x. (~H(x) ==> J(x))))) 
+                                    ==> (exists x. (I(x) /\\ J(x))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_32() {
+        let result = prove("(((forall x. ((F(x) /\\ (G(x) \\/ H(x))) ==> I(x))) /\\ 
+                                  ((forall x. (I(x) /\\ (H(x) ==> J(x)))) /\\ 
+                                   (forall x. (K(x) ==> H(x))))) 
+                                    ==> (forall x. ((F(x) /\\ K(x)) ==> J(x))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_33() {
+        let result = prove("((forall x. ((P(a) /\\ (P(x) ==> P(b))) ==> P(c))) <=>
+                                  forall x. ((~P(a) \\/ (P(x) \\/ P(c))) /\\ 
+                                             (~P(a) \\/ (~P(b) \\/ P(c)))))");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn pelletier_35() {
+        let result = prove("exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_35_negated() {
+        let result = prove("~exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn pelletier_36() {
+        let result = prove("((((forall x. exists y. F(x, y)) /\\ 
+                                    (forall x. exists y. G(x, y))) /\\ 
+                                    (forall x. forall y. ((F(x, y) \\/ G(x, y)) ==> forall z. ((F(y, z) \\/ G(y, z)) ==> H(x, z)))))
+                                    ==> forall x. exists y. H(x, y))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_37() {
+        let result = prove("((((forall x. exists y. F(x, y)) /\\ 
+                                    (forall x. exists y. G(x, y))) /\\ 
+                                    (forall x. forall y. ((F(x, y) \\/ G(x, y)) ==> forall z. ((F(y, z) \\/ G(y, z)) ==> H(x, z)))))
+                                    ==> forall x. exists y. H(x, y))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_38() {
+        let result = prove("((forall x. ((P(a()) /\\ (P(x) ==> exists y. (P(y) /\\ R(x, y)))) ==> exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))) <=>
+                                  (forall x. ((~P(a()) \\/ (P(x) \\/ exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))) /\\ 
+                                              (~P(a()) \\/ (~exists y. (P(y) /\\ R(x, y)) \\/ exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_39() {
+        let result = prove("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_40() {
+        let result = prove("((exists y. forall x. (F(x, y) <=> F(x, x))) ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    /*
+    #[test]
+    fn pelletier_41() {
+        let result = prove("(forall z. exists y. forall x. (F(x, y) <=> (F(x, z) /\\ ~F(x, x))) 
+                                   ==> ~exists z. forall x. F(x, z))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_42() {
+        let result = prove("~exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_42_negated() {
+        let result = prove("exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn pelletier_43() {
+        let result = prove("((forall x. forall y. Q(x, y) <=> forall z. (F(z, x) <=> F(z, y))) 
+                                   ==> (forall x. forall y. (Q(x, y) <=> Q(y, x))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_44() {
+        let result = prove("(((forall x. (F(x) ==> (exists y. (G(y) /\\ H(x, y)) /\\ exists y. (G(y) /\\ ~H(x, y))))) /\\ 
+                                    exists x. (J(x) /\\ forall y. (G(y) ==> H(x, y))))
+                                    ==> exists x. (J(x) /\\ ~F(x)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn los() {
+        let result = prove("(((((forall x. forall y. forall z. ((P(x, y) /\\ P(y, z)) ==> P(x, z))) /\\
+                                     (forall x. forall y. forall z. ((Q(x, y) /\\ Q(y, z)) ==> Q(x, z)))) /\\
+                                    ((forall x. forall y. Q(x, y) ==> Q(y, x)) /\\
+                                     (forall x. forall y. P(x, y) \\/ Q(x, y)))))
+                                       ==> ((forall x. forall y. P(x, y)) \\/ (forall x. forall y. Q(x, y))))");
+        assert!(result.is_ok());
+    }
+       
+    #[test]
+    fn davis_putnam() {
+        let result = prove("exists x. exists y. forall z. ((F(x, y) ==> (F(y, z) /\\ F(z, z))) /\\ ((F(x, y) /\\ G(x, y)) ==> (G(x, z) /\\ G(z, z))))");
         assert!(result.is_ok());
     }
 } 

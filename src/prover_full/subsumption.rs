@@ -140,6 +140,7 @@ fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
 
 /// Checks if the clause cl1 subsumes the clause cl2.
 /// We use multiset subsumption instead of set subsumption to prevent some undesirable effects like a clause subsuming its factors.
+/// Time complexity is O(n! * 2^n) which is kinda ridiculous. In practice n is small (<=5) though.
 pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
     if cl1.size() <= cl2.size() {
         if function_symbols_subsume(cl1, cl2) {

@@ -102,5 +102,10 @@ impl Term {
             }
         }
     }
+    
+    /// Get the amount of symbols in this term.
+    pub fn symbol_count(&self) -> usize {
+        self.args.iter().fold(1, |acc, t| acc + t.symbol_count())
+    }
 }
 
