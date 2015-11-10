@@ -16,9 +16,9 @@
 */
 
 use std::collections::HashMap;
-use prover_full::term;
-use prover_full::clause::Clause;
-use prover_full::literal::Literal;
+use prover::term;
+use prover::clause::Clause;
+use prover::literal::Literal;
 use utils::formula::{Term, Formula};
 
 /// Mappings from literals, terms and variables to ids.

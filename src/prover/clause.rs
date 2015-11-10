@@ -19,8 +19,8 @@ use std::ops::Index;
 use std::slice::{Iter, IterMut};
 use std::collections::HashMap;
 use std::cmp::Ordering;
-use prover_full::term::Term;
-use prover_full::literal::Literal;
+use prover::term::Term;
+use prover::literal::Literal;
 
 /// A multiset containing literals.
 #[derive(Debug, Eq, PartialEq, Clone)]

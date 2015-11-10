@@ -15,9 +15,9 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover_full::term::Term;
-use prover_full::literal::Literal;
-use prover_full::clause::Clause;
+use prover::term::Term;
+use prover::literal::Literal;
+use prover::clause::Clause;
 
 fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bool {
     while let Some((eq1, eq2)) = eqs.pop() {

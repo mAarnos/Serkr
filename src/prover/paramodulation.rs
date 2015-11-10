@@ -17,14 +17,14 @@
 
 use std::collections::HashMap;
 use std::collections::BinaryHeap;
-use prover_full::flatten_cnf::flatten_cnf;
-use prover_full::term::Term;
-use prover_full::literal::Literal;
-use prover_full::clause::Clause;
-use prover_full::tautology_deletion::trivial;
-use prover_full::literal_deletion::simplify;
-use prover_full::subsumption::subsumes_clause;
-use prover_full::unification::mgu;
+use prover::flatten_cnf::flatten_cnf;
+use prover::term::Term;
+use prover::literal::Literal;
+use prover::clause::Clause;
+use prover::tautology_deletion::trivial;
+use prover::literal_deletion::simplify;
+use prover::subsumption::subsumes_clause;
+use prover::unification::mgu;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;

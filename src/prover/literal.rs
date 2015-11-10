@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use prover_full::term::Term;
+use prover::term::Term;
 
 /// A single (possibly negated) Literal, or simply, a literal.
 #[derive(Debug, Eq, PartialEq, Clone)]

@@ -42,7 +42,7 @@
 
 pub mod parser;
 pub mod cnf;
-pub mod prover_full;
+pub mod prover;
 pub mod utils;
 
 fn main() {

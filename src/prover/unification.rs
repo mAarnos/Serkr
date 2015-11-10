@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use prover_full::term::Term;
+use prover::term::Term;
 
 fn unify(mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
     let mut env = HashMap::<Term, Term>::new(); 
@@ -80,9 +80,9 @@ pub fn mgu(p: Term, q: Term) -> Result<HashMap<Term, Term>, ()> {
 mod test {
     /*
     use super::mgu;
-    use prover_full::term::Term;
+    use prover::term::Term;
     use parser::internal_parser::parse;
-    use prover_full::flatten_cnf::flatten_cnf;
+    use prover::flatten_cnf::flatten_cnf;
     
     // TODO: some of the tests here rely on the behaviour of flatten_cnf. Figure out a way to deal with that.
     

@@ -15,36 +15,47 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover_full::clause::Clause;
-use prover_full::literal::terms_equal;
+use prover::clause::Clause;
 
-/// Checks if a clause is a syntactical tautology and as such can be eliminated completely.
-pub fn trivial(cl: &Clause) -> bool {
-    td1(cl) || td2(cl)
+/// Simplifies a clause if possible.
+pub fn simplify(cl: &mut Clause) {
+    delete_resolved(cl);
+    delete_duplicates(cl);
 }
 
-/// Checks if a clause contains a literal of the form "s = s".
-/// Time complexity is O(n) where n is the amount of literals.
-fn td1(cl: &Clause) -> bool {
-    cl.iter().any(|l| l.is_positive() && l.get_lhs() == l.get_rhs())
-}
-
-/// Checks if a clause contains a literal and its negation.
+/// Deletes all duplicated literals from a clause.
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 // TODO: see how much time is spent here.
-fn td2(cl: &Clause) -> bool {
-    for (i, l1) in cl.iter().enumerate() {
-        for l2 in cl.iter().skip(i + 1) {
-            if l1.is_positive() != l2.is_positive() && terms_equal(l1, l2) {
-                return true;
+fn delete_duplicates(cl: &mut Clause) {
+    let mut i = 0;
+    while i < cl.size() {
+        let mut j = i + 1;
+        while j < cl.size() {
+            if cl[i] == cl[j] {
+                cl.swap_remove(j);
+                continue;
             }
+            j += 1;
         }
-    }  
-    false
+        i += 1;
+    }
+}
+
+/// Deletes all resolved literals (s <> s) from a clause.
+/// Time complexity is O(n) where n is the amount of literals.
+fn delete_resolved(cl: &mut Clause) {
+    let mut i = 0;
+    while i < cl.size() {
+        if !cl[i].is_positive() && cl[i].get_lhs() == cl[i].get_rhs() {
+            cl.swap_remove(i);
+            continue;
+        }
+        i += 1;
+    }
 }
 
 #[cfg(test)]
 mod test {
-    // remember to have a test which tests x = y and y = x
+
 } 
 
