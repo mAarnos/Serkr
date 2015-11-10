@@ -85,50 +85,45 @@ pub fn mgu(p: Term, q: Term) -> Result<HashMap<Term, Term>, ()> {
 mod test {
     use super::mgu;
     use prover::term::Term;
-    // use parser::internal_parser::parse;
-    // use prover::flatten_cnf::flatten_cnf;
-    
-    // TODO: some of the tests here rely on the behaviour of flatten_cnf. Figure out a way to deal with that.
     
     #[test]
-    fn mgu_fail_unifying_two_sorts() {
+    fn mgu_1() {
+        // x = f_p()
         let t1 = Term::new(-1, false, Vec::new());
         let t2 = Term::new(1, true, Vec::new());
         assert!(mgu(t1, t2).is_err());
     }
     
-    /*
     #[test]
-    fn mgu_1() {
-        let f = flatten_cnf(parse("(P(f(x, g(y))) /\\ P(f(f(z), w)))").unwrap()).0;
-        let f1 = f[0][0].clone();
-        let f2 = f[1][0].clone();
-        let theta = mgu(f1, f2).unwrap();
+    fn mgu_2() {
+        // f(x, g(y)) = f(g(z), w)
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let w = Term::new(-4, false, Vec::new());   
+        let g_y = Term::new(2, false, vec!(y.clone()));
+        let g_z = Term::new(2, false, vec!(z.clone()));
+        
+        let t1 = Term::new(1, false, vec!(x.clone(), g_y.clone()));
+        let t2 = Term::new(1, false, vec!(g_z.clone(), w.clone()));
+        let theta = mgu(t1, t2).unwrap();
         assert_eq!(theta.len(), 2);
-        assert_eq!(*theta.get(&Term::new(-4, Vec::new())).unwrap(), Term::new(3, vec!(Term::new(-2, Vec::new()))));
-        assert_eq!(*theta.get(&Term::new(-1, Vec::new())).unwrap(), Term::new(4, vec!(Term::new(-3, Vec::new()))));
+        assert_eq!(theta.get(&x), Some(&g_z));
+        assert_eq!(theta.get(&w), Some(&g_y));
     }
 
     #[test]
-    fn mgu_2() {
-        let f = flatten_cnf(parse("(~P(f(x, y)) /\\ ~P(f(y, x)))").unwrap()).0;
-        let f1 = f[0][0].clone();
-        let f2 = f[1][0].clone();
-        let theta = mgu(f1, f2).unwrap();
-        // Other way round is okay too.
-        assert_eq!(theta.len(), 1);
-        assert_eq!(*theta.get(&Term::new(-2, Vec::new())).unwrap(), Term::new(-1, Vec::new()));
-    }
-    
-    #[test]
     fn mgu_3() {
-        let f = flatten_cnf(parse("((P(f(x, g(y)))) /\\ P(f(y, x)))").unwrap()).0;
-        let f1 = f[0][0].clone();
-        let f2 = f[1][0].clone();
-        let theta = mgu(f1, f2);
-        assert!(theta.is_err());
+        // f(x, y) = f(y, x)
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());         
+        let t1 = Term::new(1, false, vec!(x.clone(), y.clone()));
+        let t2 = Term::new(1, false, vec!(y.clone(), x.clone()));
+        
+        let theta = mgu(t1, t2).unwrap();
+        assert_eq!(theta.len(), 1);
+        assert!(theta.get(&y) == Some(&x) || theta.get(&x) == Some(&y));
     }
-    */
     
     #[test]
     fn mgu_4() {

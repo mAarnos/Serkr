@@ -61,8 +61,8 @@ fn match_literals(env: &mut Vec<(Term, Term)>, p: Literal, q: Literal, mixed: bo
     if p.is_positive() == q.is_positive() {
         let eqs = if !mixed { vec!((p.get_lhs().clone(), q.get_lhs().clone()), 
                                    (p.get_rhs().clone(), q.get_rhs().clone())) }
-                       else { vec!((p.get_lhs().clone(), q.get_rhs().clone()), 
-                                   (p.get_rhs().clone(), q.get_lhs().clone())) };
+                       else { vec!((p.get_rhs().clone(), q.get_lhs().clone()), 
+                                   (p.get_lhs().clone(), q.get_rhs().clone())) };
         term_match(env, eqs)
     } else {
         false
