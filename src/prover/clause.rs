@@ -96,6 +96,7 @@ impl Index<usize> for Clause {
 impl Ord for Clause {
     fn cmp(&self, other: &Clause) -> Ordering {
         other.symbol_count().cmp(&self.symbol_count())
+        // other.size().cmp(&self.size())
     }
 }
 
@@ -103,5 +104,6 @@ impl Ord for Clause {
 impl PartialOrd for Clause {
     fn partial_cmp(&self, other: &Clause) -> Option<Ordering> {
         Some(other.symbol_count().cmp(&self.symbol_count()))
+        // Some(other.size().cmp(&self.size()))
     }
 }

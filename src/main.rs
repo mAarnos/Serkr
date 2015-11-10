@@ -48,16 +48,10 @@ pub mod utils;
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
     
-    /*
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
-    // ((exists y. forall x. (F(x, y) <=> F(x, x))) ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))
-    let res = prover::resolution::resolution("(((exists x. forall y. (P(x) <=> P(y))) <=> 
-                                                exists x. (Q(x) <=> forall y. Q(y))) <=> 
-                                                 ((exists x. forall y. (Q(x) <=> Q(y))) <=>
-                                                  (exists x. P(x) <=> forall y. P(y))))");
+    let res = prover::paramodulation::prove("exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w))");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
-    */
 }

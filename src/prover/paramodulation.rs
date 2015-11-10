@@ -144,7 +144,7 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         let nontrivial_flattened_cnf_f = flattened_cnf_f.into_iter()
                                                         .filter(|cl| !trivial(cl))
                                                         .map(|mut cl| { simplify(&mut cl); cl })
-                                                        .collect();
+                                                        .collect();                                  
         paramodulation_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
 }
@@ -539,6 +539,41 @@ mod test {
     */
     
     #[test]
+    fn pelletier_48() {
+        let result = prove("(((a() = b() \\/ c() = d()) /\\ (a() = c() \\/ b() = d())) ==> (a() = d() \\/ b() = c()))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_49() {
+        let result = prove("((exists x. exists y. forall z. (z = x \\/ z = y) /\\ ((P(a()) /\\ P(b)) /\\ ~(a() = b())))
+                              ==> forall x. P(x))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_50() {
+        let result = prove("((forall x. (F(a(), x) \\/ forall y. F(x, y))) ==> exists x. forall y. F(x, y))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_51() {
+        let result = prove("exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    /*
+    #[test]
+    fn pelletier_51() {
+        let result = prove("exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
     fn los() {
         let result = prove("(((((forall x. forall y. forall z. ((P(x, y) /\\ P(y, z)) ==> P(x, z))) /\\
                                      (forall x. forall y. forall z. ((Q(x, y) /\\ Q(y, z)) ==> Q(x, z)))) /\\
@@ -551,6 +586,12 @@ mod test {
     #[test]
     fn davis_putnam() {
         let result = prove("exists x. exists y. forall z. ((F(x, y) ==> (F(y, z) /\\ F(z, z))) /\\ ((F(x, y) /\\ G(x, y)) ==> (G(x, z) /\\ G(z, z))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn djikstra() {
+        let result = prove("(((forall x. f(f(x)) = f(x)) /\\ (forall x. exists y. f(y) = x)) ==> forall x. f(x) = x)");
         assert!(result.is_ok());
     }
 } 

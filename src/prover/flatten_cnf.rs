@@ -68,7 +68,12 @@ fn collect_or(f: Formula, ri: &mut RenamingInfo) -> Clause {
 
 /// We convert P(x_1, ..., x_n) to f_P(x_1, ..., x_n) = T() where T() is a special function symbol representing truth.  
 fn create_literal(negated: bool, s: String, args: Vec<Term>, ri: &mut RenamingInfo) -> Literal {
-    Literal::new(negated, create_term(Term::Function(s, args), ri), term::Term::new_truth())
+    if s == "=" {
+        assert_eq!(args.len(), 2);
+        Literal::new(negated, create_term(args[0].clone(), ri), create_term(args[1].clone(), ri))
+    } else {
+        Literal::new(negated, create_term(Term::Function(s, args), ri), term::Term::new_truth())
+    }
 }
 
 fn create_term(t: Term, ri: &mut RenamingInfo) -> term::Term {

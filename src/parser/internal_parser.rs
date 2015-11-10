@@ -27,6 +27,7 @@ peg! formula(r#"
               
     spaced_formula -> Formula
         = parenthesis_formula
+        / equals_formula
         / predicate
         / not_formula
         / and_formula
@@ -38,6 +39,9 @@ peg! formula(r#"
             
     parenthesis_formula -> Formula
         = [(] f:formula [)] { f } 
+        
+    equals_formula -> Formula
+        = t1: term " = " t2: term{ Formula::Predicate("=".to_owned(), vec!(t1, t2)) }     
             
     predicate -> Formula
         = s:predicate_name [(] tl:term_list [)] { Formula::Predicate(s, tl) }   
