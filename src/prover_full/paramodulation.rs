@@ -515,6 +515,29 @@ mod test {
         assert!(result.is_ok());
     }
     
+    /*
+    #[test]
+    fn pelletier_45() {
+        let result = prove("((((forall x. ((F(x) /\\ forall y. ((G(y) /\\ H(x, y)) ==> J(x, y)))
+                                             ==> (forall y. ((G(y) /\\ H(x, y)) ==> K(y))))) /\\ 
+                                   ~exists y. (L(y) /\\ K(y))) /\\ 
+                                   (exists x. ((F(x) /\\ forall y. (H(x, y) ==> L(y))) /\\
+                                                (forall y. ((G(y) /\\ H(x, y)) ==> J(x, y))))))
+                                    ==> exists x. (F(x) /\\ ~exists y. (G(y) /\\ H(x, y))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_46() {
+        let result = resolution("((((forall x. ((F(x) /\\ forall y. ((F(y) /\\ H(y, x)) ==> G(y))) ==> G(x))) /\\
+                                 ((exists x. (F(x) /\\ ~G(x))) ==> ((exists x. ((F(x) /\\ ~G(x)) /\\ 
+                                                                    (forall y. (F(y) /\\ ~G(y)) ==> J(x, y))))))) /\\
+                                   (forall x. forall y. (((F(x) /\\ F(y)) /\\ H(x, y)) ==> ~J(y, x))))
+                                   ==> forall x. (F(x) ==> G(x)))");
+        assert!(result.is_ok());
+    }
+    */
+    
     #[test]
     fn los() {
         let result = prove("(((((forall x. forall y. forall z. ((P(x, y) /\\ P(y, z)) ==> P(x, z))) /\\
