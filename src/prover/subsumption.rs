@@ -161,6 +161,54 @@ pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
 
 #[cfg(test)]
 mod test {
+    use super::subsumes_clause;
+    use prover::term::Term;
+    use prover::literal::Literal;
+    use prover::clause::Clause;
     
+    #[test]
+    fn subsumes_clause_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let w = Term::new(-4, false, Vec::new());   
+        let l1 = Literal::new(false, x, y.clone());
+        let l2 = Literal::new(false, z, w.clone());
+        let l3 = Literal::new(false, y.clone(), w.clone());
+        let cl1 = Clause::new(vec!(l1, l2));
+        let cl2 = Clause::new(vec!(l3));
+        
+        assert!(!subsumes_clause(&cl1, &cl2));
+    }
+    
+    #[test]
+    fn subsumes_clause_2() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let w = Term::new(-4, false, Vec::new()); 
+        let f_x = Term::new(1, false, vec!(x));
+        let l1 = Literal::new(false, f_x, y);
+        let l2 = Literal::new(false, z, w);
+        let cl1 = Clause::new(vec!(l1));
+        let cl2 = Clause::new(vec!(l2));
+        
+        assert!(!subsumes_clause(&cl1, &cl2));
+    }
+    
+    #[test]
+    fn subsumes_clause_3() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let w = Term::new(-4, false, Vec::new()); 
+        let f_x = Term::new(1, false, vec!(x));
+        let l1= Literal::new(false, z, w);
+        let l2 = Literal::new(false, f_x, y);
+        let cl1 = Clause::new(vec!(l1));
+        let cl2 = Clause::new(vec!(l2));
+        
+        assert!(subsumes_clause(&cl1, &cl2));
+    }
 } 
 
