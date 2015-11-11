@@ -29,5 +29,7 @@ mod subsumption;
 
 mod unification;
 
+mod lpo;
+
 ///
 pub mod paramodulation;

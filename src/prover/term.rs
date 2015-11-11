@@ -55,6 +55,11 @@ impl Term {
     pub fn get_args(&self) -> Vec<Term> {
         self.args.clone()
     }
+    
+    /// Get the arity of the term.
+    pub fn get_arity(&self) -> usize {
+        self.args.len()
+    }
 
     /// Checks if this term is a function.
     pub fn is_function(&self) -> bool {
@@ -67,8 +72,13 @@ impl Term {
     }
      
     /// Checks if a given variable or function occurs in the term.
-    pub fn occurs(&self, id: i64) -> bool {
-        self.id == id || self.args.iter().any(|t| t.occurs(id))
+    pub fn occurs(&self, term: &Term) -> bool {
+        self == term || self.args.iter().any(|t| t.occurs(term))
+    }
+    
+    /// Checks if a given variable or function occurs in the term.
+    pub fn occurs_proper(&self, term: &Term) -> bool {
+        self.args.iter().any(|t| t.occurs(term))
     }
     
     /// Substitute all instances of the variable x with a given term.

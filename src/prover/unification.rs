@@ -39,7 +39,7 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
             // swap
             eqs.push((eq2, eq1));
         } else {
-            if eq2.occurs(eq1.get_id()) {
+            if eq2.occurs(&eq1) {
                 return Err(()); // check
             } else {
                 // Can't unify between two different sorts.
