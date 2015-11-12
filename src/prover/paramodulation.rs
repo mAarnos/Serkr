@@ -26,6 +26,7 @@ use prover::literal_deletion::simplify;
 use prover::subsumption::subsumes_clause;
 use prover::unification::mgu;
 use prover::lpo::lpo_gt;
+use prover::equality_resolution::equality_resolution;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
@@ -33,7 +34,7 @@ use utils::stopwatch::Stopwatch;
 
 fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) -> Clause, paramodulants: &mut Vec<Clause>) {
     if t.is_function() {
-        if let Ok(theta) = mgu(l.clone(), t.clone()) {
+        if let Ok(theta) = mgu(l, t) {
             let new_cl = rfn(theta, r.clone());
             if !trivial(&new_cl) {
                 paramodulants.push(new_cl);
@@ -120,16 +121,22 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mu
             used.push(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
-            let mut paramodulants = Vec::new();
+            let mut inferred_clauses = Vec::new();
             for cl in &used {
-                paramodulate_clauses(&chosen_clause, cl, &mut paramodulants);
-                paramodulate_clauses(cl, &chosen_clause, &mut paramodulants);
+                paramodulate_clauses(&chosen_clause, cl, &mut inferred_clauses);
+                paramodulate_clauses(cl, &chosen_clause, &mut inferred_clauses);
             }
-            for x in &mut paramodulants {
+            equality_resolution(&chosen_clause, &mut inferred_clauses);
+            
+            for x in &mut inferred_clauses {
                 simplify(x);
             }
-            paramodulants = paramodulants.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
-            for x in paramodulants.into_iter() {
+            
+            // Forward subsumption.
+            inferred_clauses = inferred_clauses.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
+            
+            // Finally add everything to the queue-
+            for x in inferred_clauses.into_iter() {
                 unused.push(x);
             }
         }

@@ -77,8 +77,8 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
 }
 
 /// Tries to find the most general unifier of two terms.
-pub fn mgu(p: Term, q: Term) -> Result<HashMap<Term, Term>, ()> {
-    Ok(solve(try!(unify(vec!((p, q))))))
+pub fn mgu(p: &Term, q: &Term) -> Result<HashMap<Term, Term>, ()> {
+    Ok(solve(try!(unify(vec!((p.clone(), q.clone()))))))
 }
 
 #[cfg(test)]
@@ -91,7 +91,7 @@ mod test {
         // x = f_p()
         let t1 = Term::new(-1, false, Vec::new());
         let t2 = Term::new(1, true, Vec::new());
-        assert!(mgu(t1, t2).is_err());
+        assert!(mgu(&t1, &t2).is_err());
     }
     
     #[test]
@@ -106,7 +106,7 @@ mod test {
         
         let t1 = Term::new(1, false, vec!(x.clone(), g_y.clone()));
         let t2 = Term::new(1, false, vec!(g_z.clone(), w.clone()));
-        let theta = mgu(t1, t2).unwrap();
+        let theta = mgu(&t1, &t2).unwrap();
         assert_eq!(theta.len(), 2);
         assert_eq!(theta.get(&x), Some(&g_z));
         assert_eq!(theta.get(&w), Some(&g_y));
@@ -120,7 +120,7 @@ mod test {
         let t1 = Term::new(1, false, vec!(x.clone(), y.clone()));
         let t2 = Term::new(1, false, vec!(y.clone(), x.clone()));
         
-        let theta = mgu(t1, t2).unwrap();
+        let theta = mgu(&t1, &t2).unwrap();
         assert_eq!(theta.len(), 1);
         assert!(theta.get(&y) == Some(&x) || theta.get(&x) == Some(&y));
     }
@@ -132,7 +132,7 @@ mod test {
         let x = Term::new(-1, false, Vec::new());
         let t1 = Term::new(1, false, vec!(x.clone()));
         let t2 = Term::new(2, false, vec!(x));
-        assert!(mgu(t1, t2).is_err());
+        assert!(mgu(&t1, &t2).is_err());
     }
     
     #[test]
@@ -141,7 +141,7 @@ mod test {
         let y = Term::new(-1, false, Vec::new());
         let t1 = Term::new(1, false, vec!(y.clone()));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone()))));
-        assert!(mgu(t1, t2).is_err());
+        assert!(mgu(&t1, &t2).is_err());
     }
     
     #[test]
@@ -151,6 +151,6 @@ mod test {
         let y = Term::new(-2, false, Vec::new());
         let t1 = Term::new(1, false, vec!(x.clone(), x));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone())), y));
-        assert!(mgu(t1, t2).is_err());
+        assert!(mgu(&t1, &t2).is_err());
     }
 }    

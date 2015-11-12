@@ -31,5 +31,7 @@ mod unification;
 
 mod lpo;
 
+mod equality_resolution;
+
 ///
 pub mod paramodulation;

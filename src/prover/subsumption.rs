@@ -57,7 +57,7 @@ fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bool {
     true
 }
 
-fn match_literals(env: &mut Vec<(Term, Term)>, p: Literal, q: Literal, mixed: bool) -> bool {
+fn match_literals(env: &mut Vec<(Term, Term)>, p: &Literal, q: &Literal, mixed: bool) -> bool {
     if p.is_positive() == q.is_positive() {
         let eqs = if !mixed { vec!((p.get_lhs().clone(), q.get_lhs().clone()), 
                                    (p.get_rhs().clone(), q.get_rhs().clone())) }
@@ -79,7 +79,7 @@ fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1:
         for (i, l2) in cl2.iter().enumerate() {
             if !exclusion[i] {
                 exclusion[i] = true;
-                let result = match_literals(env, l1.clone(), l2.clone(), false) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
+                let result = match_literals(env, l1, l2, false) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
                 exclusion[i] = false;
                 if result {
                     return true;
@@ -87,7 +87,7 @@ fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1:
                 env.truncate(s);
                 
                 exclusion[i] = true;
-                let result = match_literals(env, l1.clone(), l2.clone(), true) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
+                let result = match_literals(env, l1, l2, true) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
                 exclusion[i] = false;
                 if result {
                     return true;
