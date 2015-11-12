@@ -32,6 +32,7 @@ mod unification;
 mod lpo;
 
 mod equality_resolution;
+mod positive_factoring;
 
 ///
 pub mod paramodulation;

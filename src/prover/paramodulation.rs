@@ -27,6 +27,7 @@ use prover::subsumption::subsumes_clause;
 use prover::unification::mgu;
 use prover::lpo::lpo_gt;
 use prover::equality_resolution::equality_resolution;
+use prover::positive_factoring::positive_factoring;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
@@ -127,6 +128,7 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mu
                 paramodulate_clauses(cl, &chosen_clause, &mut inferred_clauses);
             }
             equality_resolution(&chosen_clause, &mut inferred_clauses);
+            positive_factoring(&chosen_clause, &mut inferred_clauses);
             
             for x in &mut inferred_clauses {
                 simplify(x);
@@ -505,13 +507,11 @@ mod test {
     }
     */
     
-    /*
     #[test]
     fn pelletier_39() {
         let result = prove("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_40() {

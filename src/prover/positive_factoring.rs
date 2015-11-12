@@ -16,28 +16,37 @@
 */
 
 use prover::clause::Clause;
-use prover::unification::mgu;
+use prover::unification::mgu_literals;
 use prover::tautology_deletion::trivial;
 
-/// Infers new clauses by equality resolution.
-/// Time complexity is O(n) where n is the amount of literals in the clause.
-pub fn equality_resolution(cl: &Clause, resolvents: &mut Vec<Clause>) {
+/// Infers new clauses by positive factoring
+/// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
+// TODO: see how much time is spent here.
+pub fn positive_factoring(cl: &Clause, factors: &mut Vec<Clause>) {
     for (i, l) in cl.iter().enumerate() {
         if !l.is_positive() {
-            if let Ok(theta) = mgu(l.get_lhs(), l.get_rhs()) {
+            continue;
+        }
+        
+        for j in (i + 1)..cl.size() {
+            if !cl[j].is_positive() {
+                continue;
+            }
+            
+            if let Ok(theta) = mgu_literals(l, &cl[j]) {
                 let mut new_cl = cl.clone();
-                new_cl.swap_remove(i);
+                new_cl.swap_remove(j);
                 new_cl.subst(&theta);
                 
                 assert!(new_cl.size() + 1 == cl.size());
                 
                 if !trivial(&new_cl) {
-                    resolvents.push(new_cl);
+                    factors.push(new_cl);
                 }
             }
         }
     }
-} 
+}
 
 #[cfg(test)]
 mod test {
