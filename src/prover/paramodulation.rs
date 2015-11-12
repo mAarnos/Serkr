@@ -25,6 +25,7 @@ use prover::tautology_deletion::trivial;
 use prover::literal_deletion::simplify;
 use prover::subsumption::subsumes_clause;
 use prover::unification::mgu;
+use prover::lpo::lpo_gt;
 use parser::internal_parser::parse;
 use cnf::naive_cnf::cnf;
 use utils::formula::Formula;
@@ -59,11 +60,15 @@ fn overlaps_literal(eqn: &Literal, p: &Literal, rfn: &Fn(HashMap<Term, Term>, Li
     let lhs_rfn = |theta, lhs| { rfn(theta, Literal::new(!p.is_positive(), lhs, p.get_rhs().clone())) };
     let rhs_rfn = |theta, rhs| { rfn(theta, Literal::new(!p.is_positive(), p.get_lhs().clone(), rhs)) };
     // s = t
-    overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), &lhs_rfn, paramodulants);
-    overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_rhs(), &rhs_rfn, paramodulants);
+    if lpo_gt(eqn.get_lhs(), eqn.get_rhs()) {    
+        overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), &lhs_rfn, paramodulants);
+        overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_rhs(), &rhs_rfn, paramodulants);
+    }
     // t = s
-    overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_lhs(), &lhs_rfn, paramodulants);
-    overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_rhs(), &rhs_rfn, paramodulants);
+    if lpo_gt(eqn.get_rhs(), eqn.get_lhs()) {   
+        overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_lhs(), &lhs_rfn, paramodulants);
+        overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_rhs(), &rhs_rfn, paramodulants);
+    }
 }
 
 /// Assumes that cl1 was renamed so that it can have no variables in common with anything else.
@@ -111,6 +116,7 @@ fn paramodulation_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mu
         }
         
         if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
+            // println!("Chosen clause: {:?}", clause_to_string(&chosen_clause));
             used.push(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
@@ -147,6 +153,41 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
                                                         .collect();                                  
         paramodulation_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
+}
+
+fn term_to_string(t: &Term) -> String {
+    if t.get_id() == 0 {
+        "T".to_owned()
+    } else {
+        if t.is_function() {
+            let mut s = format!("f_{}(", t.get_id());
+            for (i, st) in t.get_args().iter().enumerate() {
+                s = s + &term_to_string(st);
+                if i != t.get_arity() - 1 {
+                    s = s + ", ";
+                }    
+            }
+            s + ")"
+        } else {
+            format!("x_{}", -t.get_id())
+        }
+    }    
+}
+
+fn literal_to_string(l: &Literal) -> String {
+    let eqn_sign = if l.is_positive() { " = " } else { " <> " }; 
+    term_to_string(l.get_lhs()) + eqn_sign + &term_to_string(l.get_rhs())
+}
+
+fn clause_to_string(cl: &Clause) -> String {
+    let mut s = "{ ".to_owned();
+    for (i, l) in cl.iter().enumerate() {
+        s = s + &literal_to_string(l);
+        if i != cl.size() - 1 {
+            s = s + ", ";
+        }    
+    }
+    s + " }"
 }
 
 #[cfg(test)]
@@ -336,17 +377,14 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_26() {
         let result = prove("((((exists x. P(x)) <=> (exists x. Q(x))) /\\
-                                    (forall x. forall y. ((P(x) /\\ Q(y)) ==> (R(x) <=> S(y)))))
+                               (forall x. forall y. ((P(x) /\\ Q(y)) ==> (R(x) <=> S(y)))))
                                  ==> ((forall x. (P(x) ==> R(x))) <=> (forall x. (Q(x) ==> S(x)))))");
         assert!(result.is_ok());
     }
-    */
     
-   /*
     #[test]
     fn pelletier_27() {
         let result = prove("(((((exists x. (F(x) /\\ ~G(x))) /\\ 
@@ -356,7 +394,6 @@ mod test {
                                      ==> (forall x. (J(x) ==> ~I(x))))");
         assert!(result.is_ok());
     }
-    */
 
     #[test]
     fn pelletier_28_orig() {
@@ -376,14 +413,12 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_29() {
         let result = prove("(((exists x. F(x)) /\\ (exists x. G(x)))
-                                   ==> (((forall x. (F(x) ==> H(x))) /\\ forall x. (G(x) ==> J(x))) <=> forall x. forall y. ((F(x) /\\ G(y)) ==> (H(x) /\\ J(y)))))");
+                               ==> (((forall x. (F(x) ==> H(x))) /\\ forall x. (G(x) ==> J(x))) <=> forall x. forall y. ((F(x) /\\ G(y)) ==> (H(x) /\\ J(y)))))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_30() {
@@ -463,28 +498,26 @@ mod test {
     }
     */
     
+    /*
     #[test]
     fn pelletier_39() {
         let result = prove("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
         assert!(result.is_ok());
     }
+    */
     
-    /*
     #[test]
     fn pelletier_40() {
         let result = prove("((exists y. forall x. (F(x, y) <=> F(x, x))) ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))");
         assert!(result.is_ok());
     }
-    */
     
-    /*
     #[test]
     fn pelletier_41() {
         let result = prove("(forall z. exists y. forall x. (F(x, y) <=> (F(x, z) /\\ ~F(x, x))) 
                                    ==> ~exists z. forall x. F(x, z))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_42() {
@@ -498,7 +531,9 @@ mod test {
         let result = prove("exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
         assert!(result.is_err());
     }
+    */
 
+    /*
     #[test]
     fn pelletier_43() {
         let result = prove("((forall x. forall y. Q(x, y) <=> forall z. (F(z, x) <=> F(z, y))) 
@@ -506,16 +541,15 @@ mod test {
         assert!(result.is_ok());
     }
     */
-    
+
     #[test]
     fn pelletier_44() {
         let result = prove("(((forall x. (F(x) ==> (exists y. (G(y) /\\ H(x, y)) /\\ exists y. (G(y) /\\ ~H(x, y))))) /\\ 
                                     exists x. (J(x) /\\ forall y. (G(y) ==> H(x, y))))
                                     ==> exists x. (J(x) /\\ ~F(x)))");
         assert!(result.is_ok());
-    }
-    
-    /*
+    }   
+
     #[test]
     fn pelletier_45() {
         let result = prove("((((forall x. ((F(x) /\\ forall y. ((G(y) /\\ H(x, y)) ==> J(x, y)))
@@ -527,9 +561,10 @@ mod test {
         assert!(result.is_ok());
     }
     
+    /*
     #[test]
     fn pelletier_46() {
-        let result = resolution("((((forall x. ((F(x) /\\ forall y. ((F(y) /\\ H(y, x)) ==> G(y))) ==> G(x))) /\\
+        let result = prove("((((forall x. ((F(x) /\\ forall y. ((F(y) /\\ H(y, x)) ==> G(y))) ==> G(x))) /\\
                                  ((exists x. (F(x) /\\ ~G(x))) ==> ((exists x. ((F(x) /\\ ~G(x)) /\\ 
                                                                     (forall y. (F(y) /\\ ~G(y)) ==> J(x, y))))))) /\\
                                    (forall x. forall y. (((F(x) /\\ F(y)) /\\ H(x, y)) ==> ~J(y, x))))
@@ -560,26 +595,19 @@ mod test {
     /*
     #[test]
     fn pelletier_51() {
-        let result = prove("exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w))");
+        let result = prove("((exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w)))
+                             ==> (exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))");
         assert!(result.is_ok());
     }
     */
-    
-    /*
-    #[test]
-    fn pelletier_51() {
-        let result = prove("exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)");
-        assert!(result.is_ok());
-    }
-    */
-    
+
     #[test]
     fn los() {
         let result = prove("(((((forall x. forall y. forall z. ((P(x, y) /\\ P(y, z)) ==> P(x, z))) /\\
-                                     (forall x. forall y. forall z. ((Q(x, y) /\\ Q(y, z)) ==> Q(x, z)))) /\\
-                                    ((forall x. forall y. Q(x, y) ==> Q(y, x)) /\\
-                                     (forall x. forall y. P(x, y) \\/ Q(x, y)))))
-                                       ==> ((forall x. forall y. P(x, y)) \\/ (forall x. forall y. Q(x, y))))");
+                                (forall x. forall y. forall z. ((Q(x, y) /\\ Q(y, z)) ==> Q(x, z)))) /\\
+                               ((forall x. forall y. Q(x, y) ==> Q(y, x)) /\\
+                                (forall x. forall y. P(x, y) \\/ Q(x, y)))))
+                                 ==> ((forall x. forall y. P(x, y)) \\/ (forall x. forall y. Q(x, y))))");
         assert!(result.is_ok());
     }
        

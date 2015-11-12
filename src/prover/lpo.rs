@@ -47,8 +47,8 @@ pub fn lpo_gt(s: &Term, t: &Term) -> bool {
         } else {
             false
         }
-    } else if s.is_variable() {
-        s != t && t.occurs_proper(s)
+    } else if t.is_variable() {
+        s != t && s.occurs_proper(t)
     } else {
         false
     }
