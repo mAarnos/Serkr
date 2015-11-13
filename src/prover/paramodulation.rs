@@ -31,10 +31,9 @@ fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) ->
                 paramodulants.push(new_cl);
             }
 
-            let args = t.get_args();
-            for (i, x) in args.iter().enumerate() {
+            for (i, x) in t.iter().enumerate() {
                 if x.is_function() {
-                    let new_rfn = |theta, mut h: Term| { let mut args2 = args.clone(); 
+                    let new_rfn = |theta, mut h: Term| { let mut args2 = t.get_args(); 
                                                          h.subst_general(&theta); 
                                                          args2[i] = h;
                                                          rfn(theta, Term::new(t.get_id(), t.get_sort_predicate(), args2)) };

@@ -28,7 +28,7 @@ fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Option<Has
         if eq1.is_function() && eq2.is_function() {
             if eq1.get_id() == eq2.get_id() {
                 // decompose  
-                for eq in eq1.get_args().into_iter().zip(eq2.get_args().into_iter()) {
+                for eq in eq1.iter().cloned().zip(eq2.iter().cloned()) {
                     eqs.push(eq);
                 }
             } else {

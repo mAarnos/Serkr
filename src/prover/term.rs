@@ -16,6 +16,8 @@
 */
 
 use std::collections::HashMap;
+use std::slice::Iter;
+use std::ops::Index;
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 
@@ -125,5 +127,17 @@ impl Term {
     pub fn symbol_count(&self) -> usize {
         self.args.iter().fold(1, |acc, t| acc + t.symbol_count())
     }
+    
+    /// Used for iterating the literals of the clause.
+    pub fn iter(&self) -> Iter<Term> {
+        self.args.iter()
+    }
 }
 
+impl Index<usize> for Term {
+    type Output = Term;
+
+    fn index(&self, index: usize) -> &Term {
+        &self.args[index]
+    }
+}

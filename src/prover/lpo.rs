@@ -20,12 +20,10 @@ use prover::term::Term;
 /// Returns true if t is greater than s according to a LPO.
 pub fn lpo_gt(s: &Term, t: &Term) -> bool {
     if s.is_function() && t.is_function() {
-        let s_args = s.get_args();
-        let t_args = t.get_args();
-        if s_args.iter().any(|arg| lpo_ge(arg, t)) {
+        if s.iter().any(|arg| lpo_ge(arg, t)) {
             true
-        } else if t_args.iter().all(|arg| lpo_gt(s, arg)) {
-            if s.get_id() == t.get_id() && lexord(s_args, t_args) {
+        } else if t.iter().all(|arg| lpo_gt(s, arg)) {
+            if s.get_id() == t.get_id() && lexical_ordering(s, t) {
                 true
             } else {
                 weight(s, t)
@@ -45,13 +43,14 @@ pub fn lpo_ge(s: &Term, t: &Term) -> bool {
     s == t || lpo_gt(s, t)
 }
 
-fn lexord(s_args: Vec<Term>, t_args: Vec<Term>) -> bool {
-    assert_eq!(s_args.len(), t_args.len());
+fn lexical_ordering(s: &Term, t: &Term) -> bool {
+    assert_eq!(s.get_id(), t.get_id());
+    assert_eq!(s.get_arity(), t.get_arity());
     
-    for i in 0..s_args.len() {
-        if lpo_gt(&s_args[i], &t_args[i]) {
+    for i in 0..s.get_arity() {
+        if lpo_gt(&s[i], &t[i]) {
             return true;
-        } else if s_args[i] != t_args[i] {
+        } else if s[i] != t[i] {
             return false;
         }
     }

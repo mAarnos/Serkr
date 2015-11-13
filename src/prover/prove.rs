@@ -109,7 +109,7 @@ fn term_to_string(t: &Term) -> String {
     } else {
         if t.is_function() {
             let mut s = format!("f_{}(", t.get_id());
-            for (i, st) in t.get_args().iter().enumerate() {
+            for (i, st) in t.iter().enumerate() {
                 s = s + &term_to_string(st);
                 if i != t.get_arity() - 1 {
                     s = s + ", ";
