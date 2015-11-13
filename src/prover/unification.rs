@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use prover::term::Term;
 use prover::literal::Literal;
 
-fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<HashMap<Term, Term>, ()> {
+fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1 == eq2 {
             continue; // delete
@@ -32,18 +32,18 @@ fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<Has
                     eqs.push(eq);
                 }
             } else {
-                return Err(()); // conflict
+                return None; // conflict
             }
         } else if eq1.is_function() {
             // swap
             eqs.push((eq2, eq1));
         } else {
             if eq2.occurs(&eq1) {
-                return Err(()); // check
+                return None; // check
             } else {
                 // Can't unify between two different sorts.
                 if eq2.get_sort_predicate() {
-                    return Err(());
+                    return None;
                 }
                 
                 // eliminate
@@ -56,7 +56,7 @@ fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Result<Has
         }
     }
     
-    Ok(env)
+    Some(env)
 }
 
 fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
@@ -76,22 +76,22 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
 }
 
 /// Tries to find the most general unifier of two terms.
-pub fn mgu(p: &Term, q: &Term) -> Result<HashMap<Term, Term>, ()> {
-    Ok(solve(try!(unify(HashMap::new(), vec!((p.clone(), q.clone()))))))
+pub fn mgu(p: &Term, q: &Term) -> Option<HashMap<Term, Term>> {
+    Some(solve(get!(unify(HashMap::new(), vec!((p.clone(), q.clone()))))))
 }
 
 /// Tries to find the most general unifier of two literals..
-pub fn mgu_literals(l1: &Literal, l2: &Literal) -> Result<HashMap<Term, Term>, ()> {
-    if let Ok(theta) = unify(HashMap::new(), vec!((l1.get_lhs().clone(), l2.get_lhs().clone()))) {
-        if let Ok(theta2) = unify(theta, vec!((l1.get_rhs().clone(), l2.get_rhs().clone()))) {
-            return Ok(theta2);
+pub fn mgu_literals(l1: &Literal, l2: &Literal) -> Option<HashMap<Term, Term>> {
+    if let Some(theta) = unify(HashMap::new(), vec!((l1.get_lhs().clone(), l2.get_lhs().clone()))) {
+        if let Some(theta2) = unify(theta, vec!((l1.get_rhs().clone(), l2.get_rhs().clone()))) {
+            return Some(theta2);
         }
     }
     
-    if let Ok(theta) = unify(HashMap::new(), vec!((l1.get_lhs().clone(), l2.get_rhs().clone()))) {
+    if let Some(theta) = unify(HashMap::new(), vec!((l1.get_lhs().clone(), l2.get_rhs().clone()))) {
         unify(theta, vec!((l1.get_rhs().clone(), l2.get_lhs().clone())))
     } else {
-        Err(())
+        None
     }
 }
 
@@ -105,7 +105,7 @@ mod test {
         // x = f_p()
         let t1 = Term::new(-1, false, Vec::new());
         let t2 = Term::new(1, true, Vec::new());
-        assert!(mgu(&t1, &t2).is_err());
+        assert!(mgu(&t1, &t2).is_none());
     }
     
     #[test]
@@ -146,7 +146,7 @@ mod test {
         let x = Term::new(-1, false, Vec::new());
         let t1 = Term::new(1, false, vec!(x.clone()));
         let t2 = Term::new(2, false, vec!(x));
-        assert!(mgu(&t1, &t2).is_err());
+        assert!(mgu(&t1, &t2).is_none());
     }
     
     #[test]
@@ -155,7 +155,7 @@ mod test {
         let y = Term::new(-1, false, Vec::new());
         let t1 = Term::new(1, false, vec!(y.clone()));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone()))));
-        assert!(mgu(&t1, &t2).is_err());
+        assert!(mgu(&t1, &t2).is_none());
     }
     
     #[test]
@@ -165,6 +165,6 @@ mod test {
         let y = Term::new(-2, false, Vec::new());
         let t1 = Term::new(1, false, vec!(x.clone(), x));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone())), y));
-        assert!(mgu(&t1, &t2).is_err());
+        assert!(mgu(&t1, &t2).is_none());
     }
 }    

@@ -181,8 +181,8 @@ mod test {
     fn true_and_false() {
         assert_eq!(parse("T").unwrap(), Formula::True);
         assert_eq!(parse("F").unwrap(), Formula::False);
-        assert!(parse("T") != parse("T()"));
-        assert!(parse("F") != parse("F()"));
+        assert_neq!(parse("T"), parse("T()"));
+        assert_neq!(parse("F"), parse("F()"));
         assert_eq!(parse("(T <=> T)").unwrap(), Formula::Equivalent(box Formula::True, box Formula::True));
     }
     

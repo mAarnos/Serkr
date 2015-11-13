@@ -33,7 +33,7 @@ pub fn positive_factoring(cl: &Clause, factors: &mut Vec<Clause>) {
                 continue;
             }
             
-            if let Ok(theta) = mgu_literals(l, &cl[j]) {
+            if let Some(theta) = mgu_literals(l, &cl[j]) {
                 let mut new_cl = cl.clone();
                 new_cl.swap_remove(j);
                 new_cl.subst(&theta);

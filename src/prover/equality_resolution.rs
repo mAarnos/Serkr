@@ -24,7 +24,7 @@ use prover::tautology_deletion::trivial;
 pub fn equality_resolution(cl: &Clause, resolvents: &mut Vec<Clause>) {
     for (i, l) in cl.iter().enumerate() {
         if !l.is_positive() {
-            if let Ok(theta) = mgu(l.get_lhs(), l.get_rhs()) {
+            if let Some(theta) = mgu(l.get_lhs(), l.get_rhs()) {
                 let mut new_cl = cl.clone();
                 new_cl.swap_remove(i);
                 new_cl.subst(&theta);

@@ -17,20 +17,6 @@
 
 use prover::term::Term;
 
-fn lexord(s_args: Vec<Term>, t_args: Vec<Term>) -> bool {
-    assert_eq!(s_args.len(), t_args.len());
-    
-    for i in 0..s_args.len() {
-        if lpo_gt(&s_args[i], &t_args[i]) {
-            return true;
-        } else if s_args[i] != t_args[i] {
-            return false;
-        }
-    }
-    
-    false
-}
-
 /// Returns true if t is greater than s according to a LPO.
 pub fn lpo_gt(s: &Term, t: &Term) -> bool {
     if s.is_function() && t.is_function() {
@@ -57,6 +43,20 @@ pub fn lpo_gt(s: &Term, t: &Term) -> bool {
 /// Returns true if t is greater than or equal to s according to a LPO.
 pub fn lpo_ge(s: &Term, t: &Term) -> bool {
     s == t || lpo_gt(s, t)
+}
+
+fn lexord(s_args: Vec<Term>, t_args: Vec<Term>) -> bool {
+    assert_eq!(s_args.len(), t_args.len());
+    
+    for i in 0..s_args.len() {
+        if lpo_gt(&s_args[i], &t_args[i]) {
+            return true;
+        } else if s_args[i] != t_args[i] {
+            return false;
+        }
+    }
+    
+    false
 }
 
 /// Returns true if s is "heavier" than t.

@@ -40,10 +40,12 @@
 #![allow(len_zero)]  
 #![allow(dead_code)]
 
+#[macro_use]
+pub mod utils;
+
 pub mod parser;
 pub mod cnf;
 pub mod prover;
-pub mod utils;
 
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");

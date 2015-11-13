@@ -25,7 +25,7 @@ use prover::lpo::lpo_gt;
 
 fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) -> Clause, paramodulants: &mut Vec<Clause>) {
     if t.is_function() {
-        if let Ok(theta) = mgu(l, t) {
+        if let Some(theta) = mgu(l, t) {
             let new_cl = rfn(theta, r.clone());
             if !trivial(&new_cl) {
                 paramodulants.push(new_cl);

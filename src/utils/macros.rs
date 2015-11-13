@@ -15,17 +15,27 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains all kinds of generally useful stuff (data structures, timers etc.).
+/// Same as try! except for options.
+#[macro_export]
+macro_rules! get { 
+    ($e:expr) => (match $e { 
+                      Some(e) => e, 
+                      None => return None 
+                  })
+    
+}
 
-/// Contains some useful macros.
-#[macro_use]
-pub mod macros;
-
-/// Contains a stopwatch-type timer for measuring time during program execution.
-pub mod stopwatch;
-
-/// Contains a (more mathematical) set data structure (than HashSet).
-pub mod set;
-
-/// Contains definitions of a FOL term and formula.
-pub mod formula;
+/// Same as assert_eq! except for inequality.
+#[macro_export]
+macro_rules! assert_neq {
+    ($left:expr , $right:expr) => ({
+        match (&($left), &($right)) {
+            (left_val, right_val) => {
+                if *left_val == *right_val {
+                    panic!("assertion failed: `(left != right)` \
+                           (left: `{:?}`, right: `{:?}`)", left_val, right_val)
+                }
+            }
+        }
+    })
+}
