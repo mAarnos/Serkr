@@ -70,7 +70,7 @@ impl Clause {
         self.literals.append(&mut cl.literals);
     }
     
-    /// Substitutes terms in the literal according to the mapping.
+    /// Substitutes terms in the clause according to the mapping.
     pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
         for l in &mut self.literals {
             l.subst(sfn);
@@ -96,7 +96,6 @@ impl Index<usize> for Clause {
 impl Ord for Clause {
     fn cmp(&self, other: &Clause) -> Ordering {
         other.symbol_count().cmp(&self.symbol_count())
-        // other.size().cmp(&self.size())
     }
 }
 
@@ -104,6 +103,5 @@ impl Ord for Clause {
 impl PartialOrd for Clause {
     fn partial_cmp(&self, other: &Clause) -> Option<Ordering> {
         Some(other.symbol_count().cmp(&self.symbol_count()))
-        // Some(other.size().cmp(&self.size()))
     }
 }

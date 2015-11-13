@@ -100,7 +100,7 @@ mod test {
         let mut cl = Clause::new(vec!(l.clone(), l.clone(), l));
           
         delete_resolved(&mut cl);
-        assert_eq!(cl.size(), 0);
+        assert!(cl.is_empty());
     }
 } 
 
