@@ -45,6 +45,72 @@ fn td2(cl: &Clause) -> bool {
 
 #[cfg(test)]
 mod test {
-    // remember to have a test which tests x = y and y = x
+    use super::{td1, td2};
+    use prover::term::Term;
+    use prover::literal::Literal;
+    use prover::clause::Clause;
+    
+    #[test]
+    fn td1_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let l1 = Literal::new(false, x.clone(), y.clone());
+        let l2 = Literal::new(true, z.clone(), x.clone());
+        let l3 = Literal::new(false, y.clone(), y.clone());
+        let l4 = Literal::new(true, y, z);
+        let cl = Clause::new(vec!(l1, l2, l3, l4));
+        
+        assert!(td1(&cl));
+    }
+    
+    #[test]
+    fn td1_2() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let l1 = Literal::new(true, x.clone(), z.clone());
+        let l2 = Literal::new(true, z.clone(), x.clone());
+        let l3 = Literal::new(false, y, z);
+        let cl = Clause::new(vec!(l1, l2, l3));
+        
+        assert!(!td1(&cl));
+    }
+    
+    #[test]
+    fn td1_3() {
+        let cl = Clause::new(Vec::new());       
+        assert!(!td1(&cl));
+    }
+    
+    #[test]
+    fn td2_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let l1 = Literal::new(true, x.clone(), y.clone());
+        let l2 = Literal::new(false, z, x.clone());
+        let l3 = Literal::new(false, y, x);
+        let cl = Clause::new(vec!(l1, l2, l3));
+        
+        assert!(td2(&cl));
+    }
+    
+    #[test]
+    fn td2_2() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let l1 = Literal::new(true, x.clone(), y.clone());
+        let l2 = Literal::new(true, x, y);
+        let cl = Clause::new(vec!(l1, l2));
+        
+        assert!(!td2(&cl));
+    }
+    
+    #[test]
+    fn td2_3() {
+        let cl = Clause::new(Vec::new());       
+        assert!(!td2(&cl));
+    }
 } 
 
