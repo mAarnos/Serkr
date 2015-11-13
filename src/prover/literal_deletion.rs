@@ -56,6 +56,51 @@ fn delete_resolved(cl: &mut Clause) {
 
 #[cfg(test)]
 mod test {
-
+    use super::delete_resolved;
+    use prover::term::Term;
+    use prover::literal::Literal;
+    use prover::clause::Clause;
+    
+    #[test]
+    fn delete_resolved_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let l1 = Literal::new(false, x.clone(), y.clone());
+        let l2 = Literal::new(true, z.clone(), x.clone());
+        let l3 = Literal::new(true, y.clone(), y.clone());
+        let l4 = Literal::new(false, x, z);
+        let mut cl = Clause::new(vec!(l1.clone(), l2.clone(), l3.clone(), l4.clone()));
+        
+        delete_resolved(&mut cl);
+        assert!(cl.iter().any(|l| *l == l1));
+        assert!(cl.iter().any(|l| *l == l2));
+        assert!(!cl.iter().any(|l| *l == l3));
+        assert!(cl.iter().any(|l| *l == l4));
+    }
+    
+    #[test]
+    fn delete_resolved_2() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let z = Term::new(-3, false, Vec::new());
+        let l1 = Literal::new(false, x.clone(), y);
+        let l2 = Literal::new(true, z, x);
+        let mut cl = Clause::new(vec!(l1, l2));
+        
+        let cl_copy = cl.clone();     
+        delete_resolved(&mut cl);
+        assert_eq!(cl, cl_copy);
+    }
+    
+    #[test]
+    fn delete_resolved_3() {
+        let x = Term::new(-1, false, Vec::new());
+        let l = Literal::new(true, x.clone(), x);
+        let mut cl = Clause::new(vec!(l.clone(), l.clone(), l));
+          
+        delete_resolved(&mut cl);
+        assert_eq!(cl.size(), 0);
+    }
 } 
 
