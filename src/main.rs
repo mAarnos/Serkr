@@ -50,7 +50,7 @@ fn main() {
     
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
-    let res = prover::paramodulation::prove("exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w))");
+    let res = prover::prove::prove("exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w))");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());

@@ -40,7 +40,7 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     }
 }
 
-fn paramodulation_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
+fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     sw.start();
@@ -99,7 +99,7 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
                                                         .filter(|cl| !trivial(cl))
                                                         .map(|mut cl| { simplify(&mut cl); cl })
                                                         .collect();                                  
-        paramodulation_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
+        serkr_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
 }
 
