@@ -33,6 +33,7 @@ mod lpo;
 
 mod equality_resolution;
 mod positive_factoring;
+mod paramodulation;
 
 ///
-pub mod paramodulation;
+pub mod prove;
