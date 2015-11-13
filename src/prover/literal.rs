@@ -32,9 +32,14 @@ impl Literal {
         Literal { lhs: lhs, rhs: rhs, negated: negated }
     }
     
-    /// Used for checking if the Literal is positive.
+    /// Used for checking if the literal is positive.
     pub fn is_positive(&self) -> bool {
         !self.negated
+    }
+    
+    /// Used for checking if the literal is negative.
+    pub fn is_negative(&self) -> bool {
+        self.negated
     }
     
     /// Get a reference to the left hand side of the Literal.

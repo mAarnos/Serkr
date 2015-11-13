@@ -24,12 +24,12 @@ use prover::tautology_deletion::trivial;
 // TODO: see how much time is spent here.
 pub fn positive_factoring(cl: &Clause, factors: &mut Vec<Clause>) {
     for (i, l) in cl.iter().enumerate() {
-        if !l.is_positive() {
+        if l.is_negative() {
             continue;
         }
         
         for j in (i + 1)..cl.size() {
-            if !cl[j].is_positive() {
+            if cl[j].is_negative() {
                 continue;
             }
             
@@ -38,7 +38,7 @@ pub fn positive_factoring(cl: &Clause, factors: &mut Vec<Clause>) {
                 new_cl.swap_remove(j);
                 new_cl.subst(&theta);
                 
-                assert!(new_cl.size() + 1 == cl.size());
+                assert_eq!(new_cl.size() + 1, cl.size());
                 
                 if !trivial(&new_cl) {
                     factors.push(new_cl);

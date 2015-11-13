@@ -46,8 +46,8 @@ fn overlaps(l: &Term, r: &Term, t: &Term, rfn: &Fn(HashMap<Term, Term>, Term) ->
 }
 
 fn overlaps_literal(eqn: &Literal, p: &Literal, rfn: &Fn(HashMap<Term, Term>, Literal) -> Clause, paramodulants: &mut Vec<Clause>) {
-    let lhs_rfn = |theta, lhs| { rfn(theta, Literal::new(!p.is_positive(), lhs, p.get_rhs().clone())) };
-    let rhs_rfn = |theta, rhs| { rfn(theta, Literal::new(!p.is_positive(), p.get_lhs().clone(), rhs)) };
+    let lhs_rfn = |theta, lhs| { rfn(theta, Literal::new(p.is_negative(), lhs, p.get_rhs().clone())) };
+    let rhs_rfn = |theta, rhs| { rfn(theta, Literal::new(p.is_negative(), p.get_lhs().clone(), rhs)) };
     // s = t
     if lpo_gt(eqn.get_lhs(), eqn.get_rhs()) {    
         overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), &lhs_rfn, paramodulants);

@@ -46,7 +46,7 @@ fn delete_duplicates(cl: &mut Clause) {
 fn delete_resolved(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
-        if !cl[i].is_positive() && cl[i].get_lhs() == cl[i].get_rhs() {
+        if cl[i].is_negative() && cl[i].get_lhs() == cl[i].get_rhs() {
             cl.swap_remove(i);
             continue;
         }
