@@ -17,7 +17,7 @@
 
 use std::collections::HashMap;
 use std::slice::Iter;
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 
@@ -139,5 +139,11 @@ impl Index<usize> for Term {
 
     fn index(&self, index: usize) -> &Term {
         &self.args[index]
+    }
+}
+
+impl IndexMut<usize> for Term {
+    fn index_mut(&mut self, index: usize) -> &mut Term {
+        &mut self.args[index]
     }
 }
