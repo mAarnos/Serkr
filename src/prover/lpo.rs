@@ -70,5 +70,40 @@ fn weight(s: &Term, t: &Term) -> bool {
 
 #[cfg(test)]
 mod test {
-
+    use super::lpo_gt;    
+    use prover::term::Term;
+    
+    #[test]
+    fn lpo_gt_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());       
+        assert!(!lpo_gt(&x, &y));
+        assert!(!lpo_gt(&y, &x));
+    }
+    
+    #[test]
+    fn lpo_gt_2() {
+        let x = Term::new(-1, false, Vec::new());
+        let f_x = Term::new(1, false, vec!(x.clone()));       
+        assert!(lpo_gt(&f_x, &x));
+        assert!(!lpo_gt(&x, &f_x));
+    }
+    
+    #[test]
+    fn lpo_gt_3() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let f_y = Term::new(1, false, vec!(y));       
+        assert!(!lpo_gt(&f_y, &x));
+        assert!(!lpo_gt(&x, &f_y));
+    }
+    
+    #[test]
+    fn lpo_gt_4() {
+        let x = Term::new(-1, false, Vec::new());
+        let f_x = Term::new(1, false, vec!(x.clone()));       
+        let f_f_x = Term::new(2, false, vec!(f_x.clone()));   
+        assert!(lpo_gt(&f_f_x, &f_x));
+        assert!(!lpo_gt(&f_x, &f_f_x));
+    }
 } 
