@@ -43,11 +43,12 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
+    let mut iterations = 0;
     sw.start();
     
     while let Some(mut chosen_clause) = unused.pop() {
         if sw.elapsed_ms() > ms_count {
-            println!("{} seconds have elapsed, used clauses = {}, unused clauses = {}", sw.elapsed_ms() / 1000, used.len(), unused.len());
+            println!("{} seconds have elapsed, iterations = {}, used = {}, unused = {}", sw.elapsed_ms() / 1000, iterations, used.len(), unused.len());
             ms_count += 1000;
         }
         
@@ -69,18 +70,21 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
             equality_resolution(&chosen_clause, &mut inferred_clauses);
             positive_factoring(&chosen_clause, &mut inferred_clauses);
             
+            // Simplify the generated clauses.
             for x in &mut inferred_clauses {
                 simplify(x);
             }
             
             // Forward subsumption.
-            inferred_clauses = inferred_clauses.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
+            // inferred_clauses = inferred_clauses.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
             
             // Finally add everything to the queue-
             for x in inferred_clauses.into_iter() {
                 unused.push(x);
             }
         }
+        
+        iterations += 1;
     }
     
     Err("No proof found.")
@@ -479,14 +483,12 @@ mod test {
     }
     */
 
-    /*
     #[test]
     fn pelletier_43() {
         let result = prove("((forall x. forall y. Q(x, y) <=> forall z. (F(z, x) <=> F(z, y))) 
-                                   ==> (forall x. forall y. (Q(x, y) <=> Q(y, x))))");
+                              ==> (forall x. forall y. (Q(x, y) <=> Q(y, x))))");
         assert!(result.is_ok());
     }
-    */
 
     #[test]
     fn pelletier_44() {
@@ -546,6 +548,35 @@ mod test {
         assert!(result.is_ok());
     }
     */
+    
+    #[test]
+    fn pelletier_57() {
+        let result = prove("(((F(f(a, b), f(b, c)) /\\ F(f(b, c), f(a, c))) /\\
+                              forall x. forall y. forall z. ((F(x, y) /\\ F(y, z)) ==> F(x, z))) 
+                              ==> F(f(a, b), f(a, c)))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn pelletier_58() {
+        let result = prove("((forall x. forall y. f(x) = g(y)) ==> (forall x. forall y. f(f(x)) = f(g(y))))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_59() {
+        let result = prove("((forall x. F(x) <=> ~F(f(x))) ==> (exists x. F(x) /\\ ~F(f(x))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_61() {
+        let result = prove("((forall x. forall y. forall z. f(x, f(y, z)) = f(f(x, y), z))
+                              ==> forall x. forall y. forall z. forall w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w))");
+        assert!(result.is_ok());
+    }
 
     #[test]
     fn los() {
@@ -569,7 +600,6 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn group_x_times_x_equals_1_abelian() {
         let result = prove("(((forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z)) /\\
@@ -578,5 +608,4 @@ mod test {
                                ==> (forall x. mult(x, i()) = x))");
         assert!(result.is_ok());
     }
-    */
 } 

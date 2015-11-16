@@ -63,13 +63,11 @@ fn overlaps_literal(eqn: &Literal, p: &Literal, rfn: &Fn(HashMap<Term, Term>, Li
     let rhs_rfn = |theta, rhs| { rfn(theta, Literal::new(p.is_negative(), p.get_lhs().clone(), rhs)) };
     let mut trace = Vec::new();
     
-    // s = t
-    if lpo_gt(eqn.get_lhs(), eqn.get_rhs()) {         
+    if !lpo_gt(eqn.get_rhs(), eqn.get_lhs()) {         
         overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), p.get_lhs(), &mut trace, &lhs_rfn, paramodulants);
         overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_rhs(), p.get_rhs(), &mut trace, &rhs_rfn, paramodulants);
-    }
-    // t = s
-    if lpo_gt(eqn.get_rhs(), eqn.get_lhs()) {   
+    } 
+    if !lpo_gt(eqn.get_lhs(), eqn.get_rhs()) {   
         overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_lhs(), p.get_lhs(), &mut trace, &lhs_rfn, paramodulants);
         overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_rhs(), p.get_rhs(), &mut trace, &rhs_rfn, paramodulants);
     }
