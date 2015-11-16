@@ -26,7 +26,10 @@
 
 // Some lints which are pretty useful.
 // Try to add "unstable_features" when possible.
-#![deny(missing_docs,
+#![deny(fat_ptr_transmutes,
+        unused_extern_crates,
+        variant_size_differences,
+        missing_docs,
         missing_debug_implementations, 
         missing_copy_implementations,
         trivial_casts, 
@@ -34,6 +37,7 @@
         unsafe_code,
         unused_import_braces,
         unused_qualifications)]
+#![deny(warnings)]
 #![deny(clippy)]
 
 // Remove these two whenever possible.
