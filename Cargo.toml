@@ -7,7 +7,7 @@ authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 time = "*"
 
 [dependencies.peg]
-peg = "*"
+git = "https://github.com/kevinmehall/rust-peg"
 
 [dependencies.clippy]
 clippy = "*"
