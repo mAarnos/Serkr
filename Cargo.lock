@@ -2,14 +2,14 @@
 name = "serkr"
 version = "0.1.0"
 dependencies = [
- "clippy 0.0.23 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "peg 0.3.4 (git+https://github.com/kevinmehall/rust-peg)",
  "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "clippy"
-version = "0.0.23"
+version = "0.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "unicode-normalization 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
