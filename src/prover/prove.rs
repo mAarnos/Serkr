@@ -56,7 +56,7 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
         }
         
         if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
-            // println!("Chosen clause: {:?}", clause_to_string(&chosen_clause));
+            // println!("Chosen clause: {:?}", chosen_clause.to_string());
             used.push(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
@@ -525,14 +525,12 @@ mod test {
     }
     */
     
-    /*
     #[test]
     fn pelletier_56() {
         let result = prove("((forall x. ((exists y. (F(y) /\\ x = f(y))) ==> F(x))) <=>
                               forall x. (F(x) ==> F(f(x))))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_57() {
@@ -615,7 +613,6 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn ewd() {
         let result = prove("((((forall x. (F(x) ==> G(x))) /\\ 
@@ -624,7 +621,6 @@ mod test {
                                ==> forall y. (G(y) ==> F(y)))");
         assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn wishnu() {

@@ -154,12 +154,23 @@ mod test {
         // f(y) = f(g(y))
         let y = Term::new(-1, false, Vec::new());
         let t1 = Term::new(1, false, vec!(y.clone()));
-        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone()))));
+        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
         assert!(mgu(&t1, &t2).is_none());
     }
     
     #[test]
     fn mgu_6() {
+        // f(x) = f(g(y))
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let t1 = Term::new(1, false, vec!(x));
+        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
+        assert!(mgu(&t1, &t2).is_some());
+        assert!(mgu(&t2, &t1).is_some());
+    }
+    
+    #[test]
+    fn mgu_7() {
         // f(y, y) = f(g(x), x)
         let x = Term::new(-1, false, Vec::new());
         let y = Term::new(-2, false, Vec::new());

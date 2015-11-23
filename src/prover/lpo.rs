@@ -102,8 +102,18 @@ mod test {
     fn lpo_gt_4() {
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x.clone()));       
-        let f_f_x = Term::new(2, false, vec!(f_x.clone()));   
+        let f_f_x = Term::new(1, false, vec!(f_x.clone()));   
         assert!(lpo_gt(&f_f_x, &f_x));
         assert!(!lpo_gt(&f_x, &f_f_x));
+        assert!(lpo_gt(&f_f_x, &x));
+        assert!(!lpo_gt(&x, &f_f_x));
+    }
+    
+    #[test]
+    fn lpo_gt_5() {
+        let x = Term::new(-1, false, Vec::new());
+        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x.clone()))));         
+        assert!(lpo_gt(&f_g_x, &x));
+        assert!(!lpo_gt(&x, &f_g_x));
     }
 } 

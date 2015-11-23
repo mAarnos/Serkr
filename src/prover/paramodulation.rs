@@ -46,15 +46,15 @@ fn overlaps(l: &Term, r: &Term, term_top: &Term, t: &Term, trace: &mut Vec<usize
             if !trivial(&new_cl) {
                 paramodulants.push(new_cl);
             }
+        }
 
-            for (i, x) in t.iter().enumerate() {
-                if x.is_function() {
-                    trace.push(i);
-                    overlaps(l, r, term_top, x, trace, rfn, paramodulants);
-                    trace.pop();
-                }
+        for (i, x) in t.iter().enumerate() {
+            if x.is_function() {
+                trace.push(i);
+                overlaps(l, r, term_top, x, trace, rfn, paramodulants);
+                trace.pop();
             }
-        }       
+        }        
     }
 }
 
@@ -63,13 +63,21 @@ fn overlaps_literal(eqn: &Literal, p: &Literal, rfn: &Fn(HashMap<Term, Term>, Li
     let rhs_rfn = |theta, rhs| { rfn(theta, Literal::new(p.is_negative(), p.get_lhs().clone(), rhs)) };
     let mut trace = Vec::new();
     
-    if !lpo_gt(eqn.get_rhs(), eqn.get_lhs()) {         
-        overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), p.get_lhs(), &mut trace, &lhs_rfn, paramodulants);
-        overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_rhs(), p.get_rhs(), &mut trace, &rhs_rfn, paramodulants);
+    if !lpo_gt(eqn.get_rhs(), eqn.get_lhs()) {       
+        if !lpo_gt(p.get_rhs(), p.get_lhs()) {
+            overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_lhs(), p.get_lhs(), &mut trace, &lhs_rfn, paramodulants);
+        }
+        if !lpo_gt(p.get_lhs(), p.get_rhs()) {
+            overlaps(eqn.get_lhs(), eqn.get_rhs(), p.get_rhs(), p.get_rhs(), &mut trace, &rhs_rfn, paramodulants);
+        }
     } 
     if !lpo_gt(eqn.get_lhs(), eqn.get_rhs()) {   
-        overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_lhs(), p.get_lhs(), &mut trace, &lhs_rfn, paramodulants);
-        overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_rhs(), p.get_rhs(), &mut trace, &rhs_rfn, paramodulants);
+        if !lpo_gt(p.get_rhs(), p.get_lhs()) {
+            overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_lhs(), p.get_lhs(), &mut trace, &lhs_rfn, paramodulants);
+        }
+        if !lpo_gt(p.get_lhs(), p.get_rhs()) {
+            overlaps(eqn.get_rhs(), eqn.get_lhs(), p.get_rhs(), p.get_rhs(), &mut trace, &rhs_rfn, paramodulants);
+        }
     }
 }
 
@@ -96,5 +104,23 @@ pub fn paramodulate_clauses(cl1: &Clause, cl2: &Clause, paramodulants: &mut Vec<
 
 #[cfg(test)]
 mod test {
+    use super::paramodulate_clauses;
+    use prover::term::Term;
+    use prover::literal::Literal;
+    use prover::clause::Clause;
     
+    #[test]
+    fn paramodulate_clauses_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x.clone())))); 
+        let f_y = Term::new(1, false, vec!(y.clone()));       
+        let f_f_y = Term::new(1, false, vec!(f_y.clone())); 
+        let cl1 = Clause::new(vec!(Literal::new(false, f_g_x, x)));
+        let cl2 = Clause::new(vec!(Literal::new(false, f_f_y, f_y)));
+        let mut paramodulants = Vec::new();
+        
+        paramodulate_clauses(&cl1, &cl2, &mut paramodulants);
+        assert_eq!(paramodulants.len(), 1);
+    }
 } 

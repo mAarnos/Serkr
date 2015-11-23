@@ -83,7 +83,7 @@ impl Clause {
     }
     
     ///
-    pub fn clause_to_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         let mut s = "{ ".to_owned();
         for (i, l) in self.iter().enumerate() {
             s = s + &l.to_string();
