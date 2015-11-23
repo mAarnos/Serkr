@@ -67,6 +67,12 @@ impl Literal {
     pub fn symbol_count(&self) -> usize {
         1 + self.lhs.symbol_count() + self.rhs.symbol_count()
     }
+    
+    /// 
+    pub fn to_string(&self) -> String {
+        let eqn_sign = if self.is_positive() { " = " } else { " <> " }; 
+        self.get_lhs().to_string() + eqn_sign + &self.get_rhs().to_string()
+    }
 }
 
 /// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.

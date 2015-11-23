@@ -81,6 +81,18 @@ impl Clause {
     pub fn symbol_count(&self) -> usize {
         self.literals.iter().fold(0, |acc, l| acc + l.symbol_count())
     }
+    
+    ///
+    pub fn clause_to_string(&self) -> String {
+        let mut s = "{ ".to_owned();
+        for (i, l) in self.iter().enumerate() {
+            s = s + &l.to_string();
+            if i != self.size() - 1 {
+                s = s + ", ";
+            }    
+        }
+        s + " }"
+}
 }
 
 impl Index<usize> for Clause {

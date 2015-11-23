@@ -132,6 +132,26 @@ impl Term {
     pub fn iter(&self) -> Iter<Term> {
         self.args.iter()
     }
+    
+    ///
+    pub fn to_string(&self) -> String {
+        if self.get_id() == 0 {
+            "T".to_owned()
+        } else {
+            if self.is_function() {
+                let mut s = format!("f_{}(", self.get_id());
+                for (i, st) in self.iter().enumerate() {
+                    s = s + &st.to_string();
+                    if i != self.get_arity() - 1 {
+                        s = s + ", ";
+                    }    
+                }
+                s + ")"
+            } else {
+                format!("x_{}", -self.get_id())
+            }
+        }    
+    }
 }
 
 impl Index<usize> for Term {

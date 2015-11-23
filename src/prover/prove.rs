@@ -18,8 +18,6 @@
 use std::collections::HashMap;
 use std::collections::BinaryHeap;
 use prover::flatten_cnf::flatten_cnf;
-use prover::term::Term;
-use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::literal_deletion::simplify;
 use prover::tautology_deletion::trivial;
@@ -105,41 +103,6 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
                                                         .collect();                                  
         serkr_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
-}
-
-fn term_to_string(t: &Term) -> String {
-    if t.get_id() == 0 {
-        "T".to_owned()
-    } else {
-        if t.is_function() {
-            let mut s = format!("f_{}(", t.get_id());
-            for (i, st) in t.iter().enumerate() {
-                s = s + &term_to_string(st);
-                if i != t.get_arity() - 1 {
-                    s = s + ", ";
-                }    
-            }
-            s + ")"
-        } else {
-            format!("x_{}", -t.get_id())
-        }
-    }    
-}
-
-fn literal_to_string(l: &Literal) -> String {
-    let eqn_sign = if l.is_positive() { " = " } else { " <> " }; 
-    term_to_string(l.get_lhs()) + eqn_sign + &term_to_string(l.get_rhs())
-}
-
-fn clause_to_string(cl: &Clause) -> String {
-    let mut s = "{ ".to_owned();
-    for (i, l) in cl.iter().enumerate() {
-        s = s + &literal_to_string(l);
-        if i != cl.size() - 1 {
-            s = s + ", ";
-        }    
-    }
-    s + " }"
 }
 
 #[cfg(test)]
