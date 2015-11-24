@@ -139,14 +139,18 @@ impl Term {
             "T".to_owned()
         } else {
             if self.is_function() {
-                let mut s = format!("f_{}(", self.get_id());
-                for (i, st) in self.iter().enumerate() {
-                    s = s + &st.to_string();
-                    if i != self.get_arity() - 1 {
-                        s = s + ", ";
-                    }    
+                if self.get_arity() == 0 {
+                    format!("c_{}", self.get_id())
+                } else {
+                    let mut s = format!("f_{}(", self.get_id());
+                    for (i, st) in self.iter().enumerate() {
+                        s = s + &st.to_string();
+                        if i != self.get_arity() - 1 {
+                            s = s + ", ";
+                        }    
+                    }
+                    s + ")"
                 }
-                s + ")"
             } else {
                 format!("x_{}", -self.get_id())
             }

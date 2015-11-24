@@ -100,7 +100,7 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         let nontrivial_flattened_cnf_f = flattened_cnf_f.into_iter()
                                                         .filter(|cl| !trivial(cl))
                                                         .map(|mut cl| { simplify(&mut cl); cl })
-                                                        .collect();                                  
+                                                        .collect();
         serkr_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
 }
@@ -522,6 +522,33 @@ mod test {
         let result = prove("((exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w)))
                              ==> (exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))");
         assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
+    fn pelletier_54() {
+        let result = prove("((forall y. exists z. forall x. (F(x, z) <=> x = y)) 
+                              ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> 
+                                  exists y. (F(y, u) /\\ ~exists z. (F(x, u) /\\ F(z, y))))))");
+        assert!(result.is_ok());
+    }
+    
+    /*
+    #[test]
+    fn pelletier_55() {
+        let result = prove("((((((((((((exists x. (L(x) /\\ K(x, a()))) /\\ 
+                                       (L(a()) /\\ (L(b()) /\\ L(c())))) /\\ 
+                                       (forall x. (L(x) ==> (x = a() \\/ (x = b() \\/ x = c()))))) /\\ 
+                                       (forall x. forall y. (K(x, y) ==> H(x, y)))) /\\ 
+                                       (forall x. forall y. (K(x, y) ==> ~R(x, y)))) /\\ 
+                                       (forall x. (H(a(), x) ==> ~H(c(), x)))) /\\ 
+                                       (forall x. (~(x = b()) ==> H(a(), x)))) /\\ 
+                                       (forall x. (~R(x, a()) ==> H(b(), x)))) /\\ 
+                                       (forall x. (H(a(), x) ==> H(b(), x)))) /\\ 
+                                       (forall x. exists y. ~H(x, y))) /\\ 
+                                       ~(a() = b()))
+                                        ==> ~K(b(), a()))"); 
+        assert!(result.is_err());
     }
     */
     
