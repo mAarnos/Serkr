@@ -525,6 +525,15 @@ mod test {
     }
     */
     
+    /*
+    #[test]
+    fn pelletier_52() {
+        let result = prove("((exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w)))
+                             ==> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w)))");
+        assert!(result.is_ok());
+    }
+    */
+    
     #[test]
     fn pelletier_54() {
         let result = prove("((forall y. exists z. forall x. (F(x, z) <=> x = y)) 

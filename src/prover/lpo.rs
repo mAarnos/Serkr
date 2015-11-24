@@ -15,9 +15,59 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::cmp::min;
 use prover::term::Term;
+use prover::literal::Literal;
 
-/// Returns true if t is greater than s according to a LPO.
+/// Returns true if literal l1 is greater than literal l2 according to a multiset extension of LPO.
+pub fn lpo_gt_lit(l1: &Literal, l2: &Literal) -> bool {
+    assert_neq!(l1.get_lhs(), l1.get_rhs());
+    assert_neq!(l2.get_lhs(), l2.get_rhs());
+    
+    let l1_l2_diff = multiset_difference(l1, l2);
+    let l2_l1_diff = multiset_difference(l2, l1);
+    
+    for (i, _) in l2_l1_diff.iter().filter(|&x| *x != 0).enumerate() {
+        let mut dominating_term_found = false;
+            
+        for (j, _) in l1_l2_diff.iter().filter(|&x| *x != 0).enumerate() {
+            let l1_term = if j == 0 { l1.get_lhs() } else { l1.get_rhs() };
+            let l2_term = if i == 0 { l2.get_lhs() } else { l2.get_rhs() };
+            if lpo_gt(l1_term, l2_term) {
+                dominating_term_found = true;
+                break;
+            }
+        }
+            
+        if !dominating_term_found {
+            return false;
+        }
+    }
+    
+    true
+}
+
+/// Calculates the multiset difference of two literals.
+/// We map s = t to { s, t } and s <> t to { s, s, t, t }
+/// We assume that s and t are not the same term.
+fn multiset_difference(l: &Literal, r: &Literal) -> [usize; 2] {
+    let mut l_count = [if l.is_negative() { 2 } else { 1 }, if l.is_negative() { 2 } else { 1 }];
+    let r_count = if r.is_negative() { 2 } else { 1 };
+    
+    if r.get_lhs() == l.get_lhs() || r.get_rhs() == l.get_lhs() {
+        let min_diff = min(l_count[0], r_count);
+        l_count[0] -= min_diff;
+    } 
+    
+    if r.get_lhs() == l.get_rhs() || r.get_rhs() == l.get_rhs() {
+        let min_diff = min(l_count[1], r_count);
+        l_count[1] -= min_diff;
+    }
+    
+    l_count
+}
+
+/// Returns true if term t is greater than term s according to a LPO.
 pub fn lpo_gt(s: &Term, t: &Term) -> bool {
     if s.is_function() && t.is_function() {
         if s.iter().any(|arg| lpo_ge(arg, t)) {
