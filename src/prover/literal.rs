@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use prover::term::Term;
 
 /// A single (possibly negated) Literal, or simply, a literal.
+// TODO: fix PartialEq and Eq, since lhs and rhs are interchangeable.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Literal {
     lhs: Term,

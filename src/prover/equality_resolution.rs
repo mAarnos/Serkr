@@ -18,6 +18,27 @@
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::tautology_deletion::trivial;
+use prover::lpo::lpo_ge_lit;
+
+/// Infers new clauses by (ordered) equality resolution.
+/// Time complexity is O(n) where n is the amount of literals in the clause.
+pub fn ordered_equality_resolution(cl: &Clause, resolvents: &mut Vec<Clause>) {
+    for (i, l) in cl.iter().enumerate() {
+        if l.is_negative() {
+            if let Some(theta) = mgu(l.get_lhs(), l.get_rhs()) {
+                let mut new_cl = cl.clone();
+                let mut new_l = l.clone();
+                new_cl.swap_remove(i);
+                new_cl.subst(&theta);
+                new_l.subst(&theta);
+                
+                if !trivial(&new_cl) && new_cl.iter().all(|lit| !lpo_ge_lit(lit, &new_l)) {
+                    resolvents.push(new_cl);
+                } 
+            }
+        }
+    }
+} 
 
 /// Infers new clauses by equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.

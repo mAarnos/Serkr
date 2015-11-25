@@ -21,12 +21,10 @@ use prover::literal::Literal;
 
 /// Returns true if literal l1 is greater than literal l2 according to a multiset extension of LPO.
 pub fn lpo_gt_lit(l1: &Literal, l2: &Literal) -> bool {
-    assert_neq!(l1.get_lhs(), l1.get_rhs());
-    assert_neq!(l2.get_lhs(), l2.get_rhs());
-    
     let l1_l2_diff = multiset_difference(l1, l2);
     let l2_l1_diff = multiset_difference(l2, l1);
     
+    // l1 > l2 iff for each t2 of l2 with n(t2, l2) > n(t2, l1), there is a t of l1 so that t > t2 and n(t, l1) > n(t, l2).
     for (i, _) in l2_l1_diff.iter().filter(|&x| *x != 0).enumerate() {
         let mut dominating_term_found = false;
             
@@ -47,21 +45,51 @@ pub fn lpo_gt_lit(l1: &Literal, l2: &Literal) -> bool {
     true
 }
 
+/// Returns true if literal l1 is greater than or equal to literal l2 according to a multiset extension of LPO.
+pub fn lpo_ge_lit(l1: &Literal, l2: &Literal) -> bool {
+    l1 == l2 || lpo_gt_lit(l1, l2)
+}
+
 /// Calculates the multiset difference of two literals.
 /// We map s = t to { s, t } and s <> t to { s, s, t, t }
-/// We assume that s and t are not the same term.
 fn multiset_difference(l: &Literal, r: &Literal) -> [usize; 2] {
     let mut l_count = [if l.is_negative() { 2 } else { 1 }, if l.is_negative() { 2 } else { 1 }];
-    let r_count = if r.is_negative() { 2 } else { 1 };
+    let mut r_count = [if r.is_negative() { 2 } else { 1 }, if r.is_negative() { 2 } else { 1 }];
     
-    if r.get_lhs() == l.get_lhs() || r.get_rhs() == l.get_lhs() {
-        let min_diff = min(l_count[0], r_count);
+    // Special handling of the case when lhs == rhs
+    if l.get_lhs() == l.get_rhs() {
+        l_count[0] += l_count[1];
+        l_count[1] = 0;
+    }
+    
+    // Same here.
+    if r.get_lhs() == r.get_rhs() {
+        r_count[0] += r_count[1];
+        r_count[1] = 0;
+    }
+    
+    if r.get_lhs() == l.get_lhs() {
+        let min_diff = min(l_count[0], r_count[0]);
         l_count[0] -= min_diff;
-    } 
+        r_count[0] -= min_diff;
+    }
     
-    if r.get_lhs() == l.get_rhs() || r.get_rhs() == l.get_rhs() {
-        let min_diff = min(l_count[1], r_count);
+    if r.get_lhs() == l.get_rhs() {
+        let min_diff = min(l_count[1], r_count[0]);
         l_count[1] -= min_diff;
+        r_count[0] -= min_diff;
+    }
+    
+    if r.get_rhs() == l.get_lhs() {
+        let min_diff = min(l_count[0], r_count[1]);
+        l_count[0] -= min_diff;
+        r_count[1] -= min_diff;
+    }
+    
+    if r.get_rhs() == l.get_rhs() {
+        let min_diff = min(l_count[1], r_count[1]);
+        l_count[1] -= min_diff;
+        r_count[1] -= min_diff;
     }
     
     l_count
