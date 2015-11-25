@@ -10,4 +10,4 @@ time = "*"
 git = "https://github.com/kevinmehall/rust-peg"
 
 [dependencies.clippy]
-clippy = "*"
+git = "https://github.com/Manishearth/rust-clippy"

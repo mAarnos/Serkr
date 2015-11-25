@@ -18,7 +18,7 @@
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::tautology_deletion::trivial;
-use prover::lpo::lpo_ge_lit;
+use prover::lpo::lpo_gt_lit;
 
 /// Infers new clauses by (ordered) equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.
@@ -32,7 +32,7 @@ pub fn ordered_equality_resolution(cl: &Clause, resolvents: &mut Vec<Clause>) {
                 new_cl.subst(&theta);
                 new_l.subst(&theta);
                 
-                if !trivial(&new_cl) && new_cl.iter().all(|lit| !lpo_ge_lit(lit, &new_l)) {
+                if !trivial(&new_cl) && new_cl.iter().all(|lit| !lpo_gt_lit(lit, &new_l)) {
                     resolvents.push(new_cl);
                 } 
             }
