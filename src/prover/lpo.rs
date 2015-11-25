@@ -17,10 +17,15 @@
 
 use std::cmp::min;
 use prover::term::Term;
-use prover::literal::Literal;
+use prover::literal::{Literal, terms_equal};
 
 /// Returns true if literal l1 is greater than literal l2 according to a multiset extension of LPO.
 pub fn lpo_gt_lit(l1: &Literal, l2: &Literal) -> bool {
+    // An term equal to another term can never be greater than it.
+    if terms_equal(l1, l2) && l1.is_negative() == l2.is_negative() {
+        return false;
+    }
+
     let l1_l2_diff = multiset_difference(l1, l2);
     let l2_l1_diff = multiset_difference(l2, l1);
     
@@ -148,8 +153,9 @@ fn weight(s: &Term, t: &Term) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::lpo_gt;    
+    use super::{lpo_gt, lpo_ge, lpo_gt_lit, lpo_ge_lit};    
     use prover::term::Term;
+    use prover::literal::Literal;
     
     #[test]
     fn lpo_gt_1() {
@@ -193,5 +199,31 @@ mod test {
         let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x.clone()))));         
         assert!(lpo_gt(&f_g_x, &x));
         assert!(!lpo_gt(&x, &f_g_x));
+    }
+    
+    #[test]
+    fn lpo_gt_6() {
+        let x = Term::new(-1, false, Vec::new());
+        let f_x_x = Term::new(1, false, vec!(x.clone(), x)); 
+        let t = Term::new_truth();
+        assert!(lpo_gt(&f_x_x, &t));
+        assert!(!lpo_gt(&t, &f_x_x));
+    }
+    
+    #[test]
+    fn lpo_ge_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let f_x = Term::new(1, false, vec!(x));         
+        assert!(!lpo_gt(&f_x, &f_x));
+        assert!(lpo_ge(&f_x, &f_x));
+    }
+    
+    #[test]
+    fn lpo_ge_lit_1() {
+        let x = Term::new(-1, false, Vec::new());
+        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));  
+        let l = Literal::new(false, f_g_x, Term::new_truth());
+        assert!(!lpo_gt_lit(&l, &l));
+        assert!(lpo_ge_lit(&l, &l));
     }
 } 
