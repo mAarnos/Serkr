@@ -78,7 +78,7 @@ impl Term {
         self == term || self.args.iter().any(|t| t.occurs(term))
     }
     
-    /// Checks if a given variable or function occurs in the term.
+    /// Checks if a given variable or function occurs in the term as a subterm.
     pub fn occurs_proper(&self, term: &Term) -> bool {
         self.args.iter().any(|t| t.occurs(term))
     }

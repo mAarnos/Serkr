@@ -17,9 +17,11 @@
 
 use prover::literal::terms_equal;
 use prover::clause::Clause;
+use prover::unification::mgu;
 
 /// Simplifies a clause if possible.
 pub fn simplify(cl: &mut Clause) {
+    destructive_equality_resolution(cl);
     delete_resolved(cl);
     delete_duplicates(cl);
 }
@@ -55,9 +57,29 @@ fn delete_resolved(cl: &mut Clause) {
     }
 }
 
+/// A special case of equality resolution which is applied only to variables.
+/// It is rather easy to see that we can use this for simplifying instead of generation.
+/// Time complexity is O(n^2) where n is the amount of literals.
+// TODO: possibly use also with x = f(...) where x does not occur in f(...). Probably complete.
+fn destructive_equality_resolution(cl: &mut Clause) {
+    let mut i = 0;
+    while i < cl.size() {
+        if cl[i].is_negative() && cl[i].get_lhs().is_variable() && cl[i].get_rhs().is_variable() {
+            if let Some(theta) = mgu(cl[i].get_lhs(), cl[i].get_rhs()) {
+                cl.swap_remove(i);
+                cl.subst(&theta);
+                // Since we always remove one literal from the clause the recursion stops at some point.
+                destructive_equality_resolution(cl);
+                break;
+            }
+        }
+        i += 1;
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use super::{simplify, delete_resolved, delete_duplicates};
+    use super::{delete_resolved, delete_duplicates};
     use prover::term::Term;
     use prover::literal::Literal;
     use prover::clause::Clause;
@@ -149,28 +171,6 @@ mod test {
         delete_duplicates(&mut cl);
         assert_eq!(cl.size(), 1);
         assert!(cl[0] == l);
-    }
-    
-    #[test]
-    fn simplify_1() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
-        let w = Term::new(-4, false, Vec::new());
-        let l1 = Literal::new(true, y.clone(), x.clone());
-        let l2 = Literal::new(false, w.clone(), z.clone());
-        let l3 = Literal::new(true, w.clone(), w.clone());
-        let l4 = Literal::new(false, x, y);
-        let l5 = Literal::new(false, z, w);
-        let mut cl = Clause::new(vec!(l1.clone(), l2.clone(), l3.clone(), l4.clone(), l5.clone()));
-        
-        simplify(&mut cl);
-        assert_eq!(cl.size(), 2);
-        assert!(cl.iter().any(|l| *l == l1));
-        assert!(cl.iter().any(|l| *l == l2));
-        assert!(!cl.iter().any(|l| *l == l3));
-        assert!(!cl.iter().any(|l| *l == l4));
-        assert!(!cl.iter().any(|l| *l == l5));
     }
 } 
 

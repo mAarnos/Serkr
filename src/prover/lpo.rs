@@ -114,8 +114,8 @@ pub fn lpo_gt(s: &Term, t: &Term) -> bool {
         } else {
             false
         }
-    } else if t.is_variable() {
-        s != t && s.occurs_proper(t)
+    } else if s.is_function() && t.is_variable() {
+        s.occurs_proper(t)
     } else {
         false
     }
