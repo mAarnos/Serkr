@@ -18,9 +18,9 @@
 use std::collections::HashMap;
 use prover::term::Term;
 
-/// A single (possibly negated) Literal, or simply, a literal.
-// TODO: fix PartialEq and Eq, since lhs and rhs are interchangeable.
-#[derive(Debug, Eq, PartialEq, Clone)]
+/// A single (possibly negated) equation, or simply, a literal.
+/// Note: has custom PartialEq and Eq: if you add stuff to here remember to change them too.
+#[derive(Debug, Clone)]
 pub struct Literal {
     lhs: Term,
     rhs: Term,
@@ -74,6 +74,15 @@ impl Literal {
         let eqn_sign = if self.is_positive() { " = " } else { " <> " }; 
         self.get_lhs().to_string() + eqn_sign + &self.get_rhs().to_string()
     }
+}
+
+impl PartialEq for Literal {
+    fn eq(&self, other: &Literal) -> bool {
+        self.negated == other.negated && terms_equal(self, other)
+    }
+}
+
+impl Eq for Literal {
 }
 
 /// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.

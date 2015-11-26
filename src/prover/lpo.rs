@@ -17,12 +17,12 @@
 
 use std::cmp::min;
 use prover::term::Term;
-use prover::literal::{Literal, terms_equal};
+use prover::literal::Literal;
 
 /// Returns true if literal l1 is greater than literal l2 according to a multiset extension of LPO.
 pub fn lpo_gt_lit(l1: &Literal, l2: &Literal) -> bool {
-    // An term equal to another term can never be greater than it.
-    if terms_equal(l1, l2) && l1.is_negative() == l2.is_negative() {
+    // A term equal to another term can never be greater than it.
+    if l1 == l2 {
         return false;
     }
 

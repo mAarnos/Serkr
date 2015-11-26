@@ -15,7 +15,6 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::literal::terms_equal;
 use prover::clause::Clause;
 use prover::unification::mgu;
 
@@ -34,7 +33,7 @@ fn delete_duplicates(cl: &mut Clause) {
     while i < cl.size() {
         let mut j = i + 1;
         while j < cl.size() {
-            if terms_equal(&cl[i], &cl[j]) {
+            if cl[i] == cl[j] {
                 cl.swap_remove(j);
                 continue;
             }
@@ -99,7 +98,6 @@ mod test {
         assert_eq!(cl.size(), 3);
         assert!(cl.iter().any(|l| *l == l1));
         assert!(cl.iter().any(|l| *l == l2));
-        assert!(!cl.iter().any(|l| *l == l3));
         assert!(cl.iter().any(|l| *l == l4));
     }
     
@@ -133,8 +131,8 @@ mod test {
         let y = Term::new(-2, false, Vec::new());
         let z = Term::new(-3, false, Vec::new());
         let l1 = Literal::new(true, x.clone(), y.clone());
-        let l2 = Literal::new(true, z.clone(), x.clone());
-        let l3 = Literal::new(false, y, x);
+        let l2 = Literal::new(false, z.clone(), x.clone());
+        let l3 = Literal::new(true, y, x);
         let mut cl = Clause::new(vec!(l1.clone(), l2.clone(), l3.clone()));
 
         delete_duplicates(&mut cl);
@@ -142,7 +140,6 @@ mod test {
         assert_eq!(cl.size(), 2);
         assert!(cl.iter().any(|l| *l == l1));
         assert!(cl.iter().any(|l| *l == l2));
-        assert!(!cl.iter().any(|l| *l == l3));
     }
     
     #[test]
