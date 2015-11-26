@@ -56,7 +56,7 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
         }
         
         if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
-            // println!("Chosen clause: {:?}", chosen_clause.to_string());
+            // println!("Chosen clause: {:?}", chosen_clause);
             used.push(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
             

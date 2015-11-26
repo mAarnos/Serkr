@@ -18,11 +18,12 @@
 use std::collections::HashMap;
 use std::slice::Iter;
 use std::ops::{Index, IndexMut};
+use std::fmt::{Debug, Formatter, Error};
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 
 /// The id zero is for a special function symbol representing truth.
-#[derive(Debug, Eq, PartialEq, Clone, Hash)]
+#[derive(Eq, PartialEq, Clone, Hash)]
 pub struct Term {
     id: i64,
     // Terms are in two sorts, VF and P, which cannot be unified together
@@ -132,30 +133,6 @@ impl Term {
     pub fn iter(&self) -> Iter<Term> {
         self.args.iter()
     }
-    
-    ///
-    pub fn to_string(&self) -> String {
-        if self.get_id() == 0 {
-            "T".to_owned()
-        } else {
-            if self.is_function() {
-                if self.get_arity() == 0 {
-                    format!("c_{}", self.get_id())
-                } else {
-                    let mut s = format!("f_{}(", self.get_id());
-                    for (i, st) in self.iter().enumerate() {
-                        s = s + &st.to_string();
-                        if i != self.get_arity() - 1 {
-                            s = s + ", ";
-                        }    
-                    }
-                    s + ")"
-                }
-            } else {
-                format!("x_{}", -self.get_id())
-            }
-        }    
-    }
 }
 
 impl Index<usize> for Term {
@@ -169,5 +146,30 @@ impl Index<usize> for Term {
 impl IndexMut<usize> for Term {
     fn index_mut(&mut self, index: usize) -> &mut Term {
         &mut self.args[index]
+    }
+}
+
+impl Debug for Term {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), Error> {
+        if self.get_id() == 0 {
+            write!(formatter, "T")
+        } else {
+            if self.is_function() {
+                if self.get_arity() == 0 {
+                    write!(formatter, "c_{}", self.get_id())
+                } else {
+                    try!(write!(formatter, "f_{}(", self.get_id()));
+                    for (i, st) in self.iter().enumerate() {
+                        try!(write!(formatter, "{:?}", st));
+                        if i != self.get_arity() - 1 {
+                            try!(write!(formatter, ", "));
+                        }    
+                    }
+                    write!(formatter, ")")
+                }
+            } else {
+                write!(formatter, "x_{}", -self.get_id())
+            }
+        }
     }
 }

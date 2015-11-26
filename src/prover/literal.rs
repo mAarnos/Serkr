@@ -16,11 +16,12 @@
 */
 
 use std::collections::HashMap;
+use std::fmt::{Debug, Formatter, Error};
 use prover::term::Term;
 
 /// A single (possibly negated) equation, or simply, a literal.
 /// Note: has custom PartialEq and Eq: if you add stuff to here remember to change them too.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Literal {
     lhs: Term,
     rhs: Term,
@@ -68,12 +69,6 @@ impl Literal {
     pub fn symbol_count(&self) -> usize {
         1 + self.lhs.symbol_count() + self.rhs.symbol_count()
     }
-    
-    /// 
-    pub fn to_string(&self) -> String {
-        let eqn_sign = if self.is_positive() { " = " } else { " <> " }; 
-        self.get_lhs().to_string() + eqn_sign + &self.get_rhs().to_string()
-    }
 }
 
 impl PartialEq for Literal {
@@ -83,6 +78,13 @@ impl PartialEq for Literal {
 }
 
 impl Eq for Literal {
+}
+
+impl Debug for Literal {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), Error> {
+        let eqn_sign = if self.is_positive() { "=" } else { "<>" }; 
+        write!(formatter, "{:?} {} {:?}", self.lhs, eqn_sign, self.rhs)
+    }
 }
 
 /// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.

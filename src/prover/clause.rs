@@ -19,11 +19,13 @@ use std::ops::Index;
 use std::slice::{Iter, IterMut};
 use std::collections::HashMap;
 use std::cmp::Ordering;
+use std::fmt::{Debug, Formatter, Error};
 use prover::term::Term;
 use prover::literal::Literal;
 
 /// A multiset containing literals.
-#[derive(Debug, Eq, PartialEq, Clone)]
+// TODO: Eq and PartialEq are nonsensical at the moment but proper solutions would be expensive. What to do?
+#[derive(Eq, PartialEq, Clone)]
 pub struct Clause {
     literals: Vec<Literal>,
 }
@@ -81,18 +83,6 @@ impl Clause {
     pub fn symbol_count(&self) -> usize {
         self.literals.iter().fold(0, |acc, l| acc + l.symbol_count())
     }
-    
-    ///
-    pub fn to_string(&self) -> String {
-        let mut s = "{ ".to_owned();
-        for (i, l) in self.iter().enumerate() {
-            s = s + &l.to_string();
-            if i != self.size() - 1 {
-                s = s + ", ";
-            }    
-        }
-        s + " }"
-}
 }
 
 impl Index<usize> for Clause {
@@ -102,6 +92,19 @@ impl Index<usize> for Clause {
         &self.literals[index]
     }
 }
+
+impl Debug for Clause {
+    fn fmt(&self, formatter: &mut Formatter) -> Result<(), Error> {
+        try!(write!(formatter, "{{ "));
+        for (i, l) in self.iter().enumerate() {
+            try!(write!(formatter, "{:?}", l));
+            if i != self.size() - 1 {
+                try!(write!(formatter, ", "));
+            }    
+        }
+        write!(formatter, " }}")
+    }
+}    
 
 /// The priority queue depends on "Ord".
 /// We order clauses in heuristic order, not in anything concrete.
