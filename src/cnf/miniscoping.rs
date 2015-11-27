@@ -15,24 +15,13 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains stuff for converting raw first order formulas into CNF.
-//!
-//! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
+use utils::formula::Formula;
 
-mod free_variables;
+/// Moves quantifiers inwards as far as possible with the aim of minimizing the arity of skolem functions.
+pub fn miniscope(_f: Formula) -> Formula {
+    unimplemented!();
+}
 
-mod simplify;
-mod nnf;
-mod rename;
-mod standard_skolemization;
-mod pull_out_quantifiers;
-mod drop_universal_quantifiers;
-mod distribute_ors_over_ands;
-
-mod miniscoping;
-
-/// Contains a naive version of the CNF transformation algorithm. 
-///
-/// TODO: add better versions.
-pub mod naive_cnf;
-
+#[cfg(test)]
+mod test {
+}
