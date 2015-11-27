@@ -22,15 +22,13 @@ use prover::clause::Clause;
 use prover::literal_deletion::simplify;
 use prover::tautology_deletion::trivial;
 use prover::subsumption::subsumes_clause;
-// use prover::paramodulation::paramodulate_clauses;
+use prover::superposition::superposition;
 use prover::equality_resolution::ordered_equality_resolution;
 use prover::equality_factoring::equality_factoring;
 use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;
 use parser::internal_parser::parse;
-
-use prover::superposition::superposition;
 
 /// Rename a clause so that it contains no variables in common with any other clause we currently have.
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
@@ -66,8 +64,6 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
             for cl in &used {
                 superposition(&chosen_clause, cl, &mut inferred_clauses);
                 superposition(cl, &chosen_clause, &mut inferred_clauses);
-                // paramodulate_clauses(&chosen_clause, cl, &mut inferred_clauses);
-                // paramodulate_clauses(cl, &chosen_clause, &mut inferred_clauses);
             }
             ordered_equality_resolution(&chosen_clause, &mut inferred_clauses);
             equality_factoring(&chosen_clause, &mut inferred_clauses);
@@ -500,6 +496,26 @@ mod test {
     }
     
     #[test]
+    fn pelletier_47() {
+        let result = prove("(((((((((((((((forall x. ((P1(x) ==> P0(x)) /\\ exists x. P1(x))) /\\ 
+                                          (forall x. ((P2(x) ==> P0(x)) /\\ exists x. P2(x)))) /\\ 
+                                          (forall x. ((P3(x) ==> P0(x)) /\\ exists x. P3(x)))) /\\
+                                          (forall x. ((P4(x) ==> P0(x)) /\\ exists x. P4(x)))) /\\
+                                          (forall x. ((P5(x) ==> P0(x)) /\\ exists x. P5(x)))) /\\ 
+                                          (exists x. Q1(x) /\\ forall x. (Q1(x) ==> Q0(x)))) /\\
+                                          (forall x. (P0(x) ==> ((forall y. Q0(y) ==> R(x, y)) \\/ forall y. (((P0(y) /\\ S(y, x)) /\\ exists z. (Q0(z) /\\ R(y, z))) ==> R(x, y)))))) /\\
+                                          (forall x. forall y. ((P3(y) /\\ (P5(x) \\/ P4(x))) ==> S(x, y)))) /\\ 
+                                          (forall x. forall y. ((P3(x) /\\ P2(y)) ==> S(x, y)))) /\\ 
+                                          (forall x. forall y. ((P2(x) /\\ P1(y)) ==> S(x, y)))) /\\
+                                          (forall x. forall y. ((P1(x) /\\ (P2(y) \\/ Q1(y))) ==> ~R(x, y)))) /\\ 
+                                          (forall x. forall y. ((P3(x) /\\ P4(y)) ==> R(x, y)))) /\\ 
+                                          (forall x. forall y. ((P3(x) /\\ P5(y)) ==> ~R(x, y)))) /\\
+                                          (forall x. ((P4(x) \\/ P5(x)) ==> exists y. (Q0(y) /\\ R(x, y)))))
+                                           ==> exists x. exists y. ((P0(x) /\\ P0(y)) /\\ exists z. (Q1(z) /\\ (R(y, z) /\\ R(x, y)))))");
+        assert!(result.is_ok());
+    }
+    
+    #[test]
     fn pelletier_48() {
         let result = prove("(((a() = b() \\/ c() = d()) /\\ (a() = c() \\/ b() = d())) ==> (a() = d() \\/ b() = c()))");
         assert!(result.is_ok());
@@ -542,8 +558,8 @@ mod test {
     #[test]
     fn pelletier_53() {
         let result = prove("((exists x. exists y. (~(x = y) /\\ forall z. (z = x \\/ z = y))) ==>
-                             ((exists z. forall x. (exists w. forall y. ((F(x, y) <=> y = w) <=> x = z)))
-                              <=> (exists w. forall y. (exists z. forall x. ((F(x, y) <=> x = z) <=> y = w)))))");
+                           (((exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))
+                            <=> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w))))");
         assert!(result.is_ok());
     }
     */

@@ -33,8 +33,6 @@ mod lpo;
 
 mod equality_resolution;
 mod equality_factoring;
-mod positive_factoring;
-mod paramodulation;
 mod superposition;
 
 ///
