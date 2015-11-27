@@ -556,7 +556,6 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_55() {
         let result = prove("((((((((((((exists x. (L(x) /\\ K(x, a()))) /\\ 
@@ -570,10 +569,9 @@ mod test {
                                        (forall x. (H(a(), x) ==> H(b(), x)))) /\\ 
                                        (forall x. exists y. ~H(x, y))) /\\ 
                                        ~(a() = b()))
-                                        ==> ~K(b(), a()))"); 
-        assert!(result.is_err());
+                                        ==> K(a(), a()))"); 
+        assert!(result.is_ok());
     }
-    */
     
     #[test]
     fn pelletier_56() {
@@ -615,7 +613,13 @@ mod test {
         assert!(result.is_ok());
     }
     
-    // 62 is harder than 38 so no need to add that before we can solve it
+    #[test]
+    fn pelletier_62_errata_errata() {
+        let result = prove("(forall x. ((F(a()) /\\ (F(x) ==> F(f(x)))) ==> F(f(f(x)))) <=>
+                             (forall x. (((~F(a()) \\/ F(x)) \\/ F(f(f(x)))) /\\
+                                        ((~F(a()) \\/ ~F(f(x))) \\/ F(f(f(x)))))))");
+        assert!(result.is_ok());
+    }
     
     #[test]
     fn pelletier_63() {
