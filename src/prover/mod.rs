@@ -29,6 +29,7 @@ mod subsumption;
 
 mod unification;
 
+mod term_ordering;
 mod lpo;
 
 mod equality_resolution;
