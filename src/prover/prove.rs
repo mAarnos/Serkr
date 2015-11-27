@@ -113,7 +113,7 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
 mod test {
     use super::prove;
     
-    // Contains some pelletier problems negated so that we can make sure we don't prove a theorem not actually provable.
+    // Contains some problems negated so that we can make sure we don't prove a theorem not actually provable.
     
     #[test]
     fn pelletier_1() {
@@ -519,6 +519,12 @@ mod test {
     }
     
     #[test]
+    fn pelletier_50_negated() {
+        let result = prove("((forall x. (F(a(), x) \\/ forall y. F(x, y))) ==> ~exists x. forall y. F(x, y))");
+        assert!(result.is_err());
+    }
+    
+    #[test]
     fn pelletier_51() {
         let result = prove("((exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w)))
                              ==> (exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))");
@@ -534,13 +540,21 @@ mod test {
     
     /*
     #[test]
+    fn pelletier_53() {
+        let result = prove("((exists x. exists y. (~(x = y) /\\ forall z. (z = x \\/ z = y))) ==>
+                             ((exists z. forall x. (exists w. forall y. ((F(x, y) <=> y = w) <=> x = z)))
+                              <=> (exists w. forall y. (exists z. forall x. ((F(x, y) <=> x = z) <=> y = w)))))");
+        assert!(result.is_ok());
+    }
+    */
+    
+    #[test]
     fn pelletier_54() {
         let result = prove("((forall y. exists z. forall x. (F(x, z) <=> x = y)) 
                               ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> 
                                   exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y))))))");
         assert!(result.is_ok());
     }
-    */
     
     /*
     #[test]
@@ -601,6 +615,8 @@ mod test {
         assert!(result.is_ok());
     }
     
+    // 62 is harder than 38 so no need to add that before we can solve it
+    
     #[test]
     fn pelletier_63() {
         let result = prove("(((forall x. forall y. forall z. f(f(x, y), z) = f(x, f(y, z))) /\\ 
@@ -647,6 +663,12 @@ mod test {
     fn djikstra() {
         let result = prove("(((forall x. f(f(x)) = f(x)) /\\ (forall x. exists y. f(y) = x)) ==> forall x. f(x) = x)");
         assert!(result.is_ok());
+    }
+    
+    #[test]
+    fn djikstra_negated() {
+        let result = prove("(((forall x. f(f(x)) = f(x)) /\\ (forall x. exists y. f(y) = x)) ==> ~forall x. f(x) = x)");
+        assert!(result.is_err());
     }
     
     #[test]
