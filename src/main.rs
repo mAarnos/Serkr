@@ -56,10 +56,9 @@ fn main() {
     
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
-    let res = prover::prove::prove("(((forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z)) /\\
-                                     ((forall x. mult(i(), x) = x) /\\
-                                      (forall x. mult(i(x), x) = i())))
-                                       ==> (forall x. mult(x, i()) = x))");
+    let res = prover::prove::prove("((forall y. exists z. forall x. (F(x, z) <=> x = y)) 
+                              ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> 
+                                  exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y))))))");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
