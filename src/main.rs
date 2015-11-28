@@ -22,10 +22,10 @@
 #![feature(hashmap_hasher)]
 #![feature(plugin)]
 #![plugin(peg_syntax_ext)]
-#![plugin(clippy)]
 
 // Some lints which are pretty useful.
 // Try to add "unstable_features" when possible.
+// We allow dead code due to it warning about things too much.
 #![deny(fat_ptr_transmutes,
         unused_extern_crates,
         variant_size_differences,
@@ -38,11 +38,14 @@
         unused_import_braces,
         unused_qualifications)]
 #![deny(warnings)]
-#![deny(clippy)]
-
-// Remove these two whenever possible.
-#![allow(len_zero)]  
 #![allow(dead_code)]
+
+// Clippy lints.
+// We allow len_zero due to rust-peg.
+// TODO: add clippy_pedantic 
+#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature="clippy", deny(clippy))]
+#![cfg_attr(feature="clippy", allow(len_zero))]
 
 #[macro_use]
 pub mod utils;

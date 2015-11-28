@@ -2,15 +2,15 @@
 name = "serkr"
 version = "0.1.0"
 dependencies = [
- "clippy 0.0.24 (git+https://github.com/Manishearth/rust-clippy)",
- "peg 0.3.4 (git+https://github.com/kevinmehall/rust-peg)",
+ "clippy 0.0.25 (git+https://github.com/Manishearth/rust-clippy)",
+ "peg 0.3.5 (git+https://github.com/kevinmehall/rust-peg)",
  "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "clippy"
-version = "0.0.24"
-source = "git+https://github.com/Manishearth/rust-clippy#4d130858326e3e47683617229c35e9b9260287cb"
+version = "0.0.25"
+source = "git+https://github.com/Manishearth/rust-clippy#409c0f0998921251f0ef0fc7dfadc6adf5d9d468"
 dependencies = [
  "unicode-normalization 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -31,8 +31,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "peg"
-version = "0.3.4"
-source = "git+https://github.com/kevinmehall/rust-peg#abc05a47374cc2618806d5812c7c78a1329d6c85"
+version = "0.3.5"
+source = "git+https://github.com/kevinmehall/rust-peg#24ad8450feac29c9310b95e2829eb4e549151a76"
 
 [[package]]
 name = "time"

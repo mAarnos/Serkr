@@ -11,3 +11,8 @@ git = "https://github.com/kevinmehall/rust-peg"
 
 [dependencies.clippy]
 git = "https://github.com/Manishearth/rust-clippy"
+optional = true
+
+[features]
+default = []
+dev = ["clippy"]
