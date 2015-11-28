@@ -27,6 +27,7 @@ peg! formula(r#"
               
     spaced_formula -> Formula
         = parenthesis_formula
+        / not_equals_formula
         / equals_formula
         / predicate
         / not_formula
@@ -39,6 +40,9 @@ peg! formula(r#"
             
     parenthesis_formula -> Formula
         = [(] f:formula [)] { f } 
+        
+    not_equals_formula -> Formula
+        = t1: term " <> " t2: term{ Formula::Not(box Formula::Predicate("=".to_owned(), vec!(t1, t2))) }
         
     equals_formula -> Formula
         = t1: term " = " t2: term{ Formula::Predicate("=".to_owned(), vec!(t1, t2)) }     

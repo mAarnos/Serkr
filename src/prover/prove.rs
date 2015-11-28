@@ -525,7 +525,7 @@ mod test {
     
     #[test]
     fn pelletier_49() {
-        let result = prove("((exists x. exists y. forall z. (z = x \\/ z = y) /\\ ((P(a()) /\\ P(b)) /\\ ~(a() = b())))
+        let result = prove("((exists x. exists y. forall z. (z = x \\/ z = y) /\\ ((P(a()) /\\ P(b)) /\\ a() <> b()))
                               ==> forall x. P(x))");
         assert!(result.is_ok());
     }
@@ -559,7 +559,7 @@ mod test {
     /*
     #[test]
     fn pelletier_53() {
-        let result = prove("((exists x. exists y. (~(x = y) /\\ forall z. (z = x \\/ z = y))) ==>
+        let result = prove("((exists x. exists y. (x <> y /\\ forall z. (z = x \\/ z = y))) ==>
                            (((exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))
                             <=> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w))))");
         assert!(result.is_ok());
@@ -582,11 +582,11 @@ mod test {
                                        (forall x. forall y. (K(x, y) ==> H(x, y)))) /\\ 
                                        (forall x. forall y. (K(x, y) ==> ~R(x, y)))) /\\ 
                                        (forall x. (H(a(), x) ==> ~H(c(), x)))) /\\ 
-                                       (forall x. (~(x = b()) ==> H(a(), x)))) /\\ 
+                                       (forall x. (x <> b() ==> H(a(), x)))) /\\ 
                                        (forall x. (~R(x, a()) ==> H(b(), x)))) /\\ 
                                        (forall x. (H(a(), x) ==> H(b(), x)))) /\\ 
                                        (forall x. exists y. ~H(x, y))) /\\ 
-                                       ~(a() = b()))
+                                       a() <> b())
                                         ==> K(a(), a()))"); 
         assert!(result.is_ok());
     }
