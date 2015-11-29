@@ -17,9 +17,10 @@
 
 use std::collections::HashMap;
 use prover::term::Term;
-use prover::literal::Literal;
 
-fn unify(mut env: HashMap<Term, Term>, mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
+fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
+    let mut env = HashMap::new();
+
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1 == eq2 {
             continue; // delete
@@ -77,22 +78,7 @@ fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
 
 /// Tries to find the most general unifier of two terms.
 pub fn mgu(p: &Term, q: &Term) -> Option<HashMap<Term, Term>> {
-    Some(solve(get!(unify(HashMap::new(), vec!((p.clone(), q.clone()))))))
-}
-
-/// Tries to find the most general unifier of two literals..
-pub fn mgu_literals(l1: &Literal, l2: &Literal) -> Option<HashMap<Term, Term>> {
-    if let Some(theta) = unify(HashMap::new(), vec!((l1.get_lhs().clone(), l2.get_lhs().clone()))) {
-        if let Some(theta2) = unify(theta, vec!((l1.get_rhs().clone(), l2.get_rhs().clone()))) {
-            return Some(theta2);
-        }
-    }
-    
-    if let Some(theta) = unify(HashMap::new(), vec!((l1.get_lhs().clone(), l2.get_rhs().clone()))) {
-        unify(theta, vec!((l1.get_rhs().clone(), l2.get_lhs().clone())))
-    } else {
-        None
-    }
+    Some(solve(get!(unify(vec!((p.clone(), q.clone()))))))
 }
 
 #[cfg(test)]
