@@ -19,7 +19,7 @@ use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::mgu;
-use prover::lpo::{lpo_gt, lpo_gt_lit, lpo_ge_lit};
+use prover::term_ordering::TermOrdering;
 use prover::tautology_deletion::trivial;
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {
@@ -37,36 +37,37 @@ fn create_overlapped_term0(u_p: &mut Term, t: &Term, trace: &[usize], n: usize) 
     }
 }
 
-fn overlaps(s: &Term, t: &Term, 
-            u: &Term, v: &Term, u_v_negated: bool,
-            u_p: &Term,
-            cl1: &Clause, cl1_i: usize, 
-            cl2: &Clause,  cl2_i: usize, 
-            trace: &mut Vec<usize>,
-            generated: &mut Vec<Clause>) {
+fn overlaps<T: TermOrdering>(term_ordering: &T, 
+                             s: &Term, t: &Term, 
+                             u: &Term, v: &Term, u_v_negated: bool,
+                             u_p: &Term,
+                             cl1: &Clause, cl1_i: usize, 
+                             cl2: &Clause,  cl2_i: usize, 
+                             trace: &mut Vec<usize>,
+                             generated: &mut Vec<Clause>) {
     if !u_p.is_variable() {
         if let Some(theta) = mgu(u_p, s) {            
             let mut new_s_t = Literal::new(false, s.clone(), t.clone());
             new_s_t.subst(&theta);      
             
-            if !lpo_gt(new_s_t.get_rhs(), new_s_t.get_lhs()) {
+            if !term_ordering.gt(new_s_t.get_rhs(), new_s_t.get_lhs()) {
                 let mut new_u_v = Literal::new(u_v_negated, u.clone(), v.clone());
                 new_u_v.subst(&theta); 
                 
-                if !lpo_gt(new_u_v.get_rhs(), new_u_v.get_lhs()) {
+                if !term_ordering.gt(new_u_v.get_rhs(), new_u_v.get_lhs()) {
                     let mut new_c = cl1.clone();
                     new_c.swap_remove(cl1_i);
                     new_c.subst(&theta);
                     
-                    if new_c.iter().all(|lit| !lpo_ge_lit(lit, &new_s_t)) {                                                      
+                    if new_c.iter().all(|lit| !term_ordering.ge_lit(lit, &new_s_t)) {                                                      
                         let mut new_d = cl2.clone();
                         new_d.swap_remove(cl2_i);
                         new_d.subst(&theta);
                         
                         let maximality_condition_fulfilled = if u_v_negated { 
-                                                                new_d.iter().all(|lit| !lpo_gt_lit(lit, &new_u_v)) 
+                                                                new_d.iter().all(|lit| !term_ordering.gt_lit(lit, &new_u_v)) 
                                                              } else { 
-                                                                new_d.iter().all(|lit| !lpo_ge_lit(lit, &new_u_v)) 
+                                                                new_d.iter().all(|lit| !term_ordering.ge_lit(lit, &new_u_v)) 
                                                              };
                         if maximality_condition_fulfilled {
                             let new_u = create_overlapped_term(u, t, trace);
@@ -86,13 +87,16 @@ fn overlaps(s: &Term, t: &Term,
         
         for (i, x) in u_p.iter().enumerate() {
             trace.push(i);
-            overlaps(s, t, u, v, u_v_negated, x, cl1, cl1_i, cl2, cl2_i, trace, generated);
+            overlaps(term_ordering, s, t, u, v, u_v_negated, x, cl1, cl1_i, cl2, cl2_i, trace, generated);
             trace.pop();
         }
     }
 }
 
-fn overlaps_literal(cl1: &Clause, cl1_i: usize, cl2: &Clause, cl2_i: usize, generated: &mut Vec<Clause>) {
+fn overlaps_literal<T: TermOrdering>(term_ordering: &T, 
+                                     cl1: &Clause, cl1_i: usize, 
+                                     cl2: &Clause, cl2_i: usize, 
+                                     generated: &mut Vec<Clause>) {
     let mut trace = Vec::new();
     let l_lhs = cl1[cl1_i].get_lhs();
     let l_rhs = cl1[cl1_i].get_rhs();
@@ -101,18 +105,23 @@ fn overlaps_literal(cl1: &Clause, cl1_i: usize, cl2: &Clause, cl2_i: usize, gene
     let r_rhs = cl2[cl2_i].get_rhs();
     
     // Four different ways to arrange two equations
-    overlaps(l_lhs, l_rhs, r_lhs, r_rhs, r_negated, r_lhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
-    overlaps(l_rhs, l_lhs, r_lhs, r_rhs, r_negated, r_lhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
-    overlaps(l_lhs, l_rhs, r_rhs, r_lhs, r_negated, r_rhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
-    overlaps(l_rhs, l_lhs, r_rhs, r_lhs, r_negated, r_rhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
+    overlaps(term_ordering, l_lhs, l_rhs, r_lhs, r_rhs, r_negated, r_lhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
+    overlaps(term_ordering, l_rhs, l_lhs, r_lhs, r_rhs, r_negated, r_lhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
+    overlaps(term_ordering, l_lhs, l_rhs, r_rhs, r_lhs, r_negated, r_rhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
+    overlaps(term_ordering, l_rhs, l_lhs, r_rhs, r_lhs, r_negated, r_rhs, cl1, cl1_i, cl2, cl2_i, &mut trace, generated);
 }
 
+/// Infers new clauses by positive and negative superposition.
+/// Time complexity is who the fuck knows.
 /// Assumes that cl1 was renamed so that it can have no variables in common with anything else.
-pub fn superposition(cl1: &Clause, cl2: &Clause, generated: &mut Vec<Clause>) {
+pub fn superposition<T: TermOrdering>(term_ordering: &T, 
+                                      cl1: &Clause, 
+                                      cl2: &Clause, 
+                                      generated: &mut Vec<Clause>) {
     for (i, l1) in cl1.iter().enumerate() {
         if l1.is_positive() {
             for j in 0..cl2.size() {
-                overlaps_literal(cl1, i, cl2, j, generated);
+                overlaps_literal(term_ordering, cl1, i, cl2, j, generated);
             }
         }
     }

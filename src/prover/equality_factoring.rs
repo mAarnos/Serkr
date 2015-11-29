@@ -20,12 +20,12 @@ use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::tautology_deletion::trivial;
-use prover::lpo::{lpo_gt, lpo_gt_lit};
+use prover::term_ordering::TermOrdering;
 
 /// Infers new clauses by equality factoring
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 // TODO: see how much time is spent here.
-pub fn equality_factoring(cl: &Clause, factors: &mut Vec<Clause>) {
+pub fn equality_factoring<T: TermOrdering>(term_ordering: &T, cl: &Clause, factors: &mut Vec<Clause>) {
     for (i, l) in cl.iter().enumerate() {
         if l.is_negative() {
             continue;
@@ -37,25 +37,30 @@ pub fn equality_factoring(cl: &Clause, factors: &mut Vec<Clause>) {
             }
             
             // So we have found two equality literals. There are four ways to try to combine them.
-            equality_factoring_create_new(cl, factors, l.get_lhs(), l.get_rhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
-            equality_factoring_create_new(cl, factors, l.get_lhs(), l.get_rhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
-            equality_factoring_create_new(cl, factors, l.get_rhs(), l.get_lhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
-            equality_factoring_create_new(cl, factors, l.get_rhs(), l.get_lhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
+            equality_factoring_create_new(term_ordering, cl, factors, l.get_lhs(), l.get_rhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
+            equality_factoring_create_new(term_ordering, cl, factors, l.get_lhs(), l.get_rhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
+            equality_factoring_create_new(term_ordering, cl, factors, l.get_rhs(), l.get_lhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
+            equality_factoring_create_new(term_ordering, cl, factors, l.get_rhs(), l.get_lhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
         }
     }
 }
 
-fn equality_factoring_create_new(cl: &Clause, factors: &mut Vec<Clause>, s: &Term, t: &Term, u: &Term, v: &Term, i: usize) {
+fn equality_factoring_create_new<T: TermOrdering>(term_ordering: &T, 
+                                                  cl: &Clause, 
+                                                  factors: &mut Vec<Clause>, 
+                                                  s: &Term, t: &Term, 
+                                                  u: &Term, v: &Term, 
+                                                  i: usize) {
     if let Some(theta) = mgu(s, u) {
         let mut l = Literal::new(false, s.clone(), t.clone());
         l.subst(&theta);
         
-        if !lpo_gt(l.get_rhs(), l.get_lhs()) {        
+        if !term_ordering.gt(l.get_rhs(), l.get_lhs()) {        
             let mut new_cl = cl.clone();
             new_cl.swap_remove(i);
             new_cl.subst(&theta);
             
-            if new_cl.iter().all(|lit| !lpo_gt_lit(lit, &l)) {
+            if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &l)) {
                 let mut new_ineq_lit = Literal::new(true, t.clone(), v.clone());
                 new_ineq_lit.subst(&theta);
                 new_cl.add_literal(new_ineq_lit);

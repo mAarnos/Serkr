@@ -15,130 +15,57 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::cmp::min;
 use prover::term::Term;
-use prover::literal::Literal;
+use prover::term_ordering::TermOrdering;
 
-/// Returns true if literal l1 is greater than literal l2 according to a multiset extension of LPO.
-pub fn lpo_gt_lit(l1: &Literal, l2: &Literal) -> bool {
-    // A term equal to another term can never be greater than it.
-    if l1 == l2 {
-        return false;
+pub struct LPO;
+
+impl LPO {   
+    /// Creates a new LPO term ordering.
+    pub fn new() -> LPO {
+        LPO
     }
 
-    let l1_l2_diff = multiset_difference(l1, l2);
-    let l2_l1_diff = multiset_difference(l2, l1);
-    
-    // l1 > l2 iff for each t2 of l2 with n(t2, l2) > n(t2, l1), there is a t of l1 so that t > t2 and n(t, l1) > n(t, l2).
-    for (i, _) in l2_l1_diff.iter().filter(|&x| *x != 0).enumerate() {
-        let mut dominating_term_found = false;
+    fn lexical_ordering(&self, s: &Term, t: &Term) -> bool {
+        assert_eq!(s.get_id(), t.get_id());
+        assert_eq!(s.get_arity(), t.get_arity());
             
-        for (j, _) in l1_l2_diff.iter().filter(|&x| *x != 0).enumerate() {
-            let l1_term = if j == 0 { l1.get_lhs() } else { l1.get_rhs() };
-            let l2_term = if i == 0 { l2.get_lhs() } else { l2.get_rhs() };
-            if lpo_gt(l1_term, l2_term) {
-                dominating_term_found = true;
-                break;
+        for i in 0..s.get_arity() {
+            if self.gt(&s[i], &t[i]) {
+                return true;
+            } else if s[i] != t[i] {
+                return false;
             }
         }
             
-        if !dominating_term_found {
-            return false;
-        }
-    }
-    
-    true
-}
-
-/// Returns true if literal l1 is greater than or equal to literal l2 according to a multiset extension of LPO.
-pub fn lpo_ge_lit(l1: &Literal, l2: &Literal) -> bool {
-    l1 == l2 || lpo_gt_lit(l1, l2)
-}
-
-/// Calculates the multiset difference of two literals.
-/// We map s = t to { s, t } and s <> t to { s, s, t, t }
-fn multiset_difference(l: &Literal, r: &Literal) -> [usize; 2] {
-    let mut l_count = [if l.is_negative() { 2 } else { 1 }, if l.is_negative() { 2 } else { 1 }];
-    let mut r_count = [if r.is_negative() { 2 } else { 1 }, if r.is_negative() { 2 } else { 1 }];
-    
-    // Special handling of the case when lhs == rhs
-    if l.get_lhs() == l.get_rhs() {
-        l_count[0] += l_count[1];
-        l_count[1] = 0;
-    }
-    
-    // Same here.
-    if r.get_lhs() == r.get_rhs() {
-        r_count[0] += r_count[1];
-        r_count[1] = 0;
-    }
-    
-    if r.get_lhs() == l.get_lhs() {
-        let min_diff = min(l_count[0], r_count[0]);
-        l_count[0] -= min_diff;
-        r_count[0] -= min_diff;
-    }
-    
-    if r.get_lhs() == l.get_rhs() {
-        let min_diff = min(l_count[1], r_count[0]);
-        l_count[1] -= min_diff;
-        r_count[0] -= min_diff;
-    }
-    
-    if r.get_rhs() == l.get_lhs() {
-        let min_diff = min(l_count[0], r_count[1]);
-        l_count[0] -= min_diff;
-        r_count[1] -= min_diff;
-    }
-    
-    if r.get_rhs() == l.get_rhs() {
-        let min_diff = min(l_count[1], r_count[1]);
-        l_count[1] -= min_diff;
-        r_count[1] -= min_diff;
-    }
-    
-    l_count
-}
-
-/// Returns true if term t is greater than term s according to a LPO.
-pub fn lpo_gt(s: &Term, t: &Term) -> bool {
-    if s.is_function() && t.is_function() {
-        if s.iter().any(|arg| lpo_ge(arg, t)) {
-            true
-        } else if t.iter().all(|arg| lpo_gt(s, arg)) {
-            if s.get_id() == t.get_id() && lexical_ordering(s, t) {
-                true
-            } else {
-                weight(s, t)
-            }    
-        } else {
-            false
-        }
-    } else if s.is_function() && t.is_variable() {
-        s.occurs_proper(t)
-    } else {
         false
     }
 }
 
-/// Returns true if t is greater than or equal to s according to a LPO.
-pub fn lpo_ge(s: &Term, t: &Term) -> bool {
-    s == t || lpo_gt(s, t)
-}
-
-fn lexical_ordering(s: &Term, t: &Term) -> bool {
-    assert_eq!(s.get_id(), t.get_id());
-    assert_eq!(s.get_arity(), t.get_arity());
-    
-    for i in 0..s.get_arity() {
-        if lpo_gt(&s[i], &t[i]) {
-            return true;
-        } else if s[i] != t[i] {
-            return false;
+impl TermOrdering for LPO {
+    fn gt(&self, s: &Term, t: &Term) -> bool {
+        if s.is_function() && t.is_function() {
+            if s.iter().any(|arg| self.ge(arg, t)) {
+                true
+            } else if t.iter().all(|arg| self.gt(s, arg)) {
+                if s.get_id() == t.get_id() && self.lexical_ordering(s, t) {
+                    true
+                } else {
+                    weight(s, t)
+                }    
+            } else {
+                false
+            }
+        } else if s.is_function() && t.is_variable() {
+            s.occurs_proper(t)
+        } else {
+            false
         }
     }
     
-    false
+    fn ge(&self, s: &Term, t: &Term) -> bool {
+        s == t || self.gt(s, t)
+    }
 }
 
 /// Returns true if s is "heavier" than t.
@@ -153,77 +80,86 @@ fn weight(s: &Term, t: &Term) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::{lpo_gt, lpo_ge, lpo_gt_lit, lpo_ge_lit};    
+    use super::LPO;    
     use prover::term::Term;
     use prover::literal::Literal;
+    use prover::term_ordering::TermOrdering;
     
     #[test]
     fn lpo_gt_1() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let y = Term::new(-2, false, Vec::new());       
-        assert!(!lpo_gt(&x, &y));
-        assert!(!lpo_gt(&y, &x));
+        assert!(!lpo.gt(&x, &y));
+        assert!(!lpo.gt(&y, &x));
     }
     
     #[test]
     fn lpo_gt_2() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x.clone()));       
-        assert!(lpo_gt(&f_x, &x));
-        assert!(!lpo_gt(&x, &f_x));
+        assert!(lpo.gt(&f_x, &x));
+        assert!(!lpo.gt(&x, &f_x));
     }
     
     #[test]
     fn lpo_gt_3() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let y = Term::new(-2, false, Vec::new());
         let f_y = Term::new(1, false, vec!(y));       
-        assert!(!lpo_gt(&f_y, &x));
-        assert!(!lpo_gt(&x, &f_y));
+        assert!(!lpo.gt(&f_y, &x));
+        assert!(!lpo.gt(&x, &f_y));
     }
     
     #[test]
     fn lpo_gt_4() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x.clone()));       
         let f_f_x = Term::new(1, false, vec!(f_x.clone()));   
-        assert!(lpo_gt(&f_f_x, &f_x));
-        assert!(!lpo_gt(&f_x, &f_f_x));
-        assert!(lpo_gt(&f_f_x, &x));
-        assert!(!lpo_gt(&x, &f_f_x));
+        assert!(lpo.gt(&f_f_x, &f_x));
+        assert!(!lpo.gt(&f_x, &f_f_x));
+        assert!(lpo.gt(&f_f_x, &x));
+        assert!(!lpo.gt(&x, &f_f_x));
     }
     
     #[test]
     fn lpo_gt_5() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x.clone()))));         
-        assert!(lpo_gt(&f_g_x, &x));
-        assert!(!lpo_gt(&x, &f_g_x));
+        assert!(lpo.gt(&f_g_x, &x));
+        assert!(!lpo.gt(&x, &f_g_x));
     }
     
     #[test]
     fn lpo_gt_6() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let f_x_x = Term::new(1, false, vec!(x.clone(), x)); 
         let t = Term::new_truth();
-        assert!(lpo_gt(&f_x_x, &t));
-        assert!(!lpo_gt(&t, &f_x_x));
+        assert!(lpo.gt(&f_x_x, &t));
+        assert!(!lpo.gt(&t, &f_x_x));
     }
     
     #[test]
     fn lpo_ge_1() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x));         
-        assert!(!lpo_gt(&f_x, &f_x));
-        assert!(lpo_ge(&f_x, &f_x));
+        assert!(!lpo.gt(&f_x, &f_x));
+        assert!(lpo.ge(&f_x, &f_x));
     }
     
     #[test]
     fn lpo_ge_lit_1() {
+        let lpo = LPO::new();
         let x = Term::new(-1, false, Vec::new());
         let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));  
         let l = Literal::new(false, f_g_x, Term::new_truth());
-        assert!(!lpo_gt_lit(&l, &l));
-        assert!(lpo_ge_lit(&l, &l));
+        assert!(!lpo.gt_lit(&l, &l));
+        assert!(lpo.ge_lit(&l, &l));
     }
 } 

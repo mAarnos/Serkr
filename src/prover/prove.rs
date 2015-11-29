@@ -22,8 +22,9 @@ use prover::clause::Clause;
 use prover::literal_deletion::simplify;
 use prover::tautology_deletion::trivial;
 use prover::subsumption::subsumes_clause;
+use prover::lpo::LPO;
 use prover::superposition::superposition;
-use prover::equality_resolution::ordered_equality_resolution;
+use prover::equality_resolution::equality_resolution;
 use prover::equality_factoring::equality_factoring;
 use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
@@ -39,6 +40,7 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 }
 
 fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
+    let lpo = LPO::new();
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
@@ -62,11 +64,11 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
             
             let mut inferred_clauses = Vec::new();
             for cl in &used {
-                superposition(&chosen_clause, cl, &mut inferred_clauses);
-                superposition(cl, &chosen_clause, &mut inferred_clauses);
+                superposition(&lpo, &chosen_clause, cl, &mut inferred_clauses);
+                superposition(&lpo, cl, &chosen_clause, &mut inferred_clauses);
             }
-            ordered_equality_resolution(&chosen_clause, &mut inferred_clauses);
-            equality_factoring(&chosen_clause, &mut inferred_clauses);
+            equality_resolution(&lpo, &chosen_clause, &mut inferred_clauses);
+            equality_factoring(&lpo, &chosen_clause, &mut inferred_clauses);
             
             // Simplify the generated clauses.
             for x in &mut inferred_clauses {
