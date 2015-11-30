@@ -31,6 +31,7 @@ mod unification;
 
 mod term_ordering;
 mod lpo;
+mod kbo;
 
 mod equality_resolution;
 mod equality_factoring;

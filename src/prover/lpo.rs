@@ -18,6 +18,7 @@
 use prover::term::Term;
 use prover::term_ordering::TermOrdering;
 
+/// An implementation of the lexicographic path order.
 pub struct LPO;
 
 impl LPO {   
@@ -51,7 +52,7 @@ impl TermOrdering for LPO {
                 if s.get_id() == t.get_id() && self.lexical_ordering(s, t) {
                     true
                 } else {
-                    weight(s, t)
+                    precedence(s, t)
                 }    
             } else {
                 false
@@ -70,7 +71,7 @@ impl TermOrdering for LPO {
 
 /// Returns true if s is "heavier" than t.
 /// Heavier means that it either has a larger arity or in the case that the arities are equal a larger id. 
-fn weight(s: &Term, t: &Term) -> bool {
+fn precedence(s: &Term, t: &Term) -> bool {
     if s.get_arity() == t.get_arity()  {
         s.get_id() > t.get_id()
     } else {
