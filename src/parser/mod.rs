@@ -17,5 +17,7 @@
 
 //! Contains different parsers.
 
+mod internal_parser_grammar;
+
 /// Contains the parser for the internal FOL format.
 pub mod internal_parser;

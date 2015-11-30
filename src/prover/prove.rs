@@ -409,7 +409,7 @@ mod test {
                                 ==> forall x. exists y. H(x, y))");
         assert!(result.is_ok());
     }
-    
+
     /*
     #[test]
     fn pelletier_38() {

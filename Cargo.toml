@@ -3,11 +3,16 @@ name = "serkr"
 version = "0.1.0"
 authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
+build = "build.rs" # <-- We added this and everything after!
+
+[build-dependencies]
+lalrpop = "0.7.0"
+
+[dependencies.lalrpop-util]
+lalrpop-util = "0.7.0"
+
 [dependencies.time]
 time = "*"
-
-[dependencies.peg]
-git = "https://github.com/kevinmehall/rust-peg"
 
 [dependencies.clippy]
 git = "https://github.com/Manishearth/rust-clippy"

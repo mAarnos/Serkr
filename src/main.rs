@@ -20,8 +20,6 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(hashmap_hasher)]
-#![feature(plugin)]
-#![plugin(peg_syntax_ext)]
 
 // Some lints which are pretty useful.
 // Try to add "unstable_features" when possible.

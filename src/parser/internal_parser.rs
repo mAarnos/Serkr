@@ -15,196 +15,169 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::Formula;
-
-/// The grammar for the internal parser.
-peg! formula(r#"
-    use utils::formula::{Term, Formula};
-    
-    #[pub]
-    formula -> Formula
-        = [ \n]* f:spaced_formula [ \n]* { f }
-              
-    spaced_formula -> Formula
-        = parenthesis_formula
-        / not_equals_formula
-        / equals_formula
-        / predicate
-        / not_formula
-        / and_formula
-        / or_formula
-        / implies_formula
-        / equivalent_formula
-        / forall_formula
-        / exists_formula
-            
-    parenthesis_formula -> Formula
-        = [(] f:formula [)] { f } 
-        
-    not_equals_formula -> Formula
-        = t1: term " <> " t2: term{ Formula::Not(box Formula::Predicate("=".to_owned(), vec!(t1, t2))) }
-        
-    equals_formula -> Formula
-        = t1: term " = " t2: term{ Formula::Predicate("=".to_owned(), vec!(t1, t2)) }     
-            
-    predicate -> Formula
-        = s:predicate_name [(] tl:term_list [)] { Formula::Predicate(s, tl) }   
-        / s:predicate_name { 
-            match &*s {
-                "T" => Formula::True, 
-                "F" => Formula::False,
-                _ => Formula::Predicate(s, Vec::new()), 
-            }
-        }
-            
-    not_formula -> Formula
-        = "~" f:formula { Formula::Not(box f) }
-            
-    and_formula -> Formula
-        = [(] f1:formula "/\\" f2:formula [)] { Formula::And(box f1, box f2) }   
-        
-    or_formula -> Formula
-        = [(] f1:formula "\\/" f2:formula [)] { Formula::Or(box f1, box f2) }    
-
-    implies_formula -> Formula
-        = [(] f1:formula "==>" f2:formula [)] { Formula::Implies(box f1, box f2) }  
-
-    equivalent_formula -> Formula
-        = [(] f1:formula "<=>" f2:formula [)] { Formula::Equivalent(box f1, box f2) }   
-
-    forall_formula -> Formula
-        = "forall " [ ]* v:term_name [ ]* [.] f:formula { Formula::Forall(v, box f) }
-            
-    exists_formula -> Formula
-        = "exists " [ ]* v:term_name [ ]* [.] f:formula { Formula::Exists(v, box f) } 
-
-    term -> Term
-        = function 
-        / variable 
-                                   
-    function -> Term
-        = s:term_name [(] tl:term_list [)] { Term::Function(s, tl) }
-                
-    term_list -> Vec<Term>
-        = spaced_term ** [,]
-            
-    spaced_term -> Term
-        = [ \n]* t:term [ \n]* { t }
-         
-    variable -> Term
-        = s:term_name { Term::Variable(s) }    
-            
-    term_name -> String
-        = s:lowerletter xs:letter_or_digit* { 
-            let mut name = s;
-            for x in xs {
-                name.push_str(&x);
-            }                     
-             name
-        }
-                                   
-    predicate_name -> String
-        = s:upperletter xs:letter_or_digit* { 
-            let mut name = s;
-            for x in xs {
-                name.push_str(&x);
-            }                     
-             name
-        }      
-              
-    letter_or_digit -> String
-        = letter 
-        / digit
-              
-    letter -> String
-        = upperletter 
-        / lowerletter
-            
-    upperletter -> String
-        = [A-Z] { match_str.parse().unwrap() }
-            
-    lowerletter -> String
-        = [a-z] { match_str.parse().unwrap() }
-            
-    digit -> String
-        = [0-9] { match_str.parse().unwrap() }              
-"#);
+use parser::internal_parser_grammar;
+use utils::formula::Formula;
 
 /// Parses a string into a FOL formula, if possible.
-pub fn parse(s: &str) -> Result<Formula, formula::ParseError> {
-    formula::formula(s)
+pub fn parse(s: &str) -> Result<Formula, internal_parser_grammar::__lalrpop_util::ParseError<usize, (usize, &str), ()>> {
+    internal_parser_grammar::parse_Formula(s)
 }
 
 #[cfg(test)]
 mod test {
-     use utils::formula::Formula;
-    use super::*;
-    
+    use utils::formula::Formula;
+    use parser::internal_parser_grammar::{parse_Term, parse_Formula};
+
     #[test]
-    fn dont_allow_pure_terms() {
-        assert!(parse("x").is_err());
-        assert!(parse("f(x)").is_err());
-        assert!(parse("f(g(x), c)").is_err());
+    fn parser_term_erroneous() {
+        assert!(parse_Term("   ").is_err());
+        assert!(parse_Term("P").is_err());
+        assert!(parse_Term("P(x, y)").is_err());
+        assert!(parse_Term("f(x,)").is_err());
     }
- 
+
     #[test]
-    fn nested_parenthesis() {
-        let f1 = parse("P()");
-        let f2 = parse("(P())");
-        let f3 = parse("((P()))");
-        let f4 = parse("(((P())))");
-        
-        assert!(f1.is_ok());
-        assert!(f2.is_ok());
-        assert!(f3.is_ok());
-        assert!(f4.is_ok());
-        assert_eq!(f1, f2);
-        assert_eq!(f2, f3);
-        assert_eq!(f3, f4);
+    fn parser_term_whitespace_variance() {
+        assert!(parse_Term("  x  ").is_ok());
+        assert!(parse_Term("g(  x, y  )").is_ok());
+        assert!(parse_Term(" f  ( x )  ").is_ok());
     }
-    
+
     #[test]
-    fn nested_not() {
-        assert!(parse("~P()").is_ok());
-        assert!(parse("~(~P())").is_ok());
-        assert!(parse("~(~~(P()))").is_ok());
+    fn parser_variable() {
+        assert!(parse_Term("x").is_ok());
+        assert!(parse_Term("identityVariable1").is_ok());
     }
-    
+
     #[test]
-    fn predicates_without_parenthesis() {
-        let f1 = parse("(P <=> Q)");
-        let f2 = parse("(Q(x, y) ==> Q)");
-        
-        assert!(f1.is_ok());
-        assert!(f2.is_ok());
-        assert_eq!(f1, parse("(P() <=> Q())"));
-        assert_eq!(f2, parse("(Q(x, y) ==> Q())"));
+    fn parser_function() {
+        assert!(parse_Term("f()").is_ok());
+        assert!(parse_Term("f(x)").is_ok());
+        assert!(parse_Term("f(x, y, z)").is_ok());
+        assert!(parse_Term("f(f(g(x), z), h(y))").is_ok());
     }
-    
+
     #[test]
-    fn true_and_false() {
-        assert_eq!(parse("T").unwrap(), Formula::True);
-        assert_eq!(parse("F").unwrap(), Formula::False);
-        assert_neq!(parse("T"), parse("T()"));
-        assert_neq!(parse("F"), parse("F()"));
-        assert_eq!(parse("(T <=> T)").unwrap(), Formula::Equivalent(box Formula::True, box Formula::True));
+    fn parser_true_false() {
+        assert_eq!(parse_Formula("T").unwrap(), Formula::True);
+        assert_eq!(parse_Formula("F").unwrap(), Formula::False);
+        assert_neq!(parse_Formula("T").unwrap(), parse_Formula("T()").unwrap());
+        assert_neq!(parse_Formula("F").unwrap(), parse_Formula("F()").unwrap());
     }
-    
+
     #[test]
     fn true_and_false_2() {
         // Make sure that predicates starting with a T or F won't get parsed as True or False.
-        assert_eq!(parse("Taken").unwrap(), Formula::Predicate("Taken".to_owned(), Vec::new()));
-        assert_eq!(parse("Free").unwrap(), Formula::Predicate("Free".to_owned(), Vec::new()));
+        assert_eq!(parse_Formula("Taken").unwrap(), Formula::Predicate("Taken".to_owned(), Vec::new()));
+        assert_eq!(parse_Formula("Free").unwrap(), Formula::Predicate("Free".to_owned(), Vec::new()));
     }
-    
+
     #[test]
-    fn general() {
-        assert!(parse("((Equal(x, y) /\\ Equal(y, z)) ==> Equal(x, z))").is_ok());
-        assert!(parse("(P(x) <=> (Q(x) <=> R(x)))").is_ok());
-        assert!(parse("(P()/\\Q())").is_ok());
-        assert!(parse("forall x. P(x)").is_ok());
-        assert!(parse("forall x. exists y. Equal(x, y)").is_ok());
-        assert!(parse("forall x. (exists y. (Equal(x, y)))").is_ok());
-        assert!(parse("P( f(x) )").is_ok());
-    }  
+    fn parser_predicate() {
+        assert!(parse_Formula("P(x, y)").is_ok());
+        assert!(parse_Formula("P(f(x), f(g(y)))").is_ok());
+        assert!(parse_Formula("PredicateName14(x)").is_ok());
+    }
+
+    #[test]
+    fn predicates_without_parenthesis() {
+        let f1 = parse_Formula("P <=> Q").unwrap();
+        let f2 = parse_Formula("Q(x, y) ==> Q").unwrap();
+
+        assert_eq!(f1, parse_Formula("(P() <=> Q())").unwrap());
+        assert_eq!(f2, parse_Formula("(Q(x, y) ==> Q())").unwrap());
+    }
+
+    #[test]
+    fn parser_equals() {
+        assert!(parse_Formula("x = f(x)").is_ok());
+        assert!(parse_Formula("f(g(x)) = f(x)").is_ok());
+    }
+
+    #[test]
+    fn parser_not_equals() {
+        assert!(parse_Formula("x <> y").is_ok());
+        assert!(parse_Formula("f(x) <> g(y)").is_ok());
+    }
+
+    #[test]
+    fn parser_and() {
+        assert!(parse_Formula("P(x) /\\ Q(x)").is_ok());
+        assert!(parse_Formula("P(x) /\\ Q(x) /\\ R(x, y)").is_ok());
+    }
+
+    #[test]
+    fn parser_or() {
+        assert!(parse_Formula("P0(x) \\/ P1(x)").is_ok());
+        assert!(parse_Formula("P0(x) \\/ P1(x) \\/ P2(x)").is_ok());
+    }
+
+    #[test]
+    fn parser_implies() {
+        assert!(parse_Formula("P ==> Q").is_ok());
+        assert!(parse_Formula("P ==> Q ==> R").is_ok());
+    }
+
+    #[test]
+    fn parser_equivalent() {
+        assert!(parse_Formula("P <=> Q").is_ok());
+        assert!(parse_Formula("P <=> Q <=> R").is_ok());
+    }
+
+    #[test]
+    fn parser_quantifiers() {
+        assert!(parse_Formula("forall x. P(x)").is_ok());
+        assert!(parse_Formula("exists x. P(x)").is_ok());
+        assert!(parse_Formula("forall x. exists x. P(x)").is_ok());
+    }
+
+    #[test]
+    fn parser_not_and_precedence() {
+        let f1 = parse_Formula("~ P /\\ Q");
+        let f2 = parse_Formula("(~P) /\\ Q");
+        
+        assert!(f1.is_ok());
+        assert!(f2.is_ok());
+        assert_eq!(f1.unwrap(), f2.unwrap());
+    }
+
+    #[test]
+    fn parser_and_or_precedence() {
+        let f1 = parse_Formula("P /\\ Q \\/ R");
+        let f2 = parse_Formula("((P /\\ Q) \\/ R)");
+        
+        assert!(f1.is_ok());
+        assert!(f2.is_ok());
+        assert_eq!(f1.unwrap(), f2.unwrap());
+    }
+
+    #[test]
+    fn parser_or_implies_precedence() {
+        let f1 = parse_Formula("P(x) \\/ Q(x) ==> R(x)");
+        let f2 = parse_Formula("((P(x) \\/ Q(x)) ==> R(x))");
+        
+        assert!(f1.is_ok());
+        assert!(f2.is_ok());
+        assert_eq!(f1.unwrap(), f2.unwrap());
+    }
+
+    #[test]
+    fn parser_implies_equivalent_precedence() {
+        let f1 = parse_Formula("P ==> Q <=> ~Q ==> ~P");
+        let f2 = parse_Formula("((P ==> Q) <=> (~Q ==> ~P))");
+        
+        assert!(f1.is_ok());
+        assert!(f2.is_ok());
+        assert_eq!(f1.unwrap(), f2.unwrap());
+    }
+
+    #[test]
+    fn parser_equivalent_quantifier_precedence() {
+        let f1 = parse_Formula("forall x. P(x) <=> Q(x)");
+        let f2 = parse_Formula("((forall x. P(x)) <=> Q(x))");
+        
+        assert!(f1.is_ok());
+        assert!(f2.is_ok());
+        assert_eq!(f1.unwrap(), f2.unwrap());
+    }
 }    
