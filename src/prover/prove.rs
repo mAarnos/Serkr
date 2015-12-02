@@ -115,7 +115,7 @@ mod test {
     
     #[test]
     fn pelletier_1() {
-        let result = prove("((P ==> Q) <=> (~Q ==> ~P))");
+        let result = prove("(P ==> Q) <=> (~Q ==> ~P)");
         assert!(result.is_ok());
     }
     
@@ -127,43 +127,43 @@ mod test {
     
     #[test]
     fn pelletier_2() {
-        let result = prove("(~~P <=> P)");
+        let result = prove("~~P <=> P");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_3() {
-        let result = prove("(~(P ==> Q) ==> (Q ==> P))");
+        let result = prove("~(P ==> Q) ==> (Q ==> P)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_4() {
-        let result = prove("((~P ==> Q) <=> (~Q ==> P))");
+        let result = prove("(~P ==> Q) <=> (~Q ==> P)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_5() {
-        let result = prove("(((P \\/ Q) ==> (P \\/ R)) ==> (P \\/ (Q ==> R)))");
+        let result = prove("((P \\/ Q) ==> (P \\/ R)) ==> (P \\/ (Q ==> R))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_6() {
-        let result = prove("(P \\/ ~P)");
+        let result = prove("P \\/ ~P");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_7() {
-        let result = prove("(P \\/ ~~~P)");
+        let result = prove("P \\/ ~~~P");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_8() {
-        let result = prove("(((P ==> Q) ==> P) ==> P)");
+        let result = prove("((P ==> Q) ==> P) ==> P");
         assert!(result.is_ok());
     }
     
@@ -175,63 +175,61 @@ mod test {
     
     #[test]
     fn pelletier_9() {
-        let result = prove("((((P \\/ Q) /\\ (~P \\/ Q)) /\\ (P \\/ ~Q)) ==> ~(~P \\/ ~Q))");
+        let result = prove("(P \\/ Q) /\\ (~P \\/ Q) /\\ (P \\/ ~Q) ==> ~(~P \\/ ~Q)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_10() {
-        let result = prove("(((((Q ==> R) /\\ (R ==> (P /\\ Q))) /\\ (P ==> (Q \\/ R)))) ==> (P <=> Q))");
+        let result = prove("(Q ==> R) /\\ (R ==> P /\\ Q) /\\ (P ==> Q \\/ R) ==> (P <=> Q)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_11() {
-        let result = prove("(P <=> P)");
+        let result = prove("P <=> P");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_12() {
-        let result = prove("(((P <=> Q) <=> R) <=> (P <=> (Q <=> R)))");
+        let result = prove("((P <=> Q) <=> R) <=> (P <=> (Q <=> R))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_13() {
-        let result = prove("((P \\/ (Q /\\ R)) <=> ((P \\/ Q) /\\ (P \\/ R)))");
+        let result = prove("(P \\/ Q /\\ R) <=> ((P \\/ Q) /\\ (P \\/ R))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_14() {
-        let result = prove("((P <=> Q) <=> ((~P \\/ Q) /\\ (~Q \\/ P)))");
+        let result = prove("(P <=> Q) <=> ((~P \\/ Q) /\\ (~Q \\/ P))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_15() {
-        let result = prove("((P ==> Q) <=> (~Q \\/ Q))");
+        let result = prove("(P ==> Q) <=> (~Q \\/ Q)");
         assert!(result.is_err());
     }
     
     #[test]
     fn pelletier_15_errata() {
-        let result = prove("((P ==> Q) <=> (~P \\/ Q))");
+        let result = prove("(P ==> Q) <=> (~P \\/ Q)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_16() {
-        let result = prove("((P ==> Q) \\/ (Q ==> P))");
+        let result = prove("(P ==> Q) \\/ (Q ==> P)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_17() {
-        let result = prove("(((P /\\ (Q ==> R)) ==> S) <=>
-                            (((~P \\/ Q) \\/ S) /\\
-                              (~P \\/ (~R \\/ S))))");
+        let result = prove("(P /\\ (Q ==> R) ==> S) <=> ((~P \\/ Q \\/ S) /\\ (~P \\/ ~R \\/ S))");
         assert!(result.is_ok());
     }
     
@@ -255,84 +253,84 @@ mod test {
     
     #[test]
     fn pelletier_20() {
-        let result = prove("((forall x. forall y. exists z. forall w. ((P(x) /\\ Q(y)) ==> (R(z) /\\ S(w))))
-                              ==> ((exists x. exists y. (P(x) /\\ Q(y))) ==> exists z. R(z)))");
+        let result = prove("forall x. forall y. exists z. forall w. (P(x) /\\ Q(y) ==> R(z) /\\ S(w))
+                            ==> (exists x. exists y. (P(x) /\\ Q(y)) ==> exists z. R(z))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_21() {
-        let result = prove("(((exists x. (P ==> F(x))) /\\ 
-                              (exists x. (F(x) ==> P))) 
-                               ==> (exists x. (P <=> F(x))))");
+        let result = prove("exists x. (P ==> F(x)) /\\ 
+                            exists x. (F(x) ==> P) 
+                            ==> exists x. (P <=> F(x))");
         assert!(result.is_ok());
     }
 
     #[test]
     fn pelletier_22() {
-        let result = prove("((forall x. (P <=> F(x))) ==> (P <=> forall x. F(x)))");
+        let result = prove("(forall x. (P <=> F(x))) ==> (P <=> forall x. F(x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_23() {
-        let result = prove("((forall x. (P \\/ F(x))) <=> (P \\/ forall x. F(x)))");
+        let result = prove("forall x. (P \\/ F(x)) <=> (P \\/ forall x. F(x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_24() {
-        let result = prove("(((((~exists x. (S(x) /\\ Q(x))) /\\
-                                (forall x. (P(x) ==> (Q(x) \\/ R(x))))) /\\
-                               ((~exists x. P(x)) ==> exists x. Q(x))) /\\
-                                (forall x. ((Q(x) \\/ R(x)) ==> S(x))))
-                                 ==> exists x. (P(x) /\\ R(x)))");
+        let result = prove("~exists x. (S(x) /\\ Q(x)) /\\
+                            forall x. (P(x) ==> Q(x) \\/ R(x)) /\\
+                            (~exists x. P(x) ==> exists x. Q(x)) /\\
+                            forall x. (Q(x) \\/ R(x) ==> S(x))
+                            ==> exists x. (P(x) /\\ R(x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_25() {
-        let result = prove("(((((exists x. P(x)) /\\ 
-                                (forall x. (F(x) ==> (~G(x) /\\ R(x))))) /\\
-                                (forall x. (P(x) ==> (G(x) /\\ F(x))))) /\\
-                               ((forall x. (P(x) ==> Q(x))) \\/ exists x. (P(x) /\\ R(x))))
-                                 ==> (exists x. (Q(x) /\\ P(x))))");
+        let result = prove("exists x. P(x) /\\ 
+                            forall x. (F(x) ==> ~G(x) /\\ R(x)) /\\
+                            forall x. (P(x) ==> G(x) /\\ F(x)) /\\
+                           (forall x. (P(x) ==> Q(x)) \\/ exists x. (P(x) /\\ R(x)))
+                            ==> exists x. (Q(x) /\\ P(x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_26() {
-        let result = prove("((((exists x. P(x)) <=> (exists x. Q(x))) /\\
-                               (forall x. forall y. ((P(x) /\\ Q(y)) ==> (R(x) <=> S(y)))))
-                                 ==> ((forall x. (P(x) ==> R(x))) <=> (forall x. (Q(x) ==> S(x)))))");
+        let result = prove("(exists x. P(x) <=> exists x. Q(x)) /\\
+                            forall x. forall y. (P(x) /\\ Q(y) ==> (R(x) <=> S(y)))
+                            ==> (forall x. (P(x) ==> R(x)) <=> forall x. (Q(x) ==> S(x)))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_27() {
-        let result = prove("(((((exists x. (F(x) /\\ ~G(x))) /\\ 
-                                (forall x. (F(x) ==> H(x)))) /\\ 
-                                (forall x. ((J(x) /\\ I(x)) ==> F(x)))) /\\ 
-                               ((exists x. (H(x) /\\ ~G(x))) ==> forall x. (I(x) ==> ~H(x))))
-                                 ==> (forall x. (J(x) ==> ~I(x))))");
+        let result = prove("exists x. (F(x) /\\ ~G(x)) /\\ 
+                            forall x. (F(x) ==> H(x)) /\\ 
+                            forall x. (J(x) /\\ I(x) ==> F(x)) /\\ 
+                            (exists x. (H(x) /\\ ~G(x)) ==> forall x. (I(x) ==> ~H(x)))
+                            ==> forall x. (J(x) ==> ~I(x))");
         assert!(result.is_ok());
     }
 
     #[test]
     fn pelletier_28_orig() {
-        let result = prove("((((forall x. P(x)) ==> forall x. Q(x)) /\\
-                             (((forall x. (Q(x) \\/ R(x))) ==> exists x. (Q(x) /\\ S(x))) /\\
-                              ((exists x. S(x)) ==> forall x. (F(x) ==> G(x))))) 
-                                ==>(forall x. ((P(x) /\\ F(x)) ==> G(x))))");
+        let result = prove("(forall x. P(x) ==> forall x. Q(x)) /\\
+                            (forall x. (Q(x) \\/ R(x)) ==> exists x. (Q(x) /\\ S(x))) /\\
+                            (exists x. S(x) ==> forall x. (F(x) ==> G(x))) 
+                             ==> forall x. (P(x) /\\ F(x) ==> G(x))");
         assert!(result.is_err());
     }
     
     #[test]
     fn pelletier_28_errata() {
-        let result = prove("(((forall x. (P(x) ==> forall x. Q(x))) /\\
-                            (((forall x. (Q(x) \\/ R(x))) ==> exists x. (Q(x) /\\ S(x))) /\\
-                             ((exists x. S(x)) ==> forall x. (F(x) ==> G(x))))) 
-                               ==>(forall x. ((P(x) /\\ F(x)) ==> G(x))))");
+        let result = prove("forall x. (P(x) ==> forall x. Q(x)) /\\
+                           (forall x. (Q(x) \\/ R(x)) ==> exists x. (Q(x) /\\ S(x))) /\\
+                           (exists x. S(x) ==> forall x. (F(x) ==> G(x)))
+                            ==> forall x. (P(x) /\\ F(x) ==> G(x))");
         assert!(result.is_ok());
     }
     
@@ -357,26 +355,26 @@ mod test {
     
     #[test]
     fn pelletier_31() {
-        let result = prove("(((~exists x. (F(x) /\\ (G(x) \\/ H(x)))) /\\ 
-                             ((exists x. (I(x) /\\ F(x))) /\\ 
-                              (forall x. (~H(x) ==> J(x))))) 
-                               ==> (exists x. (I(x) /\\ J(x))))");
+        let result = prove("~exists x. (F(x) /\\ (G(x) \\/ H(x))) /\\ 
+                            exists x. (I(x) /\\ F(x)) /\\ 
+                            forall x. (~H(x) ==> J(x))
+                            ==> exists x. (I(x) /\\ J(x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_32() {
-        let result = prove("(((forall x. ((F(x) /\\ (G(x) \\/ H(x))) ==> I(x))) /\\ 
-                             ((forall x. (I(x) /\\ (H(x) ==> J(x)))) /\\ 
-                              (forall x. (K(x) ==> H(x))))) 
-                               ==> (forall x. ((F(x) /\\ K(x)) ==> J(x))))");
+        let result = prove("forall x. ((F(x) /\\ (G(x) \\/ H(x))) ==> I(x)) /\\ 
+                            forall x. (I(x) /\\ (H(x) ==> J(x))) /\\ 
+                            forall x. (K(x) ==> H(x))
+                            ==> forall x. (F(x) /\\ K(x) ==> J(x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_33() {
-        let result = prove("((forall x. ((P(a) /\\ (P(x) ==> P(b))) ==> P(c))) <=>
-                              forall x. ((~P(a) \\/ (P(x) \\/ P(c))) /\\ (~P(a) \\/ (~P(b) \\/ P(c)))))");
+        let result = prove("forall x. (P(a) /\\ (P(x) ==> P(b)) ==> P(c)) <=>
+                            forall x. ((~P(a) \\/ P(x) \\/ P(c)) /\\ (~P(a) \\/ ~P(b) \\/ P(c)))");
         assert!(result.is_ok());
     }
 
@@ -394,19 +392,19 @@ mod test {
     
     #[test]
     fn pelletier_36() {
-        let result = prove("((((forall x. exists y. F(x, y)) /\\ 
-                               (forall x. exists y. G(x, y))) /\\ 
-                               (forall x. forall y. ((F(x, y) \\/ G(x, y)) ==> forall z. ((F(y, z) \\/ G(y, z)) ==> H(x, z)))))
-                                ==> forall x. exists y. H(x, y))");
+        let result = prove("forall x. exists y. F(x, y) /\\ 
+                            forall x. exists y. G(x, y) /\\ 
+                            forall x. forall y. (F(x, y) \\/ G(x, y) ==> forall z. (F(y, z) \\/ G(y, z) ==> H(x, z)))
+                            ==> forall x. exists y. H(x, y)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_37() {
-        let result = prove("((((forall x. exists y. F(x, y)) /\\ 
-                               (forall x. exists y. G(x, y))) /\\ 
-                               (forall x. forall y. ((F(x, y) \\/ G(x, y)) ==> forall z. ((F(y, z) \\/ G(y, z)) ==> H(x, z)))))
-                                ==> forall x. exists y. H(x, y))");
+        let result = prove("forall z. exists w. forall x. exists y. ((P(x, z) ==> P(y, w)) /\\ P(y, z) /\\ (P(y, w) ==> exists u. Q(u, w))) /\\
+                            forall x. forall z. (~P(x, z) ==> exists y. Q(y, z)) /\\
+                            (exists x. exists y. Q(x, y) ==> forall x. R(x, x))
+                            ==> forall x. exists y. R(x, y)");
         assert!(result.is_ok());
     }
 
@@ -428,22 +426,22 @@ mod test {
     
     #[test]
     fn pelletier_40() {
-        let result = prove("((exists y. forall x. (F(x, y) <=> F(x, x))) 
-                              ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x)))");
+        let result = prove("exists y. forall x. (F(x, y) <=> F(x, x)) 
+                            ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_40_errata() {
-        let result = prove("((exists y. forall x. (F(x, y) <=> F(x, x))) 
-                              ==> ~forall x. exists y. forall z. (F(z, y) <=> ~F(z, x)))");
+        let result = prove("exists y. forall x. (F(x, y) <=> F(x, x)) 
+                            ==> ~forall x. exists y. forall z. (F(z, y) <=> ~F(z, x))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_41() {
-        let result = prove("(forall z. exists y. forall x. (F(x, y) <=> (F(x, z) /\\ ~F(x, x))) 
-                             ==> ~exists z. forall x. F(x, z))");
+        let result = prove("forall z. exists y. forall x. (F(x, y) <=> F(x, z) /\\ ~F(x, x)) 
+                            ==> ~exists z. forall x. F(x, z)");
         assert!(result.is_ok());
     }
     
@@ -521,7 +519,9 @@ mod test {
     
     #[test]
     fn pelletier_48() {
-        let result = prove("(((a() = b() \\/ c() = d()) /\\ (a() = c() \\/ b() = d())) ==> (a() = d() \\/ b() = c()))");
+        let result = prove("(a() = b() \\/ c() = d()) /\\ 
+                            (a() = c() \\/ b() = d()) 
+                            ==> a() = d() \\/ b() = c()");
         assert!(result.is_ok());
     }
     
@@ -595,8 +595,7 @@ mod test {
     
     #[test]
     fn pelletier_56() {
-        let result = prove("((forall x. ((exists y. (F(y) /\\ x = f(y))) ==> F(x))) <=>
-                              forall x. (F(x) ==> F(f(x))))");
+        let result = prove("forall x. (exists y. (F(y) /\\ x = f(y)) ==> F(x)) <=> forall x. (F(x) ==> F(f(x)))");
         assert!(result.is_ok());
     }
     
@@ -610,26 +609,26 @@ mod test {
     
     #[test]
     fn pelletier_58() {
-        let result = prove("((forall x. forall y. f(x) = g(y)) ==> (forall x. forall y. f(f(x)) = f(g(y))))");
+        let result = prove("forall x. forall y. f(x) = g(y) ==> forall x. forall y. f(f(x)) = f(g(y))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_59() {
-        let result = prove("((forall x. (F(x) <=> ~F(f(x)))) ==> (exists x. F(x) /\\ ~F(f(x))))");
+        let result = prove("(forall x. (F(x) <=> ~F(f(x)))) ==> exists x. (F(x) /\\ ~F(f(x)))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_60() {
-        let result = prove("forall x. (F(x, f(x)) <=> exists y. ((forall z. (F(z, y) ==> (F(z, f(x))))) /\\ F(x, y)))");
+        let result = prove("forall x. (F(x, f(x)) <=> exists y. (forall z. (F(z, y) ==> F(z, f(x))) /\\ F(x, y)))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_61() {
-        let result = prove("((forall x. forall y. forall z. f(x, f(y, z)) = f(f(x, y), z))
-                              ==> forall x. forall y. forall z. forall w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w))");
+        let result = prove("forall x. forall y. forall z. f(x, f(y, z)) = f(f(x, y), z)
+                            ==> forall x. forall y. forall z. forall w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w)");
         assert!(result.is_ok());
     }
     
@@ -661,9 +660,9 @@ mod test {
     
     #[test]
     fn pelletier_65() {
-        let result = prove("(((forall x. forall y. forall z. f(f(x, y), z) = f(x, f(y, z))) /\\ 
-                              (forall x. f(a(), x) = x))
-                               ==> ((forall x. f(x, x) = a()) ==> forall x. forall y. f(x, y) = f(y, x)))");
+        let result = prove("forall x. forall y. forall z. f(f(x, y), z) = f(x, f(y, z)) /\\ 
+                            forall x. f(a(), x) = x
+                            ==> ((forall x. f(x, x) = a()) ==> forall x. forall y. f(x, y) = f(y, x))");
         assert!(result.is_ok());
     }
 
@@ -685,22 +684,24 @@ mod test {
     
     #[test]
     fn djikstra() {
-        let result = prove("(((forall x. f(f(x)) = f(x)) /\\ (forall x. exists y. f(y) = x)) ==> forall x. f(x) = x)");
+        let result = prove("forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
+                            ==> forall x. f(x) = x");
         assert!(result.is_ok());
     }
     
     #[test]
     fn djikstra_negated() {
-        let result = prove("(((forall x. f(f(x)) = f(x)) /\\ (forall x. exists y. f(y) = x)) ==> ~forall x. f(x) = x)");
+        let result = prove("forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
+                            ==> ~forall x. f(x) = x");
         assert!(result.is_err());
     }
     
     #[test]
     fn ewd() {
-        let result = prove("((((forall x. (F(x) ==> G(x))) /\\ 
-                              (exists x. F(x))) /\\
-                              (forall x. forall y. ((G(x) /\\ G(y)) ==> x = y)))
-                               ==> forall y. (G(y) ==> F(y)))");
+        let result = prove("forall x. (F(x) ==> G(x)) /\\ 
+                            exists x. F(x) /\\
+                            forall x. forall y. (G(x) /\\ G(y) ==> x = y)
+                            ==> forall y. (G(y) ==> F(y))");
         assert!(result.is_ok());
     }
     
@@ -713,10 +714,10 @@ mod test {
     
     #[test]
     fn group_x_times_x_equals_1_abelian() {
-        let result = prove("(((forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z)) /\\
-                             ((forall x. mult(i(), x) = x) /\\
-                              (forall x. mult(i(x), x) = i())))
-                               ==> (forall x. mult(x, i()) = x))");
+        let result = prove("forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z) /\\
+                            forall x. mult(i(), x) = x /\\
+                            forall x. mult(i(x), x) = i()
+                            ==> forall x. mult(x, i()) = x");
         assert!(result.is_ok());
     }
 } 
