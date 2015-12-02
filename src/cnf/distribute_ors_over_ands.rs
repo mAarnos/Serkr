@@ -20,8 +20,8 @@
 /// Distributes ORs inwards over ANDs.
 pub fn distribute_ors_over_ands(f: Formula) -> Formula {
     match f {
-        Formula::And(box p, box q) => Formula::And(box distribute_ors_over_ands(p), box distribute_ors_over_ands(q)),
-        Formula::Or(box p, box q) => distribute_or(p, q),
+        Formula::And(p, q) => Formula::And(Box::new(distribute_ors_over_ands(*p)), Box::new(distribute_ors_over_ands(*q))),
+        Formula::Or(p, q) => distribute_or(*p, *q),
         _ => f,
     }
 }
@@ -30,10 +30,10 @@ fn distribute_or(f1: Formula, f2: Formula) -> Formula {
     let new_f1 = distribute_ors_over_ands(f1);
     let new_f2 = distribute_ors_over_ands(f2);
     match (new_f1, new_f2) {
-        (p, Formula::And(box q, box r)) | 
-        (Formula::And(box q, box r), p) => Formula::And(box distribute_ors_over_ands(Formula::Or(box p.clone(), box q)),
-                                                        box distribute_ors_over_ands(Formula::Or(box p, box r))),
-        (p, q) => Formula::Or(box p, box q)
+        (p, Formula::And(q, r)) | 
+        (Formula::And(q, r), p) => Formula::And(Box::new(distribute_ors_over_ands(Formula::Or(Box::new(p.clone()), q))),
+                                                Box::new(distribute_ors_over_ands(Formula::Or(Box::new(p), r)))),
+        (p, q) => Formula::Or(Box::new(p), Box::new(q))
     }
 }
 

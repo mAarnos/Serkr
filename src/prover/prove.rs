@@ -92,7 +92,7 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
 
 /// Attempts to prove the FOL formula passed in.
 pub fn prove(s: &str) -> Result<bool, &'static str> {
-    let cnf_f = cnf(Formula::Not(box parse(s).unwrap()));
+    let cnf_f = cnf(Formula::Not(Box::new(parse(s).unwrap())));
     if cnf_f == Formula::False {
         Ok(true)
     } else if cnf_f == Formula::True {

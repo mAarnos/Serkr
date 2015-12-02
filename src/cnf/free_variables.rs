@@ -16,17 +16,17 @@
 */
 
 use utils::formula::{Term, Formula};
-use utils::set::Set;
+use std::collections::hash_set::HashSet;
 
 /// Used for checking if a term t is free in a formula f.
 pub fn free_in(f: &Formula, t: &Term) -> bool {
     match *f {
         Formula::True | Formula::False => false,
         Formula::Predicate(_, ref args) => args.iter().any(|x| occurs_in(x, t)),
-        Formula::Not(box ref p) => free_in(&p, t),
-        Formula::And(box ref p, box ref q) | Formula::Or(box ref p, box ref q) | 
-        Formula::Implies(box ref p, box ref q) | Formula::Equivalent(box ref p, box ref q) => free_in(&p, t) || free_in(&q, t),
-        Formula::Forall(ref s, box ref p) | Formula::Exists(ref s, box ref p) => !occurs_in(&Term::Variable(s.clone()), t) && free_in(&p, t),
+        Formula::Not(ref p) => free_in(&p, t),
+        Formula::And(ref p, ref q) | Formula::Or(ref p, ref q) | 
+        Formula::Implies(ref p, ref q) | Formula::Equivalent(ref p, ref q) => free_in(&p, t) || free_in(&q, t),
+        Formula::Forall(ref s, ref p) | Formula::Exists(ref s, ref p) => !occurs_in(&Term::Variable(s.clone()), t) && free_in(&p, t),
     }
 }
 
@@ -39,21 +39,21 @@ pub fn occurs_in(t: &Term, s: &Term) -> bool {
 }
 
 /// Get the free variables of a formula.
-pub fn fv(f: Formula) -> Set<String> {
+pub fn fv(f: Formula) -> HashSet<String> {
     match f {
-        Formula::True | Formula::False => Set::new(),
+        Formula::True | Formula::False => HashSet::new(),
         Formula::Predicate(_, params) => params.into_iter().flat_map(fvt).collect(),
-        Formula::Not(box p) => fv(p),
-        Formula::And(box p, box q) | Formula::Or(box p, box q) | 
-        Formula::Implies(box p, box q) | Formula::Equivalent (box p, box q) => fv(p).union(&fv(q)).cloned().collect(),
-        Formula::Forall(s, box p) | Formula::Exists(s, box p) => { let mut lhs = fv(p); lhs.remove(&s); lhs },
+        Formula::Not(p) => fv(*p),
+        Formula::And(p, q) | Formula::Or(p, q) | 
+        Formula::Implies(p, q) | Formula::Equivalent (p, q) => fv(*p).union(&fv(*q)).cloned().collect(),
+        Formula::Forall(s, p) | Formula::Exists(s, p) => { let mut lhs = fv(*p); lhs.remove(&s); lhs },
     }
 }
 
 /// Get the free variables of a term.
-pub fn fvt(t: Term) -> Set<String> {
+pub fn fvt(t: Term) -> HashSet<String> {
     match t {
-        Term::Variable(s) => Set::singleton(s),
+        Term::Variable(s) => {let mut set = HashSet::new(); set.insert(s); set },
         Term::Function(_, params) => params.into_iter().flat_map(fvt).collect(),
     }
 }
@@ -67,7 +67,7 @@ mod test {
     fn fv_1() {
         let f = parse("P(f(g(x, y), g(y, z)))").unwrap();
         let free_variables = fv(f);
-        assert_eq!(free_variables.cardinality(), 3);
+        assert_eq!(free_variables.len(), 3);
         assert!(free_variables.contains("x"));
         assert!(free_variables.contains("y"));
         assert!(free_variables.contains("z"));
@@ -77,7 +77,7 @@ mod test {
     fn fv_2() {
         let f = parse("exists v. (P(c2) /\\ forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z)))").unwrap();
         let free_variables = fv(f);
-        assert_eq!(free_variables.cardinality(), 3);
+        assert_eq!(free_variables.len(), 3);
         assert!(free_variables.contains("c"));
         assert!(free_variables.contains("c2"));
         assert!(free_variables.contains("z"));

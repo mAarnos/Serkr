@@ -25,22 +25,22 @@ pub fn skolemize(f: Formula) -> Formula {
     let mut n2 = 0;
     let renamed_f = rename(f, &mut n1);
     let skolemized_f = skolemize1(renamed_f, &mut n2);
-    assert!(!contains_existential_quantifiers(skolemized_f.clone()));
+    assert!(!contains_existential_quantifiers(&skolemized_f));
     skolemized_f
 }
 
 fn skolemize1(f: Formula, n: &mut isize) -> Formula {
     match f {
-        Formula::And(box p, box q) => Formula::And(box skolemize1(p, n), box skolemize1(q, n)),
-        Formula::Or(box p, box q) => Formula::Or(box skolemize1(p, n), box skolemize1(q, n)),
-        Formula::Forall(s, box p) => Formula::Forall(s, box skolemize1(p, n)),
-        Formula::Exists(s, box p) => skolemize_exists(s, p, n),
+        Formula::And(p, q) => Formula::And(Box::new(skolemize1(*p, n)), Box::new(skolemize1(*q, n))),
+        Formula::Or(p, q) => Formula::Or(Box::new(skolemize1(*p, n)), Box::new(skolemize1(*q, n))),
+        Formula::Forall(s, p) => Formula::Forall(s, Box::new(skolemize1(*p, n))),
+        Formula::Exists(s, p) => skolemize_exists(s, *p, n),
         _ => f,
     }
 }
 
 fn skolemize_exists(s: String, f: Formula, n: &mut isize) -> Formula {
-    let xs = fv(Formula::Exists(s.clone(), box f.clone())); 
+    let xs = fv(Formula::Exists(s.clone(), Box::new(f.clone()))); 
     let sf = Term::Function(format!("sf{}", *n), xs.into_iter().map(Term::Variable).collect()); 
     *n += 1;
     skolemize1(tsubst(f, &s, sf), n)
@@ -49,11 +49,11 @@ fn skolemize_exists(s: String, f: Formula, n: &mut isize) -> Formula {
 fn tsubst(f: Formula, from: &str, to: Term) -> Formula {
     match f {
         Formula::Predicate(s, terms) => Formula::Predicate(s, terms.into_iter().map(|term| tsubst_variable(term, from, to.clone())).collect()),
-        Formula::Not(box p) => Formula::Not(box tsubst(p, from, to)),
-        Formula::And(box p, box q) => Formula::And(box tsubst(p, from, to.clone()), box tsubst(q, from, to)),
-        Formula::Or(box p, box q) => Formula::Or(box tsubst(p, from, to.clone()), box tsubst(q, from, to)),
-        Formula::Forall(s, box p) => Formula::Forall(s, box tsubst(p, from, to)),
-        Formula::Exists(s, box p) => Formula::Exists(s, box tsubst(p, from, to)),
+        Formula::Not(p) => Formula::Not(Box::new(tsubst(*p, from, to))),
+        Formula::And(p, q) => Formula::And(Box::new(tsubst(*p, from, to.clone())), Box::new(tsubst(*q, from, to))),
+        Formula::Or(p, q) => Formula::Or(Box::new(tsubst(*p, from, to.clone())), Box::new(tsubst(*q, from, to))),
+        Formula::Forall(s, p) => Formula::Forall(s, Box::new(tsubst(*p, from, to))),
+        Formula::Exists(s, p) => Formula::Exists(s, Box::new(tsubst(*p, from, to))),
         _ => f
     }
 }
@@ -66,10 +66,10 @@ fn tsubst_variable(t: Term, from: &str, to: Term) -> Term {
 }
 
 /// Checks if a given formula contains existential quantifiers. After skolemization this should not happen at all.
-fn contains_existential_quantifiers(f: Formula) -> bool {
-    match f {
-        Formula::And(box p, box q) | Formula::Or(box p, box q) => contains_existential_quantifiers(p) || contains_existential_quantifiers(q),
-        Formula::Forall(_, box p) => contains_existential_quantifiers(p),
+fn contains_existential_quantifiers(f: &Formula) -> bool {
+    match *f {
+        Formula::And(ref p, ref q) | Formula::Or(ref p, ref q) => contains_existential_quantifiers(&p) || contains_existential_quantifiers(&q),
+        Formula::Forall(_, ref p) => contains_existential_quantifiers(&p),
         Formula::Exists(_, _) => true,
         _ => false
     }

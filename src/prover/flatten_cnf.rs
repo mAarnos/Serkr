@@ -49,9 +49,12 @@ pub fn flatten_cnf(f: Formula) -> (Vec<Clause>, RenamingInfo) {
 fn collect(f: Formula, ri: &mut RenamingInfo) -> Vec<Clause> {
     match f {
         Formula::Predicate(s, args) => vec!(Clause::new(vec!(create_literal(false, s, args, ri)))),
-        Formula::Not(box Formula::Predicate(ref s, ref args)) => vec!(Clause::new(vec!(create_literal(true, s.clone(), args.clone(), ri)))),
+        Formula::Not(p) => match *p {
+                               Formula::Predicate(ref s, ref args) =>  vec!(Clause::new(vec!(create_literal(true, s.clone(), args.clone(), ri)))),
+                               _ => panic!("The CNF transformation failed due to some kind of a bug")
+                           },
         Formula::Or(_, _) => vec!(collect_or(f, ri)),
-        Formula::And(box p, box q) => { let mut left = collect(p, ri); left.append(&mut collect(q, ri)); left }
+        Formula::And(p, q) => { let mut left = collect(*p, ri); left.append(&mut collect(*q, ri)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
@@ -60,8 +63,11 @@ fn collect(f: Formula, ri: &mut RenamingInfo) -> Vec<Clause> {
 fn collect_or(f: Formula, ri: &mut RenamingInfo) -> Clause {
     match f {
         Formula::Predicate(s, args) => Clause::new(vec!(create_literal(false, s, args, ri))),
-        Formula::Not(box Formula::Predicate(ref s, ref args)) => Clause::new(vec!(create_literal(true, s.clone(), args.clone(), ri))),
-        Formula::Or(box p, box q) => { let mut left = collect_or(p, ri); left.add_literals(collect_or(q, ri)); left }
+        Formula::Not(p) => match *p {
+                               Formula::Predicate(ref s, ref args) =>  Clause::new(vec!(create_literal(true, s.clone(), args.clone(), ri))),
+                               _ => panic!("The CNF transformation failed due to some kind of a bug")
+                           },
+        Formula::Or(p, q) => { let mut left = collect_or(*p, ri); left.add_literals(collect_or(*q, ri)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }

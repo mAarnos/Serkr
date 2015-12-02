@@ -29,13 +29,13 @@ pub fn simplify_formula(f: Formula) -> Formula {
 /// The main function for simplifying the formula from bottom up.
 fn simplify(f: Formula) -> Formula {
     match f { 
-        Formula::Not(box p) => simplify_not(p),
-        Formula::And(box p, box q) => simplify_and(p, q),
-        Formula::Or(box p, box q) => simplify_or(p, q),
-        Formula::Implies(box p, box q) => simplify_implies(p, q),
-        Formula::Equivalent(box p, box q) => simplify_equivalent(p, q),
-        Formula::Forall(s, box p) => simplify_quantifier(s, p, true),
-        Formula::Exists(s, box p) => simplify_quantifier(s, p, false),
+        Formula::Not(p) => simplify_not(*p),
+        Formula::And(p, q) => simplify_and(*p, *q),
+        Formula::Or(p, q) => simplify_or(*p, *q),
+        Formula::Implies(p, q) => simplify_implies(*p, *q),
+        Formula::Equivalent(p, q) => simplify_equivalent(*p, *q),
+        Formula::Forall(s, p) => simplify_quantifier(s, *p, true),
+        Formula::Exists(s, p) => simplify_quantifier(s, *p, false),
         _ => f,
     }
 }
@@ -47,7 +47,7 @@ fn simplify_not(f: Formula) -> Formula {
     match simplified_f {
         Formula::True => Formula::False,
         Formula::False => Formula::True,
-        _ => Formula::Not(box simplified_f),
+        _ => Formula::Not(Box::new(simplified_f)),
     }
 }
 
@@ -60,8 +60,8 @@ fn simplify_and(f1: Formula, f2: Formula) -> Formula {
     match simplified_f {
         (p, Formula::True) | (Formula::True, p) => p,
         (_, Formula::False) | (Formula::False, _) => Formula::False,
-        (p, Formula::Not(box q)) | (Formula::Not(box q), p) => if p == q { Formula::False } else { Formula::And(box p, box Formula::Not(box q)) },
-        (p, q) => if p == q { p } else { Formula::And(box p, box q) },
+        (p, Formula::Not(q)) | (Formula::Not(q), p) => if p == *q { Formula::False } else { Formula::And(Box::new(p), Box::new(Formula::Not(q))) },
+        (p, q) => if p == q { p } else { Formula::And(Box::new(p), Box::new(q)) },
     }
 }
 
@@ -74,8 +74,8 @@ fn simplify_or(f1: Formula, f2: Formula) -> Formula {
     match simplified_f {
         (_, Formula::True) | (Formula::True, _) => Formula::True,
         (p, Formula::False) | (Formula::False, p) => p,
-        (p, Formula::Not(box q)) | (Formula::Not(box q), p) => if p == q { Formula::True } else { Formula::Or(box p, box Formula::Not(box q)) },
-        (p, q) => if p == q { p } else { Formula::Or(box p, box q) },
+        (p, Formula::Not(q)) | (Formula::Not(q), p) => if p == *q { Formula::True } else { Formula::Or(Box::new(p), Box::new(Formula::Not(q))) },
+        (p, q) => if p == q { p } else { Formula::Or(Box::new(p), Box::new(q)) },
     }
 }
 
@@ -89,9 +89,9 @@ fn simplify_implies(f1: Formula, f2: Formula) -> Formula {
     match simplified_f {
         (_, Formula::True) => Formula::True,
         (Formula::True, p) => p,
-        (p, Formula::False) => simplify(Formula::Not(box p)),
+        (p, Formula::False) => simplify(Formula::Not(Box::new(p))),
         (Formula::False, _) => Formula::True,
-        (p, q) => if p == q { Formula::True } else { Formula::Implies(box p, box q) },
+        (p, q) => if p == q { Formula::True } else { Formula::Implies(Box::new(p), Box::new(q)) },
     }
 }
 
@@ -102,8 +102,8 @@ fn simplify_equivalent(f1: Formula, f2: Formula) -> Formula {
     let simplified_f = (simplify(f1), simplify(f2));
     match simplified_f {
         (p, Formula::True) | (Formula::True, p) => p,
-        (p, Formula::False) | (Formula::False, p) => simplify(Formula::Not(box p)),
-        (p, q) => if p == q { Formula::True } else { Formula::Equivalent(box p, box q) },
+        (p, Formula::False) | (Formula::False, p) => simplify(Formula::Not(Box::new(p))),
+        (p, q) => if p == q { Formula::True } else { Formula::Equivalent(Box::new(p), Box::new(q)) },
     }
 }
 
@@ -112,9 +112,9 @@ fn simplify_quantifier(s: String, f: Formula, forall: bool) -> Formula {
     let simplified_f = simplify(f);
     if free_in(&simplified_f, &Term::Variable(s.clone())) {
         if forall {
-            Formula::Forall(s, box simplified_f)
+            Formula::Forall(s, Box::new(simplified_f))
         } else {
-            Formula::Exists(s, box simplified_f)
+            Formula::Exists(s, Box::new(simplified_f))
         }   
     } else {
         simplified_f
@@ -136,13 +136,13 @@ fn contains_true_or_false(f: &Formula) -> bool {
         Formula::True => true,
         Formula::False => true,
         Formula::Predicate(_, _) => false,
-        Formula::Not(box ref p) => contains_true_or_false(p),
-        Formula::And(box ref p, box ref q) | 
-        Formula::Or(box ref p, box ref q) |
-        Formula::Implies(box ref p, box ref q) | 
-        Formula::Equivalent(box ref p, box ref q) => contains_true_or_false(p) || contains_true_or_false(q), 
-        Formula::Forall(_, box ref p) | 
-        Formula::Exists(_, box ref p) => contains_true_or_false(p),
+        Formula::Not(ref p) => contains_true_or_false(p),
+        Formula::And(ref p, ref q) | 
+        Formula::Or(ref p, ref q) |
+        Formula::Implies(ref p, ref q) | 
+        Formula::Equivalent(ref p, ref q) => contains_true_or_false(p) || contains_true_or_false(q), 
+        Formula::Forall(_, ref p) | 
+        Formula::Exists(_, ref p) => contains_true_or_false(p),
     }
 }
 

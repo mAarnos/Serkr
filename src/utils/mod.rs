@@ -24,8 +24,5 @@ pub mod macros;
 /// Contains a stopwatch-type timer for measuring time during program execution.
 pub mod stopwatch;
 
-/// Contains a (more mathematical) set data structure (than HashSet).
-pub mod set;
-
 /// Contains definitions of a FOL term and formula.
 pub mod formula;

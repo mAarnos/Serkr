@@ -20,9 +20,9 @@
 /// Move all universal quantifiers outwards.
 pub fn pull_out_quantifiers(f: Formula) -> Formula {
     match f {
-        Formula::And(box p, box q) => pull_out_quantifiers_and_or(p, q, true),
-        Formula::Or(box p, box q) => pull_out_quantifiers_and_or(p, q, false),
-        Formula::Forall(s, box p) => Formula::Forall(s, box pull_out_quantifiers(p)),
+        Formula::And(p, q) => pull_out_quantifiers_and_or(*p, *q, true),
+        Formula::Or(p, q) => pull_out_quantifiers_and_or(*p, *q, false),
+        Formula::Forall(s, p) => Formula::Forall(s, Box::new(pull_out_quantifiers(*p))),
         _ => f,
     }
 }
@@ -32,17 +32,17 @@ fn pull_out_quantifiers_and_or(f1: Formula, f2: Formula, and_formula: bool) -> F
     let pulled_out_f2 = pull_out_quantifiers(f2);
     
     match (pulled_out_f1, pulled_out_f2) {
-        (Formula::Forall(s, box p), q) | 
-        (q, Formula::Forall(s, box p)) => Formula::Forall(s, box pull_out_quantifiers(and_or_formula(p, q, and_formula))),
+        (Formula::Forall(s, p), q) | 
+        (q, Formula::Forall(s, p)) => Formula::Forall(s, Box::new(pull_out_quantifiers(and_or_formula(*p, q, and_formula)))),
         (p, q) => and_or_formula(p, q, and_formula),
     }
 }
 
 fn and_or_formula(f1: Formula, f2: Formula, and_formula: bool) -> Formula {
     if and_formula {
-        Formula::And(box f1, box f2)
+        Formula::And(Box::new(f1), Box::new(f2))
     } else {
-        Formula::Or(box f1, box f2)
+        Formula::Or(Box::new(f1), Box::new(f2))
     }
 }
 

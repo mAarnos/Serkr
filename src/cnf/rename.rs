@@ -20,11 +20,11 @@ use utils::formula::{Term, Formula};
 /// Renames variables so that different occurences of quantifiers bind different variables.
 pub fn rename(f: Formula, n: &mut isize) -> Formula {
     match f {
-        Formula::Not(box p) => Formula::Not(box rename(p, n)),
-        Formula::And(box p, box q) => Formula::And(box rename(p, n), box rename(q, n)),
-        Formula::Or(box p, box q) => Formula::Or(box rename(p, n), box rename(q, n)),
-        Formula::Forall(s, box p) => rename_quantifier(s, p, n, true),
-        Formula::Exists(s, box p) => rename_quantifier(s, p, n, false),
+        Formula::Not(p) => Formula::Not(Box::new(rename(*p, n))),
+        Formula::And(p, q) => Formula::And(Box::new(rename(*p, n)), Box::new(rename(*q, n))),
+        Formula::Or(p, q) => Formula::Or(Box::new(rename(*p, n)), Box::new(rename(*q, n))),
+        Formula::Forall(s, p) => rename_quantifier(s, *p, n, true),
+        Formula::Exists(s, p) => rename_quantifier(s, *p, n, false),
         _ => f
     }
 }
@@ -34,9 +34,9 @@ fn rename_quantifier(s: String, p: Formula, n: &mut isize, universal_quantifier:
     *n += 1;
     let renamed_p = rename(rename_variable(p, &s, &new_var), n);
     if universal_quantifier {
-        Formula::Forall(new_var, box renamed_p)
+        Formula::Forall(new_var, Box::new(renamed_p))
     } else {
-        Formula::Exists(new_var, box renamed_p)
+        Formula::Exists(new_var, Box::new(renamed_p))
     }
 }
 
@@ -45,11 +45,11 @@ fn rename_quantifier(s: String, p: Formula, n: &mut isize, universal_quantifier:
 fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
     match f {
         Formula::Predicate(s, terms) => Formula::Predicate(s, terms.into_iter().map(|t| rename_variable_in_term(t, from, to)).collect()),
-        Formula::Not(box p) => Formula::Not(box rename_variable(p, from, to)),
-        Formula::And(box p, box q) => Formula::And(box rename_variable(p, from, to), box rename_variable(q, from, to)),
-        Formula::Or(box p, box q) => Formula::Or(box rename_variable(p, from, to), box rename_variable(q, from, to)),
-        Formula::Forall(s, box p) => Formula::Forall(if s == from { to.to_owned() } else { s }, box rename_variable(p, from, to)),
-        Formula::Exists(s, box p) => Formula::Exists(if s == from { to.to_owned() } else { s }, box rename_variable(p, from, to)),
+        Formula::Not(p) => Formula::Not(Box::new(rename_variable(*p, from, to))),
+        Formula::And(p, q) => Formula::And(Box::new(rename_variable(*p, from, to)), Box::new(rename_variable(*q, from, to))),
+        Formula::Or(p, q) => Formula::Or(Box::new(rename_variable(*p, from, to)), Box::new(rename_variable(*q, from, to))),
+        Formula::Forall(s, p) => Formula::Forall(if s == from { to.to_owned() } else { s }, Box::new(rename_variable(*p, from, to))),
+        Formula::Exists(s, p) => Formula::Exists(if s == from { to.to_owned() } else { s }, Box::new(rename_variable(*p, from, to))),
         _ => f
     }
 }

@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::Formula;
+use utils::formula::Formula;
 use cnf::simplify::simplify_formula;
 
 /// Converts a formula into an equivalent negation normal form.
@@ -33,17 +33,17 @@ pub fn nnf(f: Formula) -> Formula {
 /// Eliminates all implications and equivalences in a formula.
 fn elim_imp_and_eq(f: Formula) -> Formula {
     match f {
-        Formula::Not(box p) => Formula::Not(box elim_imp_and_eq(p)),
-        Formula::And(box p, box q) => Formula::And(box elim_imp_and_eq(p), box elim_imp_and_eq(q)),
-        Formula::Or(box p, box q) => Formula::Or(box elim_imp_and_eq(p), box elim_imp_and_eq(q)),
-        Formula::Implies(box p, box q) => Formula::Or(box Formula::Not(box elim_imp_and_eq(p)), 
-                                                      box elim_imp_and_eq(q)),
-        Formula::Equivalent(box p, box q) => Formula::And(box Formula::Or(box elim_imp_and_eq(p.clone()), 
-                                                                          box Formula::Not(box elim_imp_and_eq(q.clone()))), 
-                                                          box Formula::Or(box Formula::Not(box elim_imp_and_eq(p)), 
-                                                                          box elim_imp_and_eq(q))),
-        Formula::Forall(s, box p) => Formula::Forall(s, box elim_imp_and_eq(p)),
-        Formula::Exists(s, box p) => Formula::Exists(s, box elim_imp_and_eq(p)),
+        Formula::Not(p) => Formula::Not(Box::new(elim_imp_and_eq(*p))),
+        Formula::And(p, q) => Formula::And(Box::new(elim_imp_and_eq(*p)), Box::new(elim_imp_and_eq(*q))),
+        Formula::Or(p, q) => Formula::Or(Box::new(elim_imp_and_eq(*p)), Box::new(elim_imp_and_eq(*q))),
+        Formula::Implies(p, q) => Formula::Or(Box::new(Formula::Not(Box::new(elim_imp_and_eq(*p)))), 
+                                              Box::new(elim_imp_and_eq(*q))),
+        Formula::Equivalent(p, q) => Formula::And(Box::new(Formula::Or(Box::new(elim_imp_and_eq(*p.clone())), 
+                                                                       Box::new(Formula::Not(Box::new(elim_imp_and_eq(*q.clone())))))), 
+                                                  Box::new(Formula::Or(Box::new(Formula::Not(Box::new(elim_imp_and_eq(*p)))), 
+                                                                       Box::new(elim_imp_and_eq(*q))))),
+        Formula::Forall(s, p) => Formula::Forall(s, Box::new(elim_imp_and_eq(*p))),
+        Formula::Exists(s, p) => Formula::Exists(s, Box::new(elim_imp_and_eq(*p))),
         _ => f,
     }
 }
@@ -51,11 +51,11 @@ fn elim_imp_and_eq(f: Formula) -> Formula {
 /// Moves all NOTs inward by repeatedly applying De Morgan's laws and double negation elimination.
 fn move_nots_inward(f: Formula) -> Formula {
     match f {
-        Formula::Not(box p) => move_nots_inward_not(p),
-        Formula::And(box p, box q) => Formula::And(box move_nots_inward(p), box move_nots_inward(q)),
-        Formula::Or(box p, box q) => Formula::Or(box move_nots_inward(p), box move_nots_inward(q)),
-        Formula::Forall(s, box p) => Formula::Forall(s, box move_nots_inward(p)),
-        Formula::Exists(s, box p) => Formula::Exists(s, box move_nots_inward(p)),
+        Formula::Not(p) => move_nots_inward_not(*p),
+        Formula::And(p, q) => Formula::And(Box::new(move_nots_inward(*p)), Box::new(move_nots_inward(*q))),
+        Formula::Or(p, q) => Formula::Or(Box::new(move_nots_inward(*p)), Box::new(move_nots_inward(*q))),
+        Formula::Forall(s, p) => Formula::Forall(s, Box::new(move_nots_inward(*p))),
+        Formula::Exists(s, p) => Formula::Exists(s, Box::new(move_nots_inward(*p))),
         _ => f
     }
 }
@@ -67,14 +67,14 @@ fn move_nots_inward(f: Formula) -> Formula {
 /// "not exists x. p" can be rewritten to "forall x. not p".
 fn move_nots_inward_not(f: Formula) -> Formula {
     match f {
-        Formula::Not(box p) => move_nots_inward(p),
-        Formula::And(box p, box q) => Formula::Or(box move_nots_inward(Formula::Not(box p)), 
-                                                  box move_nots_inward(Formula::Not(box q))),
-        Formula::Or(box p, box q) => Formula::And(box move_nots_inward(Formula::Not(box p)), 
-                                                  box move_nots_inward(Formula::Not(box q))),
-        Formula::Forall(s, box p) => Formula::Exists(s, box move_nots_inward(Formula::Not(box p))),
-        Formula::Exists(s, box p) => Formula::Forall(s, box move_nots_inward(Formula::Not(box p))),
-        _ => Formula::Not(box move_nots_inward(f)),
+        Formula::Not(p) => move_nots_inward(*p),
+        Formula::And(p, q) => Formula::Or(Box::new(move_nots_inward(Formula::Not(p))), 
+                                          Box::new(move_nots_inward(Formula::Not(q)))),
+        Formula::Or(p, q) => Formula::And(Box::new(move_nots_inward(Formula::Not(p))), 
+                                          Box::new(move_nots_inward(Formula::Not(q)))),
+        Formula::Forall(s, p) => Formula::Exists(s, Box::new(move_nots_inward(Formula::Not(p)))),
+        Formula::Exists(s, p) => Formula::Forall(s, Box::new(move_nots_inward(Formula::Not(p)))),
+        _ => Formula::Not(Box::new(move_nots_inward(f))),
     }
 }
 
@@ -82,11 +82,14 @@ fn move_nots_inward_not(f: Formula) -> Formula {
 fn is_in_nnf(f: &Formula) -> bool {
     match *f {
         Formula::Predicate(_, _) => true,
-        Formula::Not(box Formula::Predicate(_, _)) => true,
-        Formula::And(box ref p, box ref q) |
-        Formula::Or(box ref p, box ref q) => is_in_nnf(p) && is_in_nnf(q),
-        Formula::Forall(_, box ref p) | 
-        Formula::Exists(_, box ref p) => is_in_nnf(p),
+        Formula::Not(ref p) => match **p {
+                               Formula::Predicate(_, _) => true,
+                               _ => false,
+                           },
+        Formula::And(ref p, ref q) |
+        Formula::Or(ref p, ref q) => is_in_nnf(p) && is_in_nnf(q),
+        Formula::Forall(_, ref p) | 
+        Formula::Exists(_, ref p) => is_in_nnf(p),
         _ => false,
     }
 }

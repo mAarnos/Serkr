@@ -20,7 +20,7 @@
 /// Drops all universal quantifiers from the start of a formula. 
 pub fn drop_universal_quantifiers(f: Formula) -> Formula {
     match f {
-        Formula::Forall(_, box p) => drop_universal_quantifiers(p),
+        Formula::Forall(_, p) => drop_universal_quantifiers(*p),
         _ => f,
     }
 }
@@ -28,9 +28,9 @@ pub fn drop_universal_quantifiers(f: Formula) -> Formula {
 /// Checks if the formula contains universal quantifiers.
 fn contains_universal_quantifiers(f: Formula) -> bool {
     match f {
-        Formula::And(box p, box q) | 
-        Formula::Or(box p, box q) => contains_universal_quantifiers(p) && 
-                                     contains_universal_quantifiers(q),
+        Formula::And(p, q) | 
+        Formula::Or(p, q) => contains_universal_quantifiers(*p) && 
+                             contains_universal_quantifiers(*q),
         Formula::Forall(_, _) => true,
         _ => false,
         

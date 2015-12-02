@@ -17,10 +17,6 @@
 
 //! Serkr is an automated theorem prover for first order logic.
 
-#![feature(box_patterns)]
-#![feature(box_syntax)]
-#![feature(hashmap_hasher)]
-
 // Some lints which are pretty useful.
 // Try to add "unstable_features" when possible.
 // We allow dead code due to it warning about things too much.
