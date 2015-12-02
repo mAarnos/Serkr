@@ -54,11 +54,6 @@ impl Term {
         self.sort_predicate
     }
     
-    /// Get the arguments of the term.
-    pub fn get_args(&self) -> Vec<Term> {
-        self.args.clone()
-    }
-    
     /// Get the arity of the term.
     pub fn get_arity(&self) -> usize {
         self.args.len()

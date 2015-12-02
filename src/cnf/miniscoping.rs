@@ -18,6 +18,7 @@
 use utils::formula::Formula;
 
 /// Moves quantifiers inwards as far as possible with the aim of minimizing the arity of skolem functions.
+#[allow(dead_code)]
 pub fn miniscope(_f: Formula) -> Formula {
     unimplemented!();
 }

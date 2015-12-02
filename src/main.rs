@@ -19,7 +19,6 @@
 
 // Some lints which are pretty useful.
 // Try to add "unstable_features" when possible.
-// We allow dead code due to it warning about things too much.
 #![deny(fat_ptr_transmutes,
         unused_extern_crates,
         variant_size_differences,
@@ -32,7 +31,6 @@
         unused_import_braces,
         unused_qualifications)]
 #![deny(warnings)]
-#![allow(dead_code)]
 
 // Clippy lints.
 // We allow len_zero due to rust-peg.
