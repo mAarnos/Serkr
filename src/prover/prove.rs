@@ -456,6 +456,17 @@ mod test {
                             forall x. ((~P(a) \\/ P(x) \\/ P(c)) /\\ (~P(a) \\/ ~P(b) \\/ P(c)))");
         assert!(result.is_ok());
     }
+    
+    /*
+    #[test]
+    fn pelletier_34() {
+        let result = prove("((exists x. forall y. P(x) <=> P(y)) <=>
+                             (exists x. Q(x) <=> forall y. Q(y))) <=>
+                            ((exists x. forall y. Q(x) <=> Q(y)) <=>
+                             (exists x. P(x) <=> forall y. P(y)))");
+        assert!(result.is_ok());
+    }
+    */
 
     #[test]
     fn pelletier_35() {
@@ -611,31 +622,30 @@ mod test {
     
     #[test]
     fn pelletier_50() {
-        let result = prove("((forall x. (F(a(), x) \\/ forall y. F(x, y))) ==> exists x. forall y. F(x, y))");
+        let result = prove("forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> exists x. forall y. F(x, y)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_50_negated() {
-        let result = prove("((forall x. (F(a(), x) \\/ forall y. F(x, y))) ==> ~exists x. forall y. F(x, y))");
+        let result = prove("~(forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> ~exists x. forall y. F(x, y))");
         assert!(result.is_err());
     }
     
     #[test]
     fn pelletier_51() {
-        let result = prove("((exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w)))
-                             ==> (exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))");
+        let result = prove("exists z. exists w. forall x. forall y. (F(x, y) <=> x = z /\\ y = w)
+                            ==> exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_52() {
-        let result = prove("((exists z. exists w. forall x. forall y. (F(x, y) <=> (x = z /\\ y = w)))
-                             ==> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w)))");
+        let result = prove("exists z. exists w. forall x. forall y. (F(x, y) <=> x = z /\\ y = w)
+                             ==> exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w)");
         assert!(result.is_ok());
     }
-
-    
+  
     /*
     #[test]
     fn pelletier_53() {
@@ -648,26 +658,25 @@ mod test {
     
     #[test]
     fn pelletier_54() {
-        let result = prove("((forall y. exists z. forall x. (F(x, z) <=> x = y)) 
-                              ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> 
-                                  exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y))))))");
+        let result = prove("forall y. exists z. forall x. (F(x, z) <=> x = y) 
+                            ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y)))))");
         assert!(result.is_ok());
     }
     
     #[test]
     fn pelletier_55() {
-        let result = prove("((((((((((((exists x. (L(x) /\\ K(x, a()))) /\\ 
-                                       (L(a()) /\\ (L(b()) /\\ L(c())))) /\\ 
-                                       (forall x. (L(x) ==> (x = a() \\/ (x = b() \\/ x = c()))))) /\\ 
-                                       (forall x. forall y. (K(x, y) ==> H(x, y)))) /\\ 
-                                       (forall x. forall y. (K(x, y) ==> ~R(x, y)))) /\\ 
-                                       (forall x. (H(a(), x) ==> ~H(c(), x)))) /\\ 
-                                       (forall x. (x <> b() ==> H(a(), x)))) /\\ 
-                                       (forall x. (~R(x, a()) ==> H(b(), x)))) /\\ 
-                                       (forall x. (H(a(), x) ==> H(b(), x)))) /\\ 
-                                       (forall x. exists y. ~H(x, y))) /\\ 
-                                       a() <> b())
-                                        ==> K(a(), a()))"); 
+        let result = prove("exists x. (L(x) /\\ K(x, a())) /\\ 
+                            L(a()) /\\ L(b()) /\\ L(c()) /\\ 
+                            forall x. (L(x) ==> (x = a() \\/ (x = b() \\/ x = c()))) /\\ 
+                            forall x. forall y. (K(x, y) ==> H(x, y)) /\\ 
+                            forall x. forall y. (K(x, y) ==> ~R(x, y)) /\\ 
+                            forall x. (H(a(), x) ==> ~H(c(), x)) /\\ 
+                            forall x. (x <> b() ==> H(a(), x)) /\\ 
+                            forall x. (~R(x, a()) ==> H(b(), x)) /\\ 
+                            forall x. (H(a(), x) ==> H(b(), x)) /\\ 
+                            forall x. exists y. ~H(x, y) /\\ 
+                            a() <> b()
+                            ==> K(a(), a())"); 
         assert!(result.is_ok());
     }
     
@@ -679,9 +688,9 @@ mod test {
     
     #[test]
     fn pelletier_57() {
-        let result = prove("(((F(f(a, b), f(b, c)) /\\ F(f(b, c), f(a, c))) /\\
-                               forall x. forall y. forall z. ((F(x, y) /\\ F(y, z)) ==> F(x, z))) 
-                               ==> F(f(a, b), f(a, c)))");
+        let result = prove("F(f(a(), b()), f(b(), c())) /\\ F(f(b(), c()), f(a(), c())) /\\
+                            forall x. forall y. forall z. (F(x, y) /\\ F(y, z) ==> F(x, z)) 
+                            ==> F(f(a(), b()), f(a(), c()))");
         assert!(result.is_ok());
     }
     
@@ -787,7 +796,7 @@ mod test {
     #[test]
     fn wishnu() {
         let result = prove("exists x. (x = f(g(x)) /\\ forall x1. (x1 = f(g(x1)) ==> x = x1)) <=>
-                            exists y. (y = f(g(y)) /\\ forall y1. (y1 = f(g(y1)) ==> y = y1))");
+                            exists y. (y = g(f(y)) /\\ forall y1. (y1 = g(f(y1)) ==> y = y1))");
         assert!(result.is_ok());
     }
     */
