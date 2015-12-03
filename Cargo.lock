@@ -2,7 +2,7 @@
 name = "serkr"
 version = "0.1.0"
 dependencies = [
- "clippy 0.0.27 (git+https://github.com/Manishearth/rust-clippy)",
+ "clippy 0.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-util 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "clippy"
 version = "0.0.27"
-source = "git+https://github.com/Manishearth/rust-clippy#b45745e9052f46eece3c0f8688ff5849ffd3a464"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "unicode-normalization 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

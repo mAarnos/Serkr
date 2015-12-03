@@ -39,6 +39,7 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     }
 }
 
+/// The main proof search loop.
 fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
     let lpo = LPO::new();
     let mut sw = Stopwatch::new();
@@ -78,7 +79,7 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
             // Forward subsumption.
             // inferred_clauses = inferred_clauses.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
             
-            // Finally add everything to the queue-
+            // Finally add everything to the queue.
             for x in inferred_clauses.into_iter() {
                 unused.push(x);
             }
@@ -707,8 +708,8 @@ mod test {
     
     #[test]
     fn wishnu() {
-        let result = prove("((exists x. (x = f(g(x)) /\\ (forall x1. x1 = f(g(x1)) ==> x = x1))) <=>
-                             (exists y. (y = f(g(y)) /\\ (forall y1. y1 = f(g(y1)) ==> y = y1))))");
+        let result = prove("exists x. (x = f(g(x)) /\\ forall x1. (x1 = f(g(x1)) ==> x = x1)) <=>
+                            exists y. (y = f(g(y)) /\\ forall y1. (y1 = f(g(y1)) ==> y = y1))");
         assert!(result.is_ok());
     }
     

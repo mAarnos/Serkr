@@ -3,7 +3,7 @@ name = "serkr"
 version = "0.1.0"
 authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
-build = "build.rs" # <-- We added this and everything after!
+build = "build.rs" 
 
 [build-dependencies]
 lalrpop = "0.7.0"
@@ -15,7 +15,7 @@ lalrpop-util = "0.7.0"
 time = "*"
 
 [dependencies.clippy]
-git = "https://github.com/Manishearth/rust-clippy"
+clippy = "*"
 optional = true
 
 [features]

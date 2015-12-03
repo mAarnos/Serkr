@@ -18,7 +18,6 @@
 //! Serkr is an automated theorem prover for first order logic.
 
 // Some lints which are pretty useful.
-// Try to add "unstable_features" when possible.
 #![deny(fat_ptr_transmutes,
         unused_extern_crates,
         variant_size_differences,
@@ -30,10 +29,10 @@
         unsafe_code,
         unused_import_braces,
         unused_qualifications)]
+// Might as well make the warnings errors.
 #![deny(warnings)]
 
 // Clippy lints.
-// We allow len_zero due to rust-peg.
 // TODO: add clippy_pedantic 
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
