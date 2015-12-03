@@ -22,7 +22,9 @@ use prover::clause::Clause;
 use prover::literal_deletion::simplify;
 use prover::tautology_deletion::trivial;
 use prover::subsumption::subsumes_clause;
+use prover::term_ordering::TermOrdering;
 use prover::lpo::LPO;
+// use prover::kbo::KBO;
 use prover::superposition::superposition;
 use prover::equality_resolution::equality_resolution;
 use prover::equality_factoring::equality_factoring;
@@ -30,6 +32,34 @@ use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;
 use parser::internal_parser::parse;
+
+/// If the problem contains one unary function, this function finds it.
+#[allow(dead_code)]
+fn single_unary_function(clauses: &BinaryHeap<Clause>) -> Option<i64> {
+    let mut found_unary = None;
+    
+    for cl in clauses {
+        for l in cl.iter() {
+            if l.get_lhs().get_arity() == 1 {
+                if found_unary.is_some() {
+                    return None;
+                } else {
+                    found_unary = Some(l.get_lhs().get_id());
+                }
+            }
+            
+            if l.get_rhs().get_arity() == 1 {
+                if found_unary.is_some() {
+                    return None;
+                } else {
+                    found_unary = Some(l.get_rhs().get_id());
+                }
+            }
+        }
+    }
+    
+    found_unary
+}
 
 /// Rename a clause so that it contains no variables in common with any other clause we currently have.
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
@@ -40,8 +70,10 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 }
 
 /// The main proof search loop.
-fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt: i64) -> Result<bool, &'static str> {
-    let lpo = LPO::new();
+fn serkr_loop<T: TermOrdering>(term_ordering: &T, 
+                               mut used: Vec<Clause>, 
+                               mut unused: BinaryHeap<Clause>, 
+                               mut var_cnt: i64) -> Result<bool, &'static str> {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
@@ -65,11 +97,11 @@ fn serkr_loop(mut used: Vec<Clause>, mut unused: BinaryHeap<Clause>, mut var_cnt
             
             let mut inferred_clauses = Vec::new();
             for cl in &used {
-                superposition(&lpo, &chosen_clause, cl, &mut inferred_clauses);
-                superposition(&lpo, cl, &chosen_clause, &mut inferred_clauses);
+                superposition(term_ordering, &chosen_clause, cl, &mut inferred_clauses);
+                superposition(term_ordering, cl, &chosen_clause, &mut inferred_clauses);
             }
-            equality_resolution(&lpo, &chosen_clause, &mut inferred_clauses);
-            equality_factoring(&lpo, &chosen_clause, &mut inferred_clauses);
+            equality_resolution(term_ordering, &chosen_clause, &mut inferred_clauses);
+            equality_factoring(term_ordering, &chosen_clause, &mut inferred_clauses);
             
             // Simplify the generated clauses.
             for x in &mut inferred_clauses {
@@ -104,7 +136,15 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
                                                         .filter(|cl| !trivial(cl))
                                                         .map(|mut cl| { simplify(&mut cl); cl })
                                                         .collect();
-        serkr_loop(Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
+        /*
+        let term_ordering = if let Some(unary_func) = single_unary_function(&nontrivial_flattened_cnf_f) {
+                                KBO::new(true, unary_func)
+                            } else {
+                                KBO::new(false, 0)
+                            };
+        */          
+        let term_ordering = LPO::new();
+        serkr_loop(&term_ordering, Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
 }
 

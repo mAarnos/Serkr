@@ -50,9 +50,8 @@ fn main() {
     
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
-    let res = prover::prove::prove("((forall y. exists z. forall x. (F(x, z) <=> x = y)) 
-                              ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> 
-                                  exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y))))))");
+    let res = prover::prove::prove("exists x. (x = f(g(x)) /\\ forall x1. (x1 = f(g(x1)) ==> x = x1)) <=>
+                                    exists y. (y = f(g(y)) /\\ forall y1. (y1 = f(g(y1)) ==> y = y1))");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
