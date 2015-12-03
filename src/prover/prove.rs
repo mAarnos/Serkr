@@ -77,6 +77,9 @@ fn serkr_loop<T: TermOrdering>(term_ordering: &T,
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
+    
+    println!("Initial clauses: {}", unused.len());
+    
     sw.start();
     
     while let Some(mut chosen_clause) = unused.pop() {
@@ -92,7 +95,6 @@ fn serkr_loop<T: TermOrdering>(term_ordering: &T,
         
         if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
             // println!("Chosen clause: {:?}", chosen_clause);
-            used.push(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
             let mut inferred_clauses = Vec::new();
@@ -115,12 +117,51 @@ fn serkr_loop<T: TermOrdering>(term_ordering: &T,
             for x in inferred_clauses.into_iter() {
                 unused.push(x);
             }
+            used.push(chosen_clause.clone()); // Not quite sure if this should be here or before.
         }
         
         iterations += 1;
     }
     
     Err("No proof found.")
+}
+
+fn preprocess_clauses(clauses: Vec<Clause>) -> BinaryHeap<Clause> {
+    // First get rid of duplicates.
+    let mut new_clauses = clauses.into_iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>();
+    
+    // Then simplify the clauses as much as possible.
+    for cl in &mut new_clauses {
+        simplify(cl);
+    }
+    
+    // Remove subsumes clauses.
+    let mut newer_clauses = Vec::new();
+    while let Some(cl) = new_clauses.pop() {
+        // Backward subsumption.
+        let mut i = 0;
+        while i < newer_clauses.len() {
+            if subsumes_clause(&cl, &newer_clauses[i]) {
+                newer_clauses.swap_remove(i);
+                continue;
+            }
+            i += 1;
+        }
+        
+        // Forward subsumption.
+        let mut j = 0;
+        while j < new_clauses.len() {
+            if subsumes_clause(&cl, &new_clauses[j]) {
+                new_clauses.swap_remove(j);
+                continue;
+            }
+            j += 1;
+        }
+        
+        newer_clauses.push(cl);
+    }
+    
+    newer_clauses.into_iter().collect()
 }
 
 /// Attempts to prove the FOL formula passed in.
@@ -132,17 +173,14 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         Ok(false)
     } else {
         let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
-        let nontrivial_flattened_cnf_f = flattened_cnf_f.into_iter()
-                                                        .filter(|cl| !trivial(cl))
-                                                        .map(|mut cl| { simplify(&mut cl); cl })
-                                                        .collect();
+        let nontrivial_flattened_cnf_f = preprocess_clauses(flattened_cnf_f);
         /*
         let term_ordering = if let Some(unary_func) = single_unary_function(&nontrivial_flattened_cnf_f) {
                                 KBO::new(true, unary_func)
                             } else {
                                 KBO::new(false, 0)
-                            };
-        */          
+                            };    
+        */                    
         let term_ordering = LPO::new();
         serkr_loop(&term_ordering, Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
     }
@@ -452,9 +490,9 @@ mod test {
     /*
     #[test]
     fn pelletier_38() {
-        let result = prove("((forall x. ((P(a()) /\\ (P(x) ==> exists y. (P(y) /\\ R(x, y)))) ==> exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))) <=>
-                                  (forall x. ((~P(a()) \\/ (P(x) \\/ exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))) /\\ 
-                                              (~P(a()) \\/ (~exists y. (P(y) /\\ R(x, y)) \\/ exists z. exists w. (P(z) /\\ (R(x, w) /\\ R(w, z))))))))");
+        let result = prove("forall x. (P(a()) /\\ (P(x) ==> exists y. (P(y) /\\ R(x, y))) ==> exists z. exists w. (P(z) /\\ R(x, w) /\\ R(w, z))) <=>
+                            forall x. ((~P(a()) \\/ P(x) \\/ exists z. exists w. (P(z) /\\ R(x, w) /\\ R(w, z))) /\\
+                            (~P(a()) \\/ ~exists y. (P(y) /\\ R(x, y)) \\/ exists z. exists w. (P(z) /\\ R(x, w) /\\ R(w, z))))");
         assert!(result.is_ok());
     }
     */
@@ -492,13 +530,11 @@ mod test {
         assert!(result.is_ok());
     }
     
-    /*
     #[test]
     fn pelletier_42_negated() {
         let result = prove("exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
         assert!(result.is_err());
     }
-    */
 
     #[test]
     fn pelletier_43() {
@@ -598,6 +634,7 @@ mod test {
                              ==> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w)))");
         assert!(result.is_ok());
     }
+
     
     /*
     #[test]
@@ -746,12 +783,14 @@ mod test {
         assert!(result.is_ok());
     }
     
+    /*
     #[test]
     fn wishnu() {
         let result = prove("exists x. (x = f(g(x)) /\\ forall x1. (x1 = f(g(x1)) ==> x = x1)) <=>
                             exists y. (y = f(g(y)) /\\ forall y1. (y1 = f(g(y1)) ==> y = y1))");
         assert!(result.is_ok());
     }
+    */
     
     #[test]
     fn group_x_times_x_equals_1_abelian() {

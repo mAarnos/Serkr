@@ -210,5 +210,19 @@ mod test {
         
         assert!(subsumes_clause(&cl1, &cl2));
     }
+    
+    #[test]
+    fn subsumes_clause_4() {
+        let x1 = Term::new(-1, false, Vec::new());
+        let x2 = Term::new(-2, false, Vec::new());
+        let cl_l1 = Literal::new(false, Term::new(1, true, vec!(x1.clone())), Term::new_truth());
+        let cl1_l2 = Literal::new(true, Term::new(2, true, vec!(x1)), Term::new_truth());
+        let cl2_l2 = Literal::new(true, Term::new(2, true, vec!(x2)), Term::new_truth());
+        
+        let cl1 = Clause::new(vec!(cl_l1.clone(), cl1_l2));
+        let cl2 = Clause::new(vec!(cl_l1, cl2_l2));
+        
+        assert!(!subsumes_clause(&cl1, &cl2));
+    }
 } 
 

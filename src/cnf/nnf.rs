@@ -24,27 +24,39 @@ pub fn nnf(f: Formula) -> Formula {
     if simplified_f == Formula::True || simplified_f == Formula::False {
         simplified_f
     } else {
-        let nnf_formula = move_nots_inward(elim_imp_and_eq(simplified_f));
+        let nnf_formula = move_nots_inward(elim_imp_and_eq(simplified_f, true));
         assert!(is_in_nnf(&nnf_formula));
         nnf_formula
     }
 }
 
 /// Eliminates all implications and equivalences in a formula.
-fn elim_imp_and_eq(f: Formula) -> Formula {
+fn elim_imp_and_eq(f: Formula, polarity: bool) -> Formula {
     match f {
-        Formula::Not(p) => Formula::Not(Box::new(elim_imp_and_eq(*p))),
-        Formula::And(p, q) => Formula::And(Box::new(elim_imp_and_eq(*p)), Box::new(elim_imp_and_eq(*q))),
-        Formula::Or(p, q) => Formula::Or(Box::new(elim_imp_and_eq(*p)), Box::new(elim_imp_and_eq(*q))),
-        Formula::Implies(p, q) => Formula::Or(Box::new(Formula::Not(Box::new(elim_imp_and_eq(*p)))), 
-                                              Box::new(elim_imp_and_eq(*q))),
-        Formula::Equivalent(p, q) => Formula::And(Box::new(Formula::Or(Box::new(elim_imp_and_eq(*p.clone())), 
-                                                                       Box::new(Formula::Not(Box::new(elim_imp_and_eq(*q.clone())))))), 
-                                                  Box::new(Formula::Or(Box::new(Formula::Not(Box::new(elim_imp_and_eq(*p)))), 
-                                                                       Box::new(elim_imp_and_eq(*q))))),
-        Formula::Forall(s, p) => Formula::Forall(s, Box::new(elim_imp_and_eq(*p))),
-        Formula::Exists(s, p) => Formula::Exists(s, Box::new(elim_imp_and_eq(*p))),
+        Formula::Not(p) => Formula::Not(Box::new(elim_imp_and_eq(*p, !polarity))),
+        Formula::And(p, q) => Formula::And(Box::new(elim_imp_and_eq(*p, polarity)), Box::new(elim_imp_and_eq(*q, polarity))),
+        Formula::Or(p, q) => Formula::Or(Box::new(elim_imp_and_eq(*p, polarity)), Box::new(elim_imp_and_eq(*q, polarity))),
+        Formula::Implies(p, q) => Formula::Or(Box::new(Formula::Not(Box::new(elim_imp_and_eq(*p, !polarity)))), 
+                                              Box::new(elim_imp_and_eq(*q, polarity))),
+        Formula::Equivalent(p, q) => eliminate_equivalence(*p, *q, polarity),
+        Formula::Forall(s, p) => Formula::Forall(s, Box::new(elim_imp_and_eq(*p, polarity))),
+        Formula::Exists(s, p) => Formula::Exists(s, Box::new(elim_imp_and_eq(*p, polarity))),
         _ => f,
+    }
+}
+
+/// Eliminates an equivalence. Returns different results depending on polarity to avoid unnecessary clauses.
+fn eliminate_equivalence(p: Formula, q: Formula, polarity: bool) -> Formula {
+    if polarity {
+        Formula::And(Box::new(Formula::Or(Box::new(elim_imp_and_eq(p.clone(), polarity)), 
+                                          Box::new(Formula::Not(Box::new(elim_imp_and_eq(q.clone(), !polarity)))))), 
+                     Box::new(Formula::Or(Box::new(Formula::Not(Box::new(elim_imp_and_eq(p, !polarity)))), 
+                                          Box::new(elim_imp_and_eq(q, polarity)))))
+    } else {
+        Formula::Or(Box::new(Formula::And(Box::new(elim_imp_and_eq(p.clone(), polarity)), 
+                                          Box::new(elim_imp_and_eq(q.clone(), polarity)))), 
+                    Box::new(Formula::And(Box::new(Formula::Not(Box::new(elim_imp_and_eq(p, !polarity)))), 
+                                          Box::new(Formula::Not(Box::new(elim_imp_and_eq(q, !polarity)))))))
     }
 }
 
@@ -83,9 +95,9 @@ fn is_in_nnf(f: &Formula) -> bool {
     match *f {
         Formula::Predicate(_, _) => true,
         Formula::Not(ref p) => match **p {
-                               Formula::Predicate(_, _) => true,
-                               _ => false,
-                           },
+                                   Formula::Predicate(_, _) => true,
+                                   _ => false,
+                               },
         Formula::And(ref p, ref q) |
         Formula::Or(ref p, ref q) => is_in_nnf(p) && is_in_nnf(q),
         Formula::Forall(_, ref p) | 
@@ -110,21 +122,21 @@ mod test {
     fn elim_imp_and_eq_1() {
         let f = parse("(P ==> Q)").unwrap();
         let correct_f = parse("(~P \\/ Q)").unwrap();
-        assert_eq!(elim_imp_and_eq(f), correct_f);
+        assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
     
     #[test]
     fn elim_imp_and_eq_2() {
         let f = parse("(P <=> Q)").unwrap();
         let correct_f = parse("((P \\/ ~Q) /\\ (~P \\/ Q))").unwrap();
-        assert_eq!(elim_imp_and_eq(f), correct_f);
+        assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
           
     #[test]
     fn elim_imp_and_eq_3() {
         let f = parse("(((P ==> Q) /\\ P) <=> Q)").unwrap();
         let correct_f = parse("((((~P \\/ Q) /\\ P) \\/ ~Q) /\\ (~((~P \\/ Q) /\\ P) \\/ Q))").unwrap();
-        assert_eq!(elim_imp_and_eq(f), correct_f);
+        assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
         
     #[test]
