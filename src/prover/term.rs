@@ -79,25 +79,24 @@ impl Term {
         self.args.iter().any(|t| t.occurs(term))
     }
     
-    /// Substitute all instances of the variable x with a given term.
-    pub fn subst(&mut self, x: i64, t: &Term) {
-        assert!(x < 0);
-        if self.id == x {
+    /// Substitute all instances of the term s with a given term.
+    pub fn subst_single(&mut self, s: &Term, t: &Term) {
+        if self == s {
             *self = t.clone();
         } else {
             for arg in &mut self.args {
-                arg.subst(x, t);
+                arg.subst_single(s, t);
             }
         }
     }
     
     /// Substitutes according to the mapping.
-    pub fn subst_general(&mut self, sfn: &HashMap<Term, Term>) {
+    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
         if let Some(t) = sfn.get(&self) {
             *self = t.clone();
         } else {
             for x in &mut self.args {
-                x.subst_general(sfn);
+                x.subst(sfn);
             }
         }
     }

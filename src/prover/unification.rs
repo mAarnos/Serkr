@@ -48,11 +48,11 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
                 }
                 
                 // eliminate
-                env.insert(eq1.clone(), eq2.clone());
                 for eq in &mut eqs {
-                    eq.0.subst(eq1.get_id(), &eq2);
-                    eq.1.subst(eq1.get_id(), &eq2);
+                    eq.0.subst_single(&eq1, &eq2);
+                    eq.1.subst_single(&eq1, &eq2);
                 }
+                env.insert(eq1, eq2);
             }
         }
     }

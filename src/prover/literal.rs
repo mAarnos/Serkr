@@ -61,8 +61,8 @@ impl Literal {
     
     /// Substitutes terms in the literal according to the mapping.
     pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
-        self.lhs.subst_general(sfn);
-        self.rhs.subst_general(sfn);
+        self.lhs.subst(sfn);
+        self.rhs.subst(sfn);
     }
     
     /// Get the amount of symbols in this literal
