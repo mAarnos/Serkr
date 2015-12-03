@@ -48,10 +48,21 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
                 }
                 
                 // eliminate
+                // We soon add a mapping of the form eq1 |-> eq2.
+                // We might have mappings of the form x |-> eq1 which need to be fixed to x |-> eq2.
+                for (_, v) in &mut env {
+                    if *v == eq1 {
+                        *v = eq2.clone();
+                    }
+                }
+                
+                // Then eliminate all occurences of eq1.
                 for eq in &mut eqs {
                     eq.0.subst_single(&eq1, &eq2);
                     eq.1.subst_single(&eq1, &eq2);
                 }
+                
+                // And finally add the new mapping.
                 env.insert(eq1, eq2);
             }
         }
@@ -60,25 +71,9 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
     Some(env)
 }
 
-fn solve(env: HashMap<Term, Term>) -> HashMap<Term, Term> {
-    let mut new_env = env.clone();
-    
-    for (_, v) in &mut new_env {
-        if let Some(new_v) = env.get(v) {
-            *v = new_v.clone();
-        }
-    }
-    
-    if new_env == env {
-        new_env
-    } else {
-        solve(new_env)
-    }
-}
-
 /// Tries to find the most general unifier of two terms.
 pub fn mgu(p: &Term, q: &Term) -> Option<HashMap<Term, Term>> {
-    Some(solve(get!(unify(vec!((p.clone(), q.clone()))))))
+    unify(vec!((p.clone(), q.clone())))
 }
 
 #[cfg(test)]
