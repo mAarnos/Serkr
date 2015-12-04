@@ -17,7 +17,7 @@
 
 use prover::clause::Clause;
 use prover::unification::mgu;
-use prover::tautology_deletion::trivial;
+use prover::simplification::tautology_deletion::trivial;
 use prover::term_ordering::traits::TermOrdering;
 
 /// Infers new clauses by (ordered) equality resolution.

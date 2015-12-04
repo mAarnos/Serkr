@@ -15,21 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search. 
+pub mod subsumption;
 
-mod term;
-mod literal;
-mod clause;
+pub mod literal_deletion;
 
-mod flatten_cnf;
-
-mod simplification;
-mod term_ordering;
-
-mod unification;
-mod equality_resolution;
-mod equality_factoring;
-mod superposition;
-
-///
-pub mod prove;
+pub mod tautology_deletion;

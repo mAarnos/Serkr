@@ -19,9 +19,10 @@ use std::collections::HashMap;
 use std::collections::BinaryHeap;
 use prover::flatten_cnf::flatten_cnf;
 use prover::clause::Clause;
-use prover::literal_deletion::simplify;
-use prover::tautology_deletion::trivial;
-use prover::subsumption::subsumes_clause;
+
+use prover::simplification::literal_deletion::simplify;
+use prover::simplification::tautology_deletion::trivial;
+use prover::simplification::subsumption::subsumes_clause;
 
 use prover::term_ordering::traits::TermOrdering;
 use prover::term_ordering::lpo::LPO;

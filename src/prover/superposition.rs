@@ -20,7 +20,7 @@ use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::term_ordering::traits::TermOrdering;
-use prover::tautology_deletion::trivial;
+use prover::simplification::tautology_deletion::trivial;
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {
     let mut new_term = u.clone();
