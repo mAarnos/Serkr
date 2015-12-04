@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::Formula;
+ use parser::formula::Formula;
 
 /// Move all universal quantifiers outwards.
 pub fn pull_out_quantifiers(f: Formula) -> Formula {
@@ -49,7 +49,7 @@ fn and_or_formula(f1: Formula, f2: Formula, and_formula: bool) -> Formula {
 #[cfg(test)]
 mod test {
     use super::pull_out_quantifiers;
-    use parser::internal_parser::parse;
+    use parser::internal_parser::parser::parse;
     
     #[test]
     fn pull_out_quantifiers_1() {

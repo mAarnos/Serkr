@@ -23,6 +23,3 @@ pub mod macros;
 
 /// Contains a stopwatch-type timer for measuring time during program execution.
 pub mod stopwatch;
-
-/// Contains definitions of a FOL term and formula.
-pub mod formula;

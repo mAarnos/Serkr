@@ -15,18 +15,18 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::internal_parser_grammar;
-use utils::formula::Formula;
+use parser::internal_parser::parser_grammar;
+use parser::formula::Formula;
 
 /// Parses a string into a FOL formula, if possible.
-pub fn parse(s: &str) -> Result<Formula, internal_parser_grammar::__lalrpop_util::ParseError<usize, (usize, &str), ()>> {
-    internal_parser_grammar::parse_Formula(s)
+pub fn parse(s: &str) -> Result<Formula, parser_grammar::__lalrpop_util::ParseError<usize, (usize, &str), ()>> {
+    parser_grammar::parse_Formula(s)
 }
 
 #[cfg(test)]
 mod test {
-    use utils::formula::Formula;
-    use parser::internal_parser_grammar::{parse_Term, parse_Formula};
+    use parser::formula::Formula;
+    use parser::internal_parser::parser_grammar::{parse_Term, parse_Formula};
 
     #[test]
     fn parser_term_erroneous() {

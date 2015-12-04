@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use utils::formula::{Term, Formula};
+use parser::formula::{Term, Formula};
 use std::collections::hash_set::HashSet;
 
 /// Used for checking if a term t is free in a formula f.
@@ -61,7 +61,7 @@ pub fn fvt(t: Term) -> HashSet<String> {
 #[cfg(test)]
 mod test {
     use super::fv;
-    use parser::internal_parser::parse;
+    use parser::internal_parser::parser::parse;
     
     #[test]
     fn fv_1() {

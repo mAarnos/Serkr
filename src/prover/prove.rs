@@ -32,10 +32,10 @@ use prover::inference::equality_resolution::equality_resolution;
 use prover::inference::equality_factoring::equality_factoring;
 use prover::inference::superposition::superposition;
 
-use utils::formula::Formula;
+use parser::formula::Formula;
+use parser::internal_parser::parser::parse;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;
-use parser::internal_parser::parse;
 
 /// Rename a clause so that it contains no variables in common with any other clause we currently have.
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {

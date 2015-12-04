@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use utils::formula::{Term, Formula};
+use parser::formula::{Term, Formula};
 use cnf::free_variables::free_in;
 
 /// Simplifies a formula by performing some equivalence-preserving first-order simplifications.
@@ -148,9 +148,9 @@ fn contains_true_or_false(f: &Formula) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::{simplify_formula, simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};
-     use utils::formula::Formula;
-    use parser::internal_parser::parse;
+    use super::{simplify_formula, simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};   
+    use parser::formula::Formula;
+    use parser::internal_parser::parser::parse;
     
     #[test]
     fn simplify_1() {

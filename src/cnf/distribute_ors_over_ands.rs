@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use utils::formula::Formula;
+ use parser::formula::Formula;
 
 /// Distributes ORs inwards over ANDs.
 pub fn distribute_ors_over_ands(f: Formula) -> Formula {
@@ -40,7 +40,7 @@ fn distribute_or(f1: Formula, f2: Formula) -> Formula {
 #[cfg(test)]
 mod test {
     use super::distribute_ors_over_ands;
-    use parser::internal_parser::parse;
+    use parser::internal_parser::parser::parse;
     
     #[test]
     fn distribute_1() {

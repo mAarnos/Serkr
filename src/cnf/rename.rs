@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use utils::formula::{Term, Formula};
+use parser::formula::{Term, Formula};
 
 /// Renames variables so that different occurences of quantifiers bind different variables.
 pub fn rename(f: Formula, n: &mut isize) -> Formula {
@@ -66,7 +66,7 @@ fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
 #[cfg(test)]
 mod test {
     use super::rename;
-    use parser::internal_parser::parse;
+    use parser::internal_parser::parser::parse;
     
     #[test]
     fn rename_1() {

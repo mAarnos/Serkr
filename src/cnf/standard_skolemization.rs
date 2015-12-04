@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use utils::formula::{Term, Formula};
+use parser::formula::{Term, Formula};
 use cnf::rename::rename;
 use cnf::free_variables::fv;
 
@@ -78,7 +78,7 @@ fn contains_existential_quantifiers(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::skolemize1;
-    use parser::internal_parser::parse;
+    use parser::internal_parser::parser::parse;
 
     #[test]
     fn skolemize1_1() {

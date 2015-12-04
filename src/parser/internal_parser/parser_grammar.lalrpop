@@ -1,4 +1,4 @@
-use utils::formula::{Term, Formula};
+use parser::formula::{Term, Formula};
 
 grammar;
 

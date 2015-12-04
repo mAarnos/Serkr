@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use utils::formula::Formula;
+use parser::formula::Formula;
 use cnf::simplify::simplify_formula;
 
 /// Converts a formula into an equivalent negation normal form.
@@ -109,7 +109,7 @@ fn is_in_nnf(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::{nnf, elim_imp_and_eq, move_nots_inward, move_nots_inward_not};
-    use parser::internal_parser::parse;
+    use parser::internal_parser::parser::parse;
     
     #[test]
     fn nnf_1() {
