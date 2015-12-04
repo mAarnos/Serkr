@@ -22,9 +22,11 @@ use prover::clause::Clause;
 use prover::literal_deletion::simplify;
 use prover::tautology_deletion::trivial;
 use prover::subsumption::subsumes_clause;
-use prover::term_ordering::TermOrdering;
-use prover::lpo::LPO;
-use prover::kbo::KBO;
+
+use prover::term_ordering::traits::TermOrdering;
+use prover::term_ordering::lpo::LPO;
+use prover::term_ordering::kbo::KBO;
+
 use prover::superposition::superposition;
 use prover::equality_resolution::equality_resolution;
 use prover::equality_factoring::equality_factoring;

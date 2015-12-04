@@ -15,25 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search. 
+/// Contains traits for defining term orderings.
+pub mod traits;
 
-mod term;
-mod literal;
-mod clause;
+/// Contains an implementation of the lexicographic path ordering.
+pub mod lpo;
 
-mod flatten_cnf;
-
-mod tautology_deletion;
-mod literal_deletion;
-mod subsumption;
-
-mod unification;
-
-mod term_ordering;
-
-mod equality_resolution;
-mod equality_factoring;
-mod superposition;
-
-///
-pub mod prove;
+/// Contains an implementation of the Knuth-Bendix ordering.
+pub mod kbo;

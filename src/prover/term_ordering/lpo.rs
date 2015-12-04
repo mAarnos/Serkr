@@ -16,9 +16,9 @@
 */
 
 use prover::term::Term;
-use prover::term_ordering::TermOrdering;
+use prover::term_ordering::traits::TermOrdering;
 
-/// An implementation of the lexicographic path order.
+/// An implementation of the lexicographic path ordering.
 pub struct LPO;
 
 impl LPO {   
@@ -84,7 +84,7 @@ mod test {
     use super::LPO;    
     use prover::term::Term;
     use prover::literal::Literal;
-    use prover::term_ordering::TermOrdering;
+    use prover::term_ordering::traits::TermOrdering;
     
     #[test]
     fn lpo_gt_1() {

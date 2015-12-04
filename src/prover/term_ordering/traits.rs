@@ -19,7 +19,7 @@ use std::cmp::min;
 use prover::term::Term;
 use prover::literal::Literal;
 
-/// A trait for term orders.
+/// A trait for term orderings.
 pub trait TermOrdering {
     /// Returns true if term t is greater than term s according to the term ordering.
     fn gt(&self, s: &Term, t: &Term) -> bool;

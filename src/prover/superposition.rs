@@ -19,7 +19,7 @@ use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::mgu;
-use prover::term_ordering::TermOrdering;
+use prover::term_ordering::traits::TermOrdering;
 use prover::tautology_deletion::trivial;
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {

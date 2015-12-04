@@ -18,7 +18,7 @@
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::tautology_deletion::trivial;
-use prover::term_ordering::TermOrdering;
+use prover::term_ordering::traits::TermOrdering;
 
 /// Infers new clauses by (ordered) equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.

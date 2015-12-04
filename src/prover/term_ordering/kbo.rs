@@ -17,7 +17,7 @@
 
 use std::collections::hash_map::HashMap;
 use prover::term::Term;
-use prover::term_ordering::TermOrdering;
+use prover::term_ordering::traits::TermOrdering;
 
 /// An implementation of the Knuth-Bendix ordering.
 pub struct KBO {
