@@ -23,13 +23,11 @@ mod clause;
 
 mod flatten_cnf;
 
+mod unification;
+
 mod simplification;
 mod term_ordering;
-
-mod unification;
-mod equality_resolution;
-mod equality_factoring;
-mod superposition;
+mod inference;
 
 ///
 pub mod prove;

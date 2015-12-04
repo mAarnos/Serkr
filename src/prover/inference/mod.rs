@@ -15,11 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/// Contains functions for checking if a clause subsumes some other clause.
-pub mod subsumption;
+/// Contains an implementation of equality resolution.
+pub mod equality_resolution;
 
-/// Contains functions for deleting unnecessary literals from clauses.
-pub mod literal_deletion;
+/// Contains an implementation of equality factoring.
+pub mod equality_factoring;
 
-/// Contains functions for detecting tautologies.
-pub mod tautology_deletion;
+/// Contains implementations of positive and negative superposition.
+pub mod superposition;

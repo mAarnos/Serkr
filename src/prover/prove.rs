@@ -28,9 +28,10 @@ use prover::term_ordering::traits::TermOrdering;
 use prover::term_ordering::lpo::LPO;
 use prover::term_ordering::kbo::KBO;
 
-use prover::superposition::superposition;
-use prover::equality_resolution::equality_resolution;
-use prover::equality_factoring::equality_factoring;
+use prover::inference::equality_resolution::equality_resolution;
+use prover::inference::equality_factoring::equality_factoring;
+use prover::inference::superposition::superposition;
+
 use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;
