@@ -22,7 +22,7 @@ use prover::term_ordering::TermOrdering;
 
 /// Infers new clauses by (ordered) equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.
-pub fn equality_resolution<T: TermOrdering>(term_ordering: &T, cl: &Clause, resolvents: &mut Vec<Clause>) {
+pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, resolvents: &mut Vec<Clause>) {
     for (i, l) in cl.iter().enumerate() {
         if l.is_negative() {
             if let Some(theta) = mgu(l.get_lhs(), l.get_rhs()) {

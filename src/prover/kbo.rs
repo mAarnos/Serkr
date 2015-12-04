@@ -27,7 +27,6 @@ pub struct KBO {
 
 impl KBO {   
     /// Creates a new KBO term ordering.
-    #[allow(dead_code)]
     pub fn new(problem_has_one_unary_function: bool, unary_function_id: i64) -> KBO {
         KBO { one_unary_function: problem_has_one_unary_function, unary_function_id: unary_function_id }
     }

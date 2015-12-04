@@ -24,7 +24,7 @@ use prover::tautology_deletion::trivial;
 use prover::subsumption::subsumes_clause;
 use prover::term_ordering::TermOrdering;
 use prover::lpo::LPO;
-// use prover::kbo::KBO;
+use prover::kbo::KBO;
 use prover::superposition::superposition;
 use prover::equality_resolution::equality_resolution;
 use prover::equality_factoring::equality_factoring;
@@ -32,34 +32,6 @@ use utils::formula::Formula;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;
 use parser::internal_parser::parse;
-
-/// If the problem contains one unary function, this function finds it.
-#[allow(dead_code)]
-fn single_unary_function(clauses: &BinaryHeap<Clause>) -> Option<i64> {
-    let mut found_unary = None;
-    
-    for cl in clauses {
-        for l in cl.iter() {
-            if l.get_lhs().get_arity() == 1 {
-                if found_unary.is_some() {
-                    return None;
-                } else {
-                    found_unary = Some(l.get_lhs().get_id());
-                }
-            }
-            
-            if l.get_rhs().get_arity() == 1 {
-                if found_unary.is_some() {
-                    return None;
-                } else {
-                    found_unary = Some(l.get_rhs().get_id());
-                }
-            }
-        }
-    }
-    
-    found_unary
-}
 
 /// Rename a clause so that it contains no variables in common with any other clause we currently have.
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
@@ -70,13 +42,13 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 }
 
 /// The main proof search loop.
-fn serkr_loop<T: TermOrdering>(term_ordering: &T, 
-                               mut used: Vec<Clause>, 
+fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T, 
                                mut unused: BinaryHeap<Clause>, 
                                mut var_cnt: i64) -> Result<bool, &'static str> {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
+    let mut used = Vec::<Clause>::new();
     
     println!("Initial clauses: {}", unused.len());
     
@@ -117,7 +89,7 @@ fn serkr_loop<T: TermOrdering>(term_ordering: &T,
             for x in inferred_clauses.into_iter() {
                 unused.push(x);
             }
-            used.push(chosen_clause.clone()); // Not quite sure if this should be here or before.
+            used.push(chosen_clause); // Not quite sure if this should be here or before.
         }
         
         iterations += 1;
@@ -164,6 +136,45 @@ fn preprocess_clauses(clauses: Vec<Clause>) -> BinaryHeap<Clause> {
     newer_clauses.into_iter().collect()
 }
 
+/// If the problem contains one unary function, this function finds it.
+fn single_unary_function(clauses: &BinaryHeap<Clause>) -> Option<i64> {
+    let mut found_unary = None;
+    
+    for cl in clauses {
+        for l in cl.iter() {
+            if l.get_lhs().get_arity() == 1 {
+                if found_unary.is_some() {
+                    return None;
+                } else {
+                    found_unary = Some(l.get_lhs().get_id());
+                }
+            }
+            
+            if l.get_rhs().get_arity() == 1 {
+                if found_unary.is_some() {
+                    return None;
+                } else {
+                    found_unary = Some(l.get_rhs().get_id());
+                }
+            }
+        }
+    }
+    
+    found_unary
+}
+
+fn create_term_ordering(lpo_over_kbo: bool, clauses: &BinaryHeap<Clause>) -> Box<TermOrdering> {
+    if lpo_over_kbo {
+        Box::new(LPO::new())
+    } else {
+        if let Some(unary_func) = single_unary_function(&clauses) {
+            Box::new(KBO::new(true, unary_func))
+        } else {
+            Box::new(KBO::new(false, 0))
+        } 
+    }
+}
+
 /// Attempts to prove the FOL formula passed in.
 pub fn prove(s: &str) -> Result<bool, &'static str> {
     let cnf_f = cnf(Formula::Not(Box::new(parse(s).unwrap())));
@@ -173,16 +184,9 @@ pub fn prove(s: &str) -> Result<bool, &'static str> {
         Ok(false)
     } else {
         let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
-        let nontrivial_flattened_cnf_f = preprocess_clauses(flattened_cnf_f);
-        /*
-        let term_ordering = if let Some(unary_func) = single_unary_function(&nontrivial_flattened_cnf_f) {
-                                KBO::new(true, unary_func)
-                            } else {
-                                KBO::new(false, 0)
-                            };    
-        */                    
-        let term_ordering = LPO::new();
-        serkr_loop(&term_ordering, Vec::new(), nontrivial_flattened_cnf_f, renaming_info.var_cnt)
+        let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
+        let term_ordering = create_term_ordering(true, &preprocessed_problem);
+        serkr_loop(&*term_ordering, preprocessed_problem, renaming_info.var_cnt)
     }
 }
 

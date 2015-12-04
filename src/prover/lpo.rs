@@ -23,7 +23,6 @@ pub struct LPO;
 
 impl LPO {   
     /// Creates a new LPO term ordering.
-    #[allow(dead_code)]
     pub fn new() -> LPO {
         LPO
     }

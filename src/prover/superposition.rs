@@ -37,14 +37,14 @@ fn create_overlapped_term0(u_p: &mut Term, t: &Term, trace: &[usize], n: usize) 
     }
 }
 
-fn overlaps<T: TermOrdering>(term_ordering: &T, 
-                             s: &Term, t: &Term, 
-                             u: &Term, v: &Term, u_v_negated: bool,
-                             u_p: &Term,
-                             cl1: &Clause, cl1_i: usize, 
-                             cl2: &Clause,  cl2_i: usize, 
-                             trace: &mut Vec<usize>,
-                             generated: &mut Vec<Clause>) {
+fn overlaps<T: TermOrdering + ?Sized>(term_ordering: &T, 
+                                      s: &Term, t: &Term, 
+                                      u: &Term, v: &Term, u_v_negated: bool,
+                                      u_p: &Term,
+                                      cl1: &Clause, cl1_i: usize, 
+                                      cl2: &Clause,  cl2_i: usize, 
+                                      trace: &mut Vec<usize>,
+                                      generated: &mut Vec<Clause>) {
     if !u_p.is_variable() {
         if let Some(theta) = mgu(u_p, s) {            
             let mut new_s_t = Literal::new(false, s.clone(), t.clone());
@@ -93,10 +93,10 @@ fn overlaps<T: TermOrdering>(term_ordering: &T,
     }
 }
 
-fn overlaps_literal<T: TermOrdering>(term_ordering: &T, 
-                                     cl1: &Clause, cl1_i: usize, 
-                                     cl2: &Clause, cl2_i: usize, 
-                                     generated: &mut Vec<Clause>) {
+fn overlaps_literal<T: TermOrdering + ?Sized>(term_ordering: &T, 
+                                              cl1: &Clause, cl1_i: usize, 
+                                              cl2: &Clause, cl2_i: usize, 
+                                              generated: &mut Vec<Clause>) {
     let mut trace = Vec::new();
     let l_lhs = cl1[cl1_i].get_lhs();
     let l_rhs = cl1[cl1_i].get_rhs();
@@ -114,10 +114,10 @@ fn overlaps_literal<T: TermOrdering>(term_ordering: &T,
 /// Infers new clauses by positive and negative superposition.
 /// Time complexity is who the fuck knows.
 /// Assumes that cl1 was renamed so that it can have no variables in common with anything else.
-pub fn superposition<T: TermOrdering>(term_ordering: &T, 
-                                      cl1: &Clause, 
-                                      cl2: &Clause, 
-                                      generated: &mut Vec<Clause>) {
+pub fn superposition<T: TermOrdering + ?Sized>(term_ordering: &T, 
+                                               cl1: &Clause, 
+                                               cl2: &Clause, 
+                                               generated: &mut Vec<Clause>) {
     for (i, l1) in cl1.iter().enumerate() {
         if l1.is_positive() {
             for j in 0..cl2.size() {

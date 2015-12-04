@@ -25,7 +25,7 @@ use prover::term_ordering::TermOrdering;
 /// Infers new clauses by equality factoring
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 // TODO: see how much time is spent here.
-pub fn equality_factoring<T: TermOrdering>(term_ordering: &T, cl: &Clause, factors: &mut Vec<Clause>) {
+pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, factors: &mut Vec<Clause>) {
     for (i, l) in cl.iter().enumerate() {
         if l.is_negative() {
             continue;
@@ -45,12 +45,12 @@ pub fn equality_factoring<T: TermOrdering>(term_ordering: &T, cl: &Clause, facto
     }
 }
 
-fn equality_factoring_create_new<T: TermOrdering>(term_ordering: &T, 
-                                                  cl: &Clause, 
-                                                  factors: &mut Vec<Clause>, 
-                                                  s: &Term, t: &Term, 
-                                                  u: &Term, v: &Term, 
-                                                  i: usize) {
+fn equality_factoring_create_new<T: TermOrdering + ?Sized>(term_ordering: &T, 
+                                                           cl: &Clause, 
+                                                           factors: &mut Vec<Clause>, 
+                                                           s: &Term, t: &Term, 
+                                                           u: &Term, v: &Term, 
+                                                           i: usize) {
     if let Some(theta) = mgu(s, u) {
         let mut l = Literal::new(false, s.clone(), t.clone());
         l.subst(&theta);

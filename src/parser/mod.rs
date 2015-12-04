@@ -23,4 +23,5 @@
 mod internal_parser_grammar;
 
 /// Contains the parser for the internal FOL format.
+/// Only for development.
 pub mod internal_parser;
