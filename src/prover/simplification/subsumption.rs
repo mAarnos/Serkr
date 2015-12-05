@@ -18,44 +18,7 @@
 use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
-
-fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bool {
-    while let Some((eq1, eq2)) = eqs.pop() {
-        if eq1.is_function() && eq2.is_function() {
-            if eq1.get_id() == eq2.get_id() {
-                for eq in eq1.iter().cloned().zip(eq2.iter().cloned()) {
-                    eqs.push(eq);
-                }
-            } else {
-                return false;
-            }
-        } else if eq1.is_variable() {
-            let mut success = false;
-            for x in env.iter() {
-                if x.0 == eq1 {
-                    if x.1 != eq2 {
-                        return false;
-                    }
-                    success = true;
-                    break;
-                }
-            }
-            
-            if !success {
-                // Can't unify between two different sorts.
-                if eq2.get_sort_predicate() {
-                    return false;
-                }
-                env.push((eq1, eq2));
-            }
-            
-        } else {
-            return false;
-        }
-    }
-    
-    true
-}
+use prover::simplification::matching::term_match;
 
 fn match_literals(env: &mut Vec<(Term, Term)>, p: &Literal, q: &Literal, mixed: bool) -> bool {
     if p.is_positive() == q.is_positive() {
@@ -139,6 +102,7 @@ fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
             return false;
         }
     }
+    
     true
 }
 

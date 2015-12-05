@@ -15,6 +15,9 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/// Contains functions for matching terms.
+pub mod matching;
+
 /// Contains functions for checking if a clause subsumes some other clause.
 pub mod subsumption;
 
