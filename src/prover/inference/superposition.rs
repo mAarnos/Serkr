@@ -20,7 +20,6 @@ use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::mgu;
 use prover::term_ordering::traits::TermOrdering;
-use prover::simplification::tautology_deletion::trivial;
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {
     let mut new_term = u.clone();
@@ -75,10 +74,7 @@ fn overlaps<T: TermOrdering + ?Sized>(term_ordering: &T,
                             new_lit.subst(&theta);
                             new_c.add_literals(new_d);
                             new_c.add_literal(new_lit);
-                            
-                            if !trivial(&new_c) {
-                                generated.push(new_c);
-                            }
+                            generated.push(new_c);
                         }
                     }
                 }

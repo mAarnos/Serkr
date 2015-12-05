@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use prover::term::Term;
 
 fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
-    let mut env = HashMap::new();
+    let mut env = HashMap::<Term, Term>::new();
 
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1 == eq2 {
@@ -51,9 +51,7 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
                 // We soon add a mapping of the form eq1 |-> eq2.
                 // We might have mappings of the form x |-> eq1 which need to be fixed to x |-> eq2.
                 for (_, v) in &mut env {
-                    if *v == eq1 {
-                        *v = eq2.clone();
-                    }
+                    v.subst_single(&eq1, &eq2);
                 }
                 
                 // Then eliminate all occurences of eq1.
@@ -158,5 +156,19 @@ mod test {
         let t1 = Term::new(1, false, vec!(x.clone(), x));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone())), y));
         assert!(mgu(&t1, &t2).is_none());
+    }
+    
+    #[test]
+    fn mgu_8() {
+        // f(x, g(x)) = f(c, y)
+        let x = Term::new(-1, false, Vec::new());
+        let y = Term::new(-2, false, Vec::new());
+        let c = Term::new(1, false, Vec::new());
+        let t1 = Term::new(2, false, vec!(x.clone(), Term::new(3, false, vec!(x.clone()))));
+        let t2 = Term::new(2, false, vec!(c.clone(), y.clone()));
+        let theta = mgu(&t1, &t2).unwrap();
+        assert_eq!(theta.len(), 2);
+        assert_eq!(theta.get(&x), Some(&c));
+        assert_eq!(theta.get(&y), Some(&Term::new(3, false, vec!(c))));
     }
 }    

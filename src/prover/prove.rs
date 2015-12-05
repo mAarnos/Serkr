@@ -52,15 +52,30 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
-    let mut used = Vec::<Clause>::new();
+    let mut fs_count = 0;
+    let mut bs_count = 0;
+    let mut ef_count = 0;
+    let mut er_count = 0;
+    let mut trivial_count = 0;
+    let mut used = Vec::new();
     
     println!("Initial clauses: {}", unused.len());
+    for cl in unused.iter() {
+        println!("{:?}", cl);
+    }
     
     sw.start();
     
     while let Some(mut chosen_clause) = unused.pop() {
         if sw.elapsed_ms() > ms_count {
-            println!("{} seconds have elapsed, iterations = {}, used = {}, unused = {}", sw.elapsed_ms() / 1000, iterations, used.len(), unused.len());
+            println!("info time {} iterations {} used {} unused {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
+                                                                                             iterations, used.len(), 
+                                                                                             unused.len(), 
+                                                                                             ef_count,
+                                                                                             er_count,
+                                                                                             trivial_count,
+                                                                                             fs_count,
+                                                                                             bs_count);
             ms_count += 1000;
         }
         
@@ -77,6 +92,7 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
             while i < used.len() {
                 if subsumes_clause(&chosen_clause, &used[i]) {
                     used.swap_remove(i);
+                    bs_count += 1;
                     continue;
                 }
                 i += 1;
@@ -90,19 +106,24 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
                 superposition(term_ordering, &chosen_clause, cl, &mut inferred_clauses);
                 superposition(term_ordering, cl, &chosen_clause, &mut inferred_clauses);
             }
-            equality_resolution(term_ordering, &chosen_clause, &mut inferred_clauses);
-            equality_factoring(term_ordering, &chosen_clause, &mut inferred_clauses);
+            er_count += equality_resolution(term_ordering, &chosen_clause, &mut inferred_clauses);
+            ef_count += equality_factoring(term_ordering, &chosen_clause, &mut inferred_clauses);
             
-            // Simplify the generated clauses.
-            for x in &mut inferred_clauses {
-                simplify(x);
+            for mut cl in inferred_clauses.into_iter() {
+                // Simplification need to be done before triviality checking.
+                // Consider the clause x <> y, y <> z, x = z which is clearly a tautology.
+                // We cannot detect it as a tautology with a pure syntactical check unless we first simplify it with destructive equality resolution.
+                simplify(&mut cl);
+                if !trivial(&cl) {
+                    unused.push(cl);
+                } else {
+                    trivial_count += 1;
+                }
             }
             
-            // Finally add everything to the queue.
-            for x in inferred_clauses.into_iter() {
-                unused.push(x);
-            }
             used.push(chosen_clause); // Not quite sure if this should be here or before.
+        } else {
+            fs_count += 1;
         }
         
         iterations += 1;
@@ -111,15 +132,15 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
     Err("No proof found.")
 }
 
-fn preprocess_clauses(clauses: Vec<Clause>) -> BinaryHeap<Clause> {
-    // First get rid of duplicates.
-    let mut new_clauses = clauses.into_iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>();
-    
-    // Then simplify the clauses as much as possible.
-    for cl in &mut new_clauses {
+fn preprocess_clauses(mut clauses: Vec<Clause>) -> BinaryHeap<Clause> {
+    // Simplify the clauses as much as possible.
+    for cl in &mut clauses {
         simplify(cl);
     }
     
+    // Then get rid of tautologies.
+    let mut new_clauses = clauses.into_iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>();
+       
     // Remove subsumes clauses.
     let mut newer_clauses = Vec::new();
     while let Some(cl) = new_clauses.pop() {
@@ -672,12 +693,14 @@ mod test {
     }
     */
     
+    /*
     #[test]
     fn pelletier_54() {
         let result = prove("forall y. exists z. forall x. (F(x, z) <=> x = y) 
                             ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y)))))");
         assert!(result.is_ok());
     }
+    */
     
     #[test]
     fn pelletier_55() {
@@ -819,9 +842,20 @@ mod test {
     #[test]
     fn group_x_times_x_equals_1_abelian() {
         let result = prove("forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z) /\\
-                            forall x. mult(i(), x) = x /\\
-                            forall x. mult(i(x), x) = i()
-                            ==> forall x. mult(x, i()) = x");
+                            forall x. mult(e(), x) = x /\\
+                            forall x. mult(x, x) = e()
+                            ==> forall x. forall y. mult(x, y) = mult(y, x)");
         assert!(result.is_ok());
     }
+    
+    /*
+    #[test]
+    fn group_left_inverse_means_right_inverse() {
+        let result = prove("forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z) /\\
+                            forall x. mult(e(), x) = x /\\
+                            forall x. mult(i(x), x) = e()
+                             ==> forall x. mult(x, i(x)) = e()");
+        assert!(result.is_ok());
+    }
+    */
 } 

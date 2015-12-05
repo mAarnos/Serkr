@@ -17,12 +17,14 @@
 
 use prover::clause::Clause;
 use prover::unification::mgu;
-use prover::simplification::tautology_deletion::trivial;
 use prover::term_ordering::traits::TermOrdering;
 
 /// Infers new clauses by (ordered) equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.
-pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, resolvents: &mut Vec<Clause>) {
+/// Returns the amount of inferred clauses.
+pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, resolvents: &mut Vec<Clause>) -> usize {
+    let mut er_count = 0;
+    
     for (i, l) in cl.iter().enumerate() {
         if l.is_negative() {
             if let Some(theta) = mgu(l.get_lhs(), l.get_rhs()) {
@@ -32,12 +34,15 @@ pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Cla
                 new_cl.subst(&theta);
                 new_l.subst(&theta);
                 
-                if !trivial(&new_cl) && new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &new_l)) {
+                if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &new_l)) {
                     resolvents.push(new_cl);
+                    er_count += 1;
                 } 
             }
         }
     }
+    
+    er_count
 } 
 
 #[cfg(test)]
