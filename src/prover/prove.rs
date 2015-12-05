@@ -623,21 +623,21 @@ mod test {
     /*
     #[test]
     fn pelletier_47() {
-        let result = prove("(((((((((((((((forall x. ((P1(x) ==> P0(x)) /\\ exists x. P1(x))) /\\ 
-                                          (forall x. ((P2(x) ==> P0(x)) /\\ exists x. P2(x)))) /\\ 
-                                          (forall x. ((P3(x) ==> P0(x)) /\\ exists x. P3(x)))) /\\
-                                          (forall x. ((P4(x) ==> P0(x)) /\\ exists x. P4(x)))) /\\
-                                          (forall x. ((P5(x) ==> P0(x)) /\\ exists x. P5(x)))) /\\ 
-                                          (exists x. Q1(x) /\\ forall x. (Q1(x) ==> Q0(x)))) /\\
-                                          (forall x. (P0(x) ==> ((forall y. Q0(y) ==> R(x, y)) \\/ forall y. (((P0(y) /\\ S(y, x)) /\\ exists z. (Q0(z) /\\ R(y, z))) ==> R(x, y)))))) /\\
-                                          (forall x. forall y. ((P3(y) /\\ (P5(x) \\/ P4(x))) ==> S(x, y)))) /\\ 
-                                          (forall x. forall y. ((P3(x) /\\ P2(y)) ==> S(x, y)))) /\\ 
-                                          (forall x. forall y. ((P2(x) /\\ P1(y)) ==> S(x, y)))) /\\
-                                          (forall x. forall y. ((P1(x) /\\ (P2(y) \\/ Q1(y))) ==> ~R(x, y)))) /\\ 
-                                          (forall x. forall y. ((P3(x) /\\ P4(y)) ==> R(x, y)))) /\\ 
-                                          (forall x. forall y. ((P3(x) /\\ P5(y)) ==> ~R(x, y)))) /\\
-                                          (forall x. ((P4(x) \\/ P5(x)) ==> exists y. (Q0(y) /\\ R(x, y)))))
-                                           ==> exists x. exists y. ((P0(x) /\\ P0(y)) /\\ exists z. (Q1(z) /\\ (R(y, z) /\\ R(x, y)))))");
+        let result = prove("forall x. (P1(x) ==> P0(x)) /\\ exists x. P1(x) /\\ 
+                            forall x. (P2(x) ==> P0(x)) /\\ exists x. P2(x) /\\ 
+                            forall x. (P3(x) ==> P0(x)) /\\ exists x. P3(x) /\\
+                            forall x. (P4(x) ==> P0(x)) /\\ exists x. P4(x) /\\
+                            forall x. (P5(x) ==> P0(x)) /\\ exists x. P5(x) /\\ 
+                            exists x. Q1(x) /\\ forall x. (Q1(x) ==> Q0(x)) /\\
+                            forall x. (P0(x) ==> (forall y. (Q0(y) ==> R(x, y)) \\/ forall y. (P0(y) /\\ S(y, x) /\\ exists z. (Q0(z) /\\ R(y, z)) ==> R(x, y)))) /\\
+                            forall x. forall y. (P3(y) /\\ (P5(x) \\/ P4(x)) ==> S(x, y)) /\\ 
+                            forall x. forall y. (P3(x) /\\ P2(y) ==> S(x, y)) /\\ 
+                            forall x. forall y. (P2(x) /\\ P1(y) ==> S(x, y)) /\\
+                            forall x. forall y. (P1(x) /\\ (P2(y) \\/ Q1(y)) ==> ~R(x, y)) /\\ 
+                            forall x. forall y. (P3(x) /\\ P4(y) ==> R(x, y)) /\\ 
+                            forall x. forall y. (P3(x) /\\ P5(y) ==> ~R(x, y)) /\\
+                            forall x. (P4(x) \\/ P5(x) ==> exists y. (Q0(y) /\\ R(x, y)))
+                            ==> exists x. exists y. (P0(x) /\\ P0(y) /\\ exists z. (Q1(z) /\\ R(y, z) /\\ R(x, y)))");
         assert!(result.is_ok());
     }
     */

@@ -21,15 +21,11 @@ use prover::clause::Clause;
 use prover::simplification::matching::term_match;
 
 fn match_literals(env: &mut Vec<(Term, Term)>, p: &Literal, q: &Literal, mixed: bool) -> bool {
-    if p.is_positive() == q.is_positive() {
-        let eqs = if !mixed { vec!((p.get_lhs().clone(), q.get_lhs().clone()), 
-                                   (p.get_rhs().clone(), q.get_rhs().clone())) }
-                       else { vec!((p.get_rhs().clone(), q.get_lhs().clone()), 
-                                   (p.get_lhs().clone(), q.get_rhs().clone())) };
-        term_match(env, eqs)
-    } else {
-        false
-    }
+    let eqs = if !mixed { vec!((p.get_lhs().clone(), q.get_lhs().clone()), 
+                               (p.get_rhs().clone(), q.get_rhs().clone())) }
+              else { vec!((p.get_rhs().clone(), q.get_lhs().clone()), 
+                          (p.get_lhs().clone(), q.get_rhs().clone())) };
+    term_match(env, eqs)
 }
 
 fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {
@@ -40,7 +36,7 @@ fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1:
         let l1 = &cl1[n];
 
         for (i, l2) in cl2.iter().enumerate() {
-            if !exclusion[i] {
+            if !exclusion[i] && l1.is_positive() == l2.is_positive() {
                 exclusion[i] = true;
                 let result = match_literals(env, l1, l2, false) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
                 exclusion[i] = false;
