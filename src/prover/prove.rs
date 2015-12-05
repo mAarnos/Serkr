@@ -69,7 +69,19 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
             return Ok(true);
         }
         
+        // Forward subsumption.
         if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
+        
+            // Backward subsumption.
+            let mut i = 0;
+            while i < used.len() {
+                if subsumes_clause(&chosen_clause, &used[i]) {
+                    used.swap_remove(i);
+                    continue;
+                }
+                i += 1;
+            }
+        
             // println!("Chosen clause: {:?}", chosen_clause);
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
@@ -85,9 +97,6 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
             for x in &mut inferred_clauses {
                 simplify(x);
             }
-            
-            // Forward subsumption.
-            // inferred_clauses = inferred_clauses.into_iter().filter(|cl| !unused.iter().any(|cl2| subsumes_clause(cl2, cl))).collect();
             
             // Finally add everything to the queue.
             for x in inferred_clauses.into_iter() {
