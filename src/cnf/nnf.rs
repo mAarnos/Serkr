@@ -113,29 +113,43 @@ mod test {
     
     #[test]
     fn nnf_1() {
-        let f = parse("((P ==> Q) <=> (~Q ==> ~P))").unwrap();
-        let correct_f = parse("(((~P \\/ Q) \\/ (~Q /\\ P)) /\\ ((P /\\ ~Q) \\/ (Q \\/ ~P)))").unwrap();
+        let f = parse("(P ==> Q) <=> (~Q ==> ~P)").unwrap();
+        let correct_f = parse("(~P \\/ Q \\/ (~Q /\\ P)) /\\ ((P /\\ ~Q) \\/ (Q \\/ ~P))").unwrap();
         assert_eq!(nnf(f), correct_f);                             
+    }
+          
+    #[test]
+    fn nnf_2() {
+        let f = parse("~(P <=> Q)").unwrap();
+        let correct_f = parse("(~P \\/ ~Q) /\\ (P \\/ Q)").unwrap();
+        assert_eq!(nnf(f), correct_f);
     }
     
     #[test]
     fn elim_imp_and_eq_1() {
-        let f = parse("(P ==> Q)").unwrap();
-        let correct_f = parse("(~P \\/ Q)").unwrap();
+        let f = parse("P ==> Q").unwrap();
+        let correct_f = parse("~P \\/ Q").unwrap();
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
     
     #[test]
     fn elim_imp_and_eq_2() {
-        let f = parse("(P <=> Q)").unwrap();
-        let correct_f = parse("((P \\/ ~Q) /\\ (~P \\/ Q))").unwrap();
+        let f = parse("P <=> Q").unwrap();
+        let correct_f = parse("(P \\/ ~Q) /\\ (~P \\/ Q)").unwrap();
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
+    }
+    
+    #[test]
+    fn elim_imp_and_eq_3() {
+        let f = parse("P <=> Q").unwrap();
+        let correct_f = parse("(P /\\ Q) \\/ (~P /\\ ~Q)").unwrap();
+        assert_eq!(elim_imp_and_eq(f, false), correct_f);
     }
           
     #[test]
-    fn elim_imp_and_eq_3() {
-        let f = parse("(((P ==> Q) /\\ P) <=> Q)").unwrap();
-        let correct_f = parse("((((~P \\/ Q) /\\ P) \\/ ~Q) /\\ (~((~P \\/ Q) /\\ P) \\/ Q))").unwrap();
+    fn elim_imp_and_eq_4() {
+        let f = parse("((P ==> Q) /\\ P) <=> Q").unwrap();
+        let correct_f = parse("(((~P \\/ Q) /\\ P) \\/ ~Q) /\\ (~((~P \\/ Q) /\\ P) \\/ Q)").unwrap();
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
         
@@ -148,15 +162,15 @@ mod test {
     
     #[test]
     fn move_nots_inward_not_2() {
-        let f = parse("(P /\\ Q)").unwrap();
-        let correct_f = parse("(~P \\/ ~Q)").unwrap();
+        let f = parse("P /\\ Q").unwrap();
+        let correct_f = parse("~P \\/ ~Q").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
     
     #[test]
     fn move_nots_inward_not_3() {
-        let f = parse("(P \\/ Q)").unwrap();
-        let correct_f = parse("(~P /\\ ~Q)").unwrap();
+        let f = parse("P \\/ Q").unwrap();
+        let correct_f = parse("~P /\\ ~Q").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
     
@@ -177,7 +191,7 @@ mod test {
     #[test]
     fn move_nots_inward_1() {
         let f = parse("~((P \\/ Q) /\\ ~~(~P /\\ Q))").unwrap();
-        let correct_f = parse("((~P /\\ ~Q) \\/ (P \\/ ~Q))").unwrap();
+        let correct_f = parse("~P /\\ ~Q \\/ (P \\/ ~Q)").unwrap();
         assert_eq!(move_nots_inward(f), correct_f);
     }
 }
