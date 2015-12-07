@@ -29,5 +29,8 @@ mod simplification;
 mod term_ordering;
 mod inference;
 
+#[allow(dead_code)]
+mod proof_state;
+
 ///
 pub mod prove;

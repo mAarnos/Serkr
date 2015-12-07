@@ -37,6 +37,16 @@ use parser::internal_parser::parser::parse;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;
 
+/// Contains the result of a proof attempt.
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
+pub enum ProofAttemptResult {
+    Refutation,
+    Saturation,
+    Timeout,
+    GaveUp,
+    Error,
+}
+
 /// Rename a clause so that it contains no variables in common with any other clause we currently have.
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     let mut var_map = HashMap::<i64, i64>::new();
@@ -48,7 +58,7 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 /// The main proof search loop.
 fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T, 
                                mut unused: BinaryHeap<Clause>, 
-                               mut var_cnt: i64) -> Result<bool, &'static str> {
+                               mut var_cnt: i64) -> ProofAttemptResult {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
@@ -81,7 +91,7 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
         
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
-            return Ok(true);
+            return ProofAttemptResult::Refutation;
         }
         
         // Forward subsumption.
@@ -129,10 +139,10 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
         iterations += 1;
     }
     
-    Err("No proof found.")
+    ProofAttemptResult::Saturation
 }
 
-fn preprocess_clauses(mut clauses: Vec<Clause>) -> BinaryHeap<Clause> {
+fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     // Simplify the clauses as much as possible.
     for cl in &mut clauses {
         simplify(cl);
@@ -141,33 +151,27 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> BinaryHeap<Clause> {
     // Then get rid of tautologies.
     let mut new_clauses = clauses.into_iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>();
        
-    // Remove subsumes clauses.
+    // Remove subsumed clauses.
     let mut newer_clauses = Vec::new();
     while let Some(cl) = new_clauses.pop() {
-        // Backward subsumption.
-        let mut i = 0;
-        while i < newer_clauses.len() {
-            if subsumes_clause(&cl, &newer_clauses[i]) {
-                newer_clauses.swap_remove(i);
-                continue;
-            }
-            i += 1;
-        }
-        
         // Forward subsumption.
-        let mut j = 0;
-        while j < new_clauses.len() {
-            if subsumes_clause(&cl, &new_clauses[j]) {
-                new_clauses.swap_remove(j);
-                continue;
-            }
-            j += 1;
-        }
+        if !newer_clauses.iter().any(|cl2| subsumes_clause(cl2, &cl)) {
         
-        newer_clauses.push(cl);
+            // Backward subsumption.
+            let mut i = 0;
+            while i < newer_clauses.len() {
+                if subsumes_clause(&cl, &newer_clauses[i]) {
+                    newer_clauses.swap_remove(i);
+                    continue;
+                }
+                i += 1;
+            }
+
+            newer_clauses.push(cl);
+        }
     }
     
-    newer_clauses.into_iter().collect()
+    newer_clauses
 }
 
 /// If the problem contains one unary function, this function finds it.
@@ -210,169 +214,173 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &BinaryHeap<Clause>) -> Box
 }
 
 /// Attempts to prove the FOL formula passed in.
-pub fn prove(s: &str) -> Result<bool, &'static str> {
-    let cnf_f = cnf(Formula::Not(Box::new(parse(s).unwrap())));
-    if cnf_f == Formula::False {
-        Ok(true)
-    } else if cnf_f == Formula::True {
-        Ok(false)
+pub fn prove(s: &str) -> ProofAttemptResult {
+    if let Some(parsed_formula) = parse(s) {
+        let cnf_f = cnf(Formula::Not(Box::new(parsed_formula)));
+        if cnf_f == Formula::False {
+            ProofAttemptResult::Refutation
+        } else if cnf_f == Formula::True {
+            ProofAttemptResult::Saturation
+        } else {
+            let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
+            let preprocessed_problem = preprocess_clauses(flattened_cnf_f).into_iter().collect();                
+            let term_ordering = create_term_ordering(true, &preprocessed_problem);
+            serkr_loop(&*term_ordering, preprocessed_problem, renaming_info.var_cnt)
+        }
     } else {
-        let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
-        let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
-        let term_ordering = create_term_ordering(true, &preprocessed_problem);
-        serkr_loop(&*term_ordering, preprocessed_problem, renaming_info.var_cnt)
+        ProofAttemptResult::Error
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::prove;
+    use super::{prove, ProofAttemptResult};
     
     // Contains some problems negated so that we can make sure we don't prove a theorem not actually provable.
     
     #[test]
     fn pelletier_1() {
         let result = prove("(P ==> Q) <=> (~Q ==> ~P)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_1_negated() {
         let result = prove("~((P ==> Q) <=> (~Q ==> ~P))");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
     fn pelletier_2() {
         let result = prove("~~P <=> P");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_3() {
         let result = prove("~(P ==> Q) ==> (Q ==> P)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_4() {
         let result = prove("(~P ==> Q) <=> (~Q ==> P)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_5() {
         let result = prove("((P \\/ Q) ==> (P \\/ R)) ==> (P \\/ (Q ==> R))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_6() {
         let result = prove("P \\/ ~P");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_7() {
         let result = prove("P \\/ ~~~P");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_8() {
         let result = prove("((P ==> Q) ==> P) ==> P");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_8_negated() {
         let result = prove("~(((P ==> Q) ==> P) ==> P)");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
     fn pelletier_9() {
         let result = prove("(P \\/ Q) /\\ (~P \\/ Q) /\\ (P \\/ ~Q) ==> ~(~P \\/ ~Q)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_10() {
         let result = prove("(Q ==> R) /\\ (R ==> P /\\ Q) /\\ (P ==> Q \\/ R) ==> (P <=> Q)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_11() {
         let result = prove("P <=> P");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_12() {
         let result = prove("((P <=> Q) <=> R) <=> (P <=> (Q <=> R))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_13() {
         let result = prove("(P \\/ Q /\\ R) <=> ((P \\/ Q) /\\ (P \\/ R))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_14() {
         let result = prove("(P <=> Q) <=> ((~P \\/ Q) /\\ (~Q \\/ P))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_15() {
         let result = prove("(P ==> Q) <=> (~Q \\/ Q)");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
     fn pelletier_15_errata() {
         let result = prove("(P ==> Q) <=> (~P \\/ Q)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_16() {
         let result = prove("(P ==> Q) \\/ (Q ==> P)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_17() {
         let result = prove("(P /\\ (Q ==> R) ==> S) <=> ((~P \\/ Q \\/ S) /\\ (~P \\/ ~R \\/ S))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_18() {
         let result = prove("exists y. forall x. (F(y) ==> F(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_18_negated() {
         let result = prove("~exists y. forall x. (F(y) ==> F(x))");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
     fn pelletier_19() {
         let result = prove("exists x. forall y. forall z. ((P(y) ==> Q(z)) ==> (P(x) ==> Q(x)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_20() {
         let result = prove("forall x. forall y. exists z. forall w. (P(x) /\\ Q(y) ==> R(z) /\\ S(w))
                             ==> (exists x. exists y. (P(x) /\\ Q(y)) ==> exists z. R(z))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -380,19 +388,19 @@ mod test {
         let result = prove("exists x. (P ==> F(x)) /\\ 
                             exists x. (F(x) ==> P) 
                             ==> exists x. (P <=> F(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
 
     #[test]
     fn pelletier_22() {
         let result = prove("forall x. (P <=> F(x)) ==> (P <=> forall x. F(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_23() {
         let result = prove("forall x. (P \\/ F(x)) <=> P \\/ forall x. F(x)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -402,7 +410,7 @@ mod test {
                             (~exists x. P(x) ==> exists x. Q(x)) /\\
                             forall x. (Q(x) \\/ R(x) ==> S(x))
                             ==> exists x. (P(x) /\\ R(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -412,7 +420,7 @@ mod test {
                             forall x. (P(x) ==> G(x) /\\ F(x)) /\\
                            (forall x. (P(x) ==> Q(x)) \\/ exists x. (P(x) /\\ R(x)))
                             ==> exists x. (Q(x) /\\ P(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -420,7 +428,7 @@ mod test {
         let result = prove("(exists x. P(x) <=> exists x. Q(x)) /\\
                             forall x. forall y. (P(x) /\\ Q(y) ==> (R(x) <=> S(y)))
                             ==> (forall x. (P(x) ==> R(x)) <=> forall x. (Q(x) ==> S(x)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -430,7 +438,7 @@ mod test {
                             forall x. (J(x) /\\ I(x) ==> F(x)) /\\ 
                             (exists x. (H(x) /\\ ~G(x)) ==> forall x. (I(x) ==> ~H(x)))
                             ==> forall x. (J(x) ==> ~I(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
 
     #[test]
@@ -439,7 +447,7 @@ mod test {
                             (forall x. (Q(x) \\/ R(x)) ==> exists x. (Q(x) /\\ S(x))) /\\
                             (exists x. S(x) ==> forall x. (F(x) ==> G(x))) 
                              ==> forall x. (P(x) /\\ F(x) ==> G(x))");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
@@ -448,14 +456,14 @@ mod test {
                            (forall x. (Q(x) \\/ R(x)) ==> exists x. (Q(x) /\\ S(x))) /\\
                            (exists x. S(x) ==> forall x. (F(x) ==> G(x)))
                             ==> forall x. (P(x) /\\ F(x) ==> G(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_29() {
         let result = prove("(exists x. F(x) /\\ exists x. G(x))
                              ==> ((forall x. (F(x) ==> H(x)) /\\ forall x. (G(x) ==> J(x))) <=> forall x. forall y. (F(x) /\\ G(y) ==> H(x) /\\ J(y)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -463,13 +471,13 @@ mod test {
         let result = prove("forall x. (F(x) \\/ G(x) ==> ~H(x)) /\\ 
                             forall x. ((G(x) ==> ~I(x)) ==> F(x) /\\ H(x)) 
                             ==> forall x. I(x)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_30_negated() {
         let result = prove("~(forall x. (F(x) \\/ G(x) ==> ~H(x)) /\\ forall x. ((G(x) ==> ~I(x)) ==> F(x) /\\ H(x)) ==> forall x. I(x))");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
@@ -478,7 +486,7 @@ mod test {
                             exists x. (I(x) /\\ F(x)) /\\ 
                             forall x. (~H(x) ==> J(x))
                             ==> exists x. (I(x) /\\ J(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -487,14 +495,14 @@ mod test {
                             forall x. (I(x) /\\ (H(x) ==> J(x))) /\\ 
                             forall x. (K(x) ==> H(x))
                             ==> forall x. (F(x) /\\ K(x) ==> J(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_33() {
         let result = prove("forall x. (P(a) /\\ (P(x) ==> P(b)) ==> P(c)) <=>
                             forall x. ((~P(a) \\/ P(x) \\/ P(c)) /\\ (~P(a) \\/ ~P(b) \\/ P(c)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     /*
@@ -511,13 +519,13 @@ mod test {
     #[test]
     fn pelletier_35() {
         let result = prove("exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_35_negated() {
         let result = prove("~exists x. exists y. (P(x, y) ==> forall x. forall y. P(x, y))");
-        assert!(result.is_err());
+         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
@@ -526,7 +534,7 @@ mod test {
                             forall x. exists y. G(x, y) /\\ 
                             forall x. forall y. (F(x, y) \\/ G(x, y) ==> forall z. (F(y, z) \\/ G(y, z) ==> H(x, z)))
                             ==> forall x. exists y. H(x, y)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -535,7 +543,7 @@ mod test {
                             forall x. forall z. (~P(x, z) ==> exists y. Q(y, z)) /\\
                             (exists x. exists y. Q(x, y) ==> forall x. R(x, x))
                             ==> forall x. exists y. R(x, y)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
 
     /*
@@ -551,47 +559,47 @@ mod test {
     #[test]
     fn pelletier_39() {
         let result = prove("~exists x. forall y. (F(y, x) <=> ~F(y, y))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_40() {
         let result = prove("exists y. forall x. (F(x, y) <=> F(x, x)) 
                             ==> ~forall x. exists y. forall z. (F(x, y) <=> ~F(z, x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_40_errata() {
         let result = prove("exists y. forall x. (F(x, y) <=> F(x, x)) 
                             ==> ~forall x. exists y. forall z. (F(z, y) <=> ~F(z, x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_41() {
         let result = prove("forall z. exists y. forall x. (F(x, y) <=> F(x, z) /\\ ~F(x, x)) 
                             ==> ~exists z. forall x. F(x, z)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_42() {
         let result = prove("~exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_42_negated() {
         let result = prove("exists y. forall x. (F(x, y) <=> ~exists z. (F(x, z) /\\ F(z, x)))");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
 
     #[test]
     fn pelletier_43() {
         let result = prove("forall x. forall y. (Q(x, y) <=> forall z. (F(z, x) <=> F(z, y)))
                             ==> forall x. forall y. (Q(x, y) <=> Q(y, x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
 
     #[test]
@@ -599,7 +607,7 @@ mod test {
         let result = prove("forall x. (F(x) ==> exists y. (G(y) /\\ H(x, y)) /\\ exists y. (G(y) /\\ ~H(x, y))) /\\ 
                             exists x. (J(x) /\\ forall y. (G(y) ==> H(x, y)))
                             ==> exists x. (J(x) /\\ ~F(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }   
 
     #[test]
@@ -608,7 +616,7 @@ mod test {
                             ~exists y. (L(y) /\\ K(y)) /\\ 
                             exists x. (F(x) /\\ forall y. (H(x, y) ==> L(y)) /\\ forall y. (G(y) /\\ H(x, y) ==> J(x, y)))
                             ==> exists x. (F(x) /\\ ~exists y. (G(y) /\\ H(x, y)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -617,7 +625,7 @@ mod test {
                            (exists x. (F(x) /\\ ~G(x)) ==> exists x. (F(x) /\\ ~G(x) /\\ forall y. (F(y) /\\ ~G(y) ==> J(x, y)))) /\\
                             forall x. forall y. (F(x) /\\ F(y) /\\ H(x, y) ==> ~J(y, x))
                             ==> forall x. (F(x) ==> G(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     /*
@@ -647,40 +655,40 @@ mod test {
         let result = prove("(a() = b() \\/ c() = d()) /\\ 
                             (a() = c() \\/ b() = d()) 
                             ==> a() = d() \\/ b() = c()");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_49() {
         let result = prove("((exists x. exists y. forall z. (z = x \\/ z = y) /\\ ((P(a()) /\\ P(b)) /\\ a() <> b()))
                               ==> forall x. P(x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_50() {
         let result = prove("forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> exists x. forall y. F(x, y)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_50_negated() {
         let result = prove("~(forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> ~exists x. forall y. F(x, y))");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
     fn pelletier_51() {
         let result = prove("exists z. exists w. forall x. forall y. (F(x, y) <=> x = z /\\ y = w)
                             ==> exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_52() {
         let result = prove("exists z. exists w. forall x. forall y. (F(x, y) <=> x = z /\\ y = w)
                              ==> exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
   
     /*
@@ -716,13 +724,13 @@ mod test {
                             forall x. exists y. ~H(x, y) /\\ 
                             a() <> b()
                             ==> K(a(), a())"); 
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_56() {
         let result = prove("forall x. (exists y. (F(y) /\\ x = f(y)) ==> F(x)) <=> forall x. (F(x) ==> F(f(x)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -730,39 +738,39 @@ mod test {
         let result = prove("F(f(a(), b()), f(b(), c())) /\\ F(f(b(), c()), f(a(), c())) /\\
                             forall x. forall y. forall z. (F(x, y) /\\ F(y, z) ==> F(x, z)) 
                             ==> F(f(a(), b()), f(a(), c()))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_58() {
         let result = prove("forall x. forall y. f(x) = g(y) ==> forall x. forall y. f(f(x)) = f(g(y))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_59() {
         let result = prove("forall x. (F(x) <=> ~F(f(x))) ==> exists x. (F(x) /\\ ~F(f(x)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_60() {
         let result = prove("forall x. (F(x, f(x)) <=> exists y. (forall z. (F(z, y) ==> F(z, f(x))) /\\ F(x, y)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_61() {
         let result = prove("forall x. forall y. forall z. f(x, f(y, z)) = f(f(x, y), z)
                             ==> forall x. forall y. forall z. forall w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn pelletier_62_errata_errata() {
         let result = prove("forall x. (F(a()) /\\ (F(x) ==> F(f(x))) ==> F(f(f(x)))) <=>
                             forall x. ((~F(a()) \\/ F(x) \\/ F(f(f(x)))) /\\ (~F(a()) \\/ ~F(f(x)) \\/ F(f(f(x)))))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -771,7 +779,7 @@ mod test {
                             forall x. f(a(), x) = x /\\ 
                             forall x. exists y. f(y, x) = a()
                             ==> forall x. forall y. forall z. (f(x, y) = f(z, y) ==> x = z)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -780,7 +788,7 @@ mod test {
                             forall x. f(a(), x) = x /\\ 
                             forall x. exists y. f(y, x) = a()
                             ==> forall x. forall y. (f(y, x) = a() ==> f(x, y) = a())");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
@@ -788,7 +796,7 @@ mod test {
         let result = prove("forall x. forall y. forall z. f(f(x, y), z) = f(x, f(y, z)) /\\ 
                             forall x. f(a(), x) = x
                             ==> (forall x. f(x, x) = a() ==> forall x. forall y. f(x, y) = f(y, x))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
 
     #[test]
@@ -798,27 +806,27 @@ mod test {
                             forall x. forall y. (Q(x, y) ==> Q(y, x)) /\\
                             forall x. forall y. (P(x, y) \\/ Q(x, y))
                             ==> forall x. forall y. P(x, y) \\/ forall x. forall y. Q(x, y)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
        
     #[test]
     fn davis_putnam() {
         let result = prove("exists x. exists y. forall z. ((F(x, y) ==> F(y, z) /\\ F(z, z)) /\\ (F(x, y) /\\ G(x, y) ==> G(x, z) /\\ G(z, z)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn djikstra() {
         let result = prove("forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
                             ==> forall x. f(x) = x");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     #[test]
     fn djikstra_negated() {
         let result = prove("~(forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
                               ==> forall x. f(x) = x)");
-        assert!(result.is_err());
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
@@ -827,7 +835,7 @@ mod test {
                             exists x. F(x) /\\
                             forall x. forall y. (G(x) /\\ G(y) ==> x = y)
                             ==> forall y. (G(y) ==> F(y))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     /*
@@ -845,7 +853,7 @@ mod test {
                             forall x. mult(e(), x) = x /\\
                             forall x. mult(x, x) = e()
                             ==> forall x. forall y. mult(x, y) = mult(y, x)");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
     /*
