@@ -33,19 +33,45 @@ impl ProofState {
                      unused_clauses: preprocessed_clauses.into_iter().collect(), 
                      term_ordering: term_order }
     }
+         
+    /// Get the amount of used clauses.
+    pub fn get_used_size(&self) -> usize {
+        self.used_clauses.len()
+    }
+    
+    /// Get the amount of unused clauses.
+    pub fn get_unused_size(&self) -> usize {
+        self.unused_clauses.len()
+    }
+    
+    /// Picks the best clause from unused and removes it from there.
+    pub fn pick_best_clause(&mut self) -> Option<Clause> {
+        self.unused_clauses.pop()
+    }
     
     /// Adds the given clause to unused clauses.
-    pub fn add_clause_to_unused(&mut self, cl: Clause) {
+    pub fn add_to_unused(&mut self, cl: Clause) {
         self.unused_clauses.push(cl);
     }
     
     /// Adds the given clause to used clauses.
-    pub fn add_clause_to_used(&mut self, cl: Clause) {
+    pub fn add_to_used(&mut self, cl: Clause) {
         self.used_clauses.push(cl);
+    }
+    
+    /// Get a reference term ordering used.
+    pub fn get_term_ordering(&self) -> &TermOrdering {
+        &*self.term_ordering
     }
     
     /// Get a reference to the used clauses.
     pub fn get_used(&self) -> &Vec<Clause> {
         &self.used_clauses
+    }
+   
+    /// Get a mutable reference to the used clauses.
+    // TODO: can we get rid of this?
+    pub fn get_used_mut(&mut self) -> &mut Vec<Clause> {
+        &mut self.used_clauses
     }
 }

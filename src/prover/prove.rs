@@ -16,9 +16,10 @@
 */
 
 use std::collections::HashMap;
-use std::collections::BinaryHeap;
 use prover::flatten_cnf::flatten_cnf;
 use prover::clause::Clause;
+
+use prover::proof_state::ProofState;
 
 use prover::simplification::literal_deletion::simplify;
 use prover::simplification::tautology_deletion::trivial;
@@ -39,6 +40,7 @@ use cnf::naive_cnf::cnf;
 
 /// Contains the result of a proof attempt.
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
+#[allow(missing_docs)]
 pub enum ProofAttemptResult {
     Refutation,
     Saturation,
@@ -55,10 +57,31 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     }
 }
 
+/// Checks if a given clause is subsumed by some clause in a given set of clauses.
+fn forward_subsumed(cl: &Clause, clauses: &Vec<Clause>) -> bool {
+    clauses.iter().any(|cl2| subsumes_clause(cl2, cl))
+} 
+
+/// Removes all clauses from a given set subsumed by a given clause.
+/// Returns the amount of back subsumed clauses.
+fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> usize {
+    let mut i = 0;
+    let mut bs_count = 0;
+    
+    while i < clauses.len() {
+        if subsumes_clause(&cl, &clauses[i]) {
+            clauses.swap_remove(i);
+            bs_count += 1;
+            continue;
+        }
+        i += 1;
+    }
+    
+    bs_count
+}
+
 /// The main proof search loop.
-fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T, 
-                               mut unused: BinaryHeap<Clause>, 
-                               mut var_cnt: i64) -> ProofAttemptResult {
+fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResult {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
@@ -67,25 +90,27 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
     let mut ef_count = 0;
     let mut er_count = 0;
     let mut trivial_count = 0;
-    let mut used = Vec::new();
     
+    /*
     println!("Initial clauses: {}", unused.len());
     for cl in unused.iter() {
         println!("{:?}", cl);
     }
+    */
     
     sw.start();
     
-    while let Some(mut chosen_clause) = unused.pop() {
+    while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
         if sw.elapsed_ms() > ms_count {
             println!("info time {} iterations {} used {} unused {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
-                                                                                             iterations, used.len(), 
-                                                                                             unused.len(), 
-                                                                                             ef_count,
-                                                                                             er_count,
-                                                                                             trivial_count,
-                                                                                             fs_count,
-                                                                                             bs_count);
+                                                                                                        iterations, 
+                                                                                                        proof_state.get_used_size(), 
+                                                                                                        proof_state.get_unused_size(), 
+                                                                                                        ef_count,
+                                                                                                        er_count,
+                                                                                                        trivial_count,
+                                                                                                        fs_count,
+                                                                                                        bs_count);
             ms_count += 1000;
         }
         
@@ -94,30 +119,20 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
             return ProofAttemptResult::Refutation;
         }
         
-        // Forward subsumption.
-        if !used.iter().any(|cl| subsumes_clause(cl, &chosen_clause)) {
+        if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
         
-            // Backward subsumption.
-            let mut i = 0;
-            while i < used.len() {
-                if subsumes_clause(&chosen_clause, &used[i]) {
-                    used.swap_remove(i);
-                    bs_count += 1;
-                    continue;
-                }
-                i += 1;
-            }
+            bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
         
             // println!("Chosen clause: {:?}", chosen_clause);
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
             let mut inferred_clauses = Vec::new();
-            for cl in &used {
-                superposition(term_ordering, &chosen_clause, cl, &mut inferred_clauses);
-                superposition(term_ordering, cl, &chosen_clause, &mut inferred_clauses);
+            for cl in proof_state.get_used() {
+                superposition(proof_state.get_term_ordering(), &chosen_clause, cl, &mut inferred_clauses);
+                superposition(proof_state.get_term_ordering(), cl, &chosen_clause, &mut inferred_clauses);
             }
-            er_count += equality_resolution(term_ordering, &chosen_clause, &mut inferred_clauses);
-            ef_count += equality_factoring(term_ordering, &chosen_clause, &mut inferred_clauses);
+            er_count += equality_resolution(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
+            ef_count += equality_factoring(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
             
             for mut cl in inferred_clauses.into_iter() {
                 // Simplification need to be done before triviality checking.
@@ -125,13 +140,13 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
                 // We cannot detect it as a tautology with a pure syntactical check unless we first simplify it with destructive equality resolution.
                 simplify(&mut cl);
                 if !trivial(&cl) {
-                    unused.push(cl);
+                    proof_state.add_to_unused(cl);
                 } else {
                     trivial_count += 1;
                 }
             }
             
-            used.push(chosen_clause); // Not quite sure if this should be here or before.
+            proof_state.add_to_used(chosen_clause); // Not quite sure if this should be here or before.
         } else {
             fs_count += 1;
         }
@@ -142,6 +157,8 @@ fn serkr_loop<T: TermOrdering + ?Sized>(term_ordering: &T,
     ProofAttemptResult::Saturation
 }
 
+/// Try to simplify, delete tautologies and remove subsumed clauses from those clauses passed in.
+/// Possibly very costly due to subsumption checks.
 fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     // Simplify the clauses as much as possible.
     for cl in &mut clauses {
@@ -151,22 +168,11 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     // Then get rid of tautologies.
     let mut new_clauses = clauses.into_iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>();
        
-    // Remove subsumed clauses.
+    // Remove all subsumed clauses.
     let mut newer_clauses = Vec::new();
     while let Some(cl) = new_clauses.pop() {
-        // Forward subsumption.
-        if !newer_clauses.iter().any(|cl2| subsumes_clause(cl2, &cl)) {
-        
-            // Backward subsumption.
-            let mut i = 0;
-            while i < newer_clauses.len() {
-                if subsumes_clause(&cl, &newer_clauses[i]) {
-                    newer_clauses.swap_remove(i);
-                    continue;
-                }
-                i += 1;
-            }
-
+        if !forward_subsumed(&cl, &newer_clauses) {
+            backward_subsumption(&cl, &mut newer_clauses);
             newer_clauses.push(cl);
         }
     }
@@ -175,7 +181,7 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
 }
 
 /// If the problem contains one unary function, this function finds it.
-fn single_unary_function(clauses: &BinaryHeap<Clause>) -> Option<i64> {
+fn single_unary_function(clauses: &Vec<Clause>) -> Option<i64> {
     let mut found_unary = None;
     
     for cl in clauses {
@@ -201,7 +207,7 @@ fn single_unary_function(clauses: &BinaryHeap<Clause>) -> Option<i64> {
     found_unary
 }
 
-fn create_term_ordering(lpo_over_kbo: bool, clauses: &BinaryHeap<Clause>) -> Box<TermOrdering> {
+fn create_term_ordering(lpo_over_kbo: bool, clauses: &Vec<Clause>) -> Box<TermOrdering> {
     if lpo_over_kbo {
         Box::new(LPO::new())
     } else {
@@ -225,7 +231,8 @@ pub fn prove(s: &str) -> ProofAttemptResult {
             let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
             let preprocessed_problem = preprocess_clauses(flattened_cnf_f).into_iter().collect();                
             let term_ordering = create_term_ordering(true, &preprocessed_problem);
-            serkr_loop(&*term_ordering, preprocessed_problem, renaming_info.var_cnt)
+            let proof_state = ProofState::new(preprocessed_problem, term_ordering);
+            serkr_loop(proof_state, renaming_info.var_cnt)
         }
     } else {
         ProofAttemptResult::Error
