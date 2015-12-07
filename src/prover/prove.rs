@@ -215,7 +215,7 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &BinaryHeap<Clause>) -> Box
 
 /// Attempts to prove the FOL formula passed in.
 pub fn prove(s: &str) -> ProofAttemptResult {
-    if let Some(parsed_formula) = parse(s) {
+    if let Ok(parsed_formula) = parse(s) {
         let cnf_f = cnf(Formula::Not(Box::new(parsed_formula)));
         if cnf_f == Formula::False {
             ProofAttemptResult::Refutation
