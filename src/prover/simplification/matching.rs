@@ -58,6 +58,19 @@ pub fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bo
     true
 }
 
+/// Check if there is a sigma so that s\sigma = u and t\sigma = v (or with s and t switched).
+pub fn match_term_pairs(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
+    let mut env = Vec::new();
+    let eqs = vec!((s.clone(), u.clone()), (t.clone(), v.clone()));
+    if term_match(&mut env, eqs) {
+        true
+    } else {
+        let eqs2 = vec!((t.clone(), u.clone()), (s.clone(), v.clone()));
+        env.clear();
+        term_match(&mut env, eqs2)
+    }
+}
+
 #[cfg(test)]
 mod test {
 

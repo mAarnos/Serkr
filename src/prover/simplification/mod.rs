@@ -24,6 +24,9 @@ pub mod subsumption;
 /// Contains functions for checking if a positive unit clause subsumes some ther clause.
 pub mod equality_subsumption;
 
+/// Contains functions for performing positive and negative simplify-reflect simplifcations.
+pub mod simplify_reflect;
+
 /// Contains functions for deleting unnecessary literals from clauses.
 pub mod literal_deletion;
 

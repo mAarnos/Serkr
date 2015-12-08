@@ -18,8 +18,8 @@
 use prover::clause::Clause;
 use prover::unification::mgu;
 
-/// Simplifies a clause if possible.
-pub fn simplify(cl: &mut Clause) {
+/// Simplifies a clause with cheap (i.e. fast to run) rules if possible.
+pub fn cheap_simplify(cl: &mut Clause) {
     destructive_equality_resolution(cl);
     delete_resolved(cl);
     delete_duplicates(cl);
@@ -28,7 +28,7 @@ pub fn simplify(cl: &mut Clause) {
 /// Deletes all duplicated literals from a clause.
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 // TODO: see how much time is spent here.
-fn delete_duplicates(cl: &mut Clause) {
+pub fn delete_duplicates(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
         let mut j = i + 1;
@@ -45,7 +45,7 @@ fn delete_duplicates(cl: &mut Clause) {
 
 /// Deletes all resolved literals (s <> s) from a clause.
 /// Time complexity is O(n) where n is the amount of literals.
-fn delete_resolved(cl: &mut Clause) {
+pub fn delete_resolved(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
         if cl[i].is_negative() && cl[i].get_lhs() == cl[i].get_rhs() {
@@ -60,7 +60,7 @@ fn delete_resolved(cl: &mut Clause) {
 /// It is rather easy to see that we can use this for simplifying instead of generation.
 /// Time complexity is O(n^2) where n is the amount of literals.
 // TODO: possibly use also with x = f(...) where x does not occur in f(...). Probably complete.
-fn destructive_equality_resolution(cl: &mut Clause) {
+pub fn destructive_equality_resolution(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
         if cl[i].is_negative() && cl[i].get_lhs().is_variable() && cl[i].get_rhs().is_variable() {

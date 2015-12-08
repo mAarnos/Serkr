@@ -18,23 +18,11 @@
 use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
-use prover::simplification::matching::term_match;
-
-/// Check if there is a sigma so that s\sigma = u and t\sigma = v (or with s and t switched).
-fn match_term_pairs(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
-    let mut env = Vec::new();
-    let eqs = vec!((s.clone(), u.clone()), (t.clone(), v.clone()));
-    if term_match(&mut env, eqs) {
-        true
-    } else {
-        let eqs2 = vec!((t.clone(), u.clone()), (s.clone(), v.clone()));
-        env.clear();
-        term_match(&mut env, eqs2)
-    }
-}
+use prover::simplification::matching::match_term_pairs;
 
 /// Checks if the equation s = t equality subsumes u = v.
-fn eqn_subsumes_eqn(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
+// TODO: remove pub, rename into something more suited.
+pub fn eqn_subsumes_eqn(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
     if u == v {
         true
     } else if match_term_pairs(s, t, u, v) {

@@ -21,10 +21,11 @@ use prover::clause::Clause;
 
 use prover::proof_state::ProofState;
 
-use prover::simplification::literal_deletion::simplify;
+use prover::simplification::literal_deletion::cheap_simplify;
 use prover::simplification::tautology_deletion::trivial;
 use prover::simplification::subsumption::subsumes_clause;
 use prover::simplification::equality_subsumption::equality_subsumes_clause;
+use prover::simplification::simplify_reflect::simplify_reflect;
 
 use prover::term_ordering::traits::TermOrdering;
 use prover::term_ordering::lpo::LPO;
@@ -81,6 +82,13 @@ fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> usize {
     bs_count
 }
 
+/// A more expensive version of cheap_simplify with more effective rules.
+fn simplify(cl: &mut Clause, clauses: &Vec<Clause>) {
+    for cl2 in clauses {
+        simplify_reflect(cl2, cl);
+    }
+}
+
 /// The main proof search loop.
 fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResult {
     let mut sw = Stopwatch::new();
@@ -123,7 +131,18 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
         }
         
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
-        
+            simplify(&mut chosen_clause, proof_state.get_used());
+            
+            // A second retention test is necessary.
+            if chosen_clause.is_empty() {
+                return ProofAttemptResult::Refutation;
+            }
+            
+            if forward_subsumed(&chosen_clause, proof_state.get_used()) {
+                fs_count += 1;
+                continue;
+            }
+            
             bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
         
             // println!("Chosen clause: {:?}", chosen_clause);
@@ -138,7 +157,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
                 // Simplification need to be done before triviality checking.
                 // Consider the clause x <> y, y <> z, x = z which is clearly a tautology.
                 // We cannot detect it as a tautology with a pure syntactical check unless we first simplify it with destructive equality resolution.
-                simplify(&mut cl);
+                cheap_simplify(&mut cl);
                 if !trivial(&cl) {
                     proof_state.add_to_unused(cl);
                 } else {
@@ -162,7 +181,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
 fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     // Simplify the clauses as much as possible.
     for cl in &mut clauses {
-        simplify(cl);
+        cheap_simplify(cl);
     }
     
     // Then get rid of tautologies.
