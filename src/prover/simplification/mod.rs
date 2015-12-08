@@ -21,6 +21,9 @@ pub mod matching;
 /// Contains functions for checking if a clause subsumes some other clause.
 pub mod subsumption;
 
+/// Contains functions for checking if a positive unit clause subsumes some ther clause.
+pub mod equality_subsumption;
+
 /// Contains functions for deleting unnecessary literals from clauses.
 pub mod literal_deletion;
 

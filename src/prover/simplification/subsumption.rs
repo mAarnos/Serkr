@@ -163,7 +163,7 @@ mod test {
         let z = Term::new(-3, false, Vec::new());
         let w = Term::new(-4, false, Vec::new()); 
         let f_x = Term::new(1, false, vec!(x));
-        let l1= Literal::new(false, z, w);
+        let l1 = Literal::new(false, z, w);
         let l2 = Literal::new(false, f_x, y);
         let cl1 = Clause::new(vec!(l1));
         let cl2 = Clause::new(vec!(l2));
