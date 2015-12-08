@@ -87,6 +87,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
     let mut iterations = 0;
     let mut fs_count = 0;
     let mut bs_count = 0;
+    let mut sp_count = 0;
     let mut ef_count = 0;
     let mut er_count = 0;
     let mut trivial_count = 0;
@@ -102,15 +103,16 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
     
     while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
         if sw.elapsed_ms() > ms_count {
-            println!("info time {} iterations {} used {} unused {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
-                                                                                                        iterations, 
-                                                                                                        proof_state.get_used_size(), 
-                                                                                                        proof_state.get_unused_size(), 
-                                                                                                        ef_count,
-                                                                                                        er_count,
-                                                                                                        trivial_count,
-                                                                                                        fs_count,
-                                                                                                        bs_count);
+            println!("info time {} iterations {} used {} unused {} sp {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
+                                                                                                              iterations, 
+                                                                                                              proof_state.get_used_size(), 
+                                                                                                              proof_state.get_unused_size(), 
+                                                                                                              sp_count,
+                                                                                                              ef_count,
+                                                                                                              er_count,
+                                                                                                              trivial_count,
+                                                                                                              fs_count,
+                                                                                                              bs_count);
             ms_count += 1000;
         }
         
@@ -127,13 +129,10 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
             let mut inferred_clauses = Vec::new();
-            for cl in proof_state.get_used() {
-                superposition(proof_state.get_term_ordering(), &chosen_clause, cl, &mut inferred_clauses);
-                superposition(proof_state.get_term_ordering(), cl, &chosen_clause, &mut inferred_clauses);
-            }
+            sp_count += superposition(proof_state.get_term_ordering(), &chosen_clause, proof_state.get_used(), &mut inferred_clauses);
             er_count += equality_resolution(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
             ef_count += equality_factoring(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
-            
+
             for mut cl in inferred_clauses.into_iter() {
                 // Simplification need to be done before triviality checking.
                 // Consider the clause x <> y, y <> z, x = z which is clearly a tautology.
@@ -229,7 +228,7 @@ pub fn prove(s: &str) -> ProofAttemptResult {
             ProofAttemptResult::Saturation
         } else {
             let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
-            let preprocessed_problem = preprocess_clauses(flattened_cnf_f).into_iter().collect();                
+            let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
             let term_ordering = create_term_ordering(true, &preprocessed_problem);
             let proof_state = ProofState::new(preprocessed_problem, term_ordering);
             serkr_loop(proof_state, renaming_info.var_cnt)
@@ -871,6 +870,25 @@ mod test {
                             forall x. mult(i(x), x) = e()
                              ==> forall x. mult(x, i(x)) = e()");
         assert!(result.is_ok());
+    }
+    */
+    
+    // This problem is _really_ tough.
+    /*
+    #[test]
+    fn lusk6() {
+        let result = prove("forall x. add(e(), x) = x /\\ 
+                            forall x. add(x, e()) = x /\\
+                            forall x. add(inv(x), x) = e() /\\
+                            forall x. add(x, inv(x)) = e() /\\
+                            forall x. forall y. forall z. add(add(x, y), z) = add(x, add(y, z)) /\\
+                            forall x. forall y. add(x, y) = add(y, x) /\\
+                            forall x. forall y. forall z. mult(mult(x, y), z) = mult(x, mult(y, z)) /\\
+                            forall x. forall y. forall z. mult(x, add(y, z)) = add(mult(x, y), mult(x, z)) /\\
+                            forall x. forall y. forall z. mult(add(x, y), z) = add(mult(x, z), mult(y, z)) /\\
+                            forall x. mult(mult(x, x), x) = x 
+                            ==> forall x. forall y. mult(x, y) = mult(y, x)");
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
 } 

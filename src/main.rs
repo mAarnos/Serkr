@@ -50,6 +50,7 @@ fn main() {
     
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
+    /*
     let res = prover::prove::prove("forall x. (P1(x) ==> P0(x)) /\\ exists x. P1(x) /\\ 
                                     forall x. (P2(x) ==> P0(x)) /\\ exists x. P2(x) /\\ 
                                     forall x. (P3(x) ==> P0(x)) /\\ exists x. P3(x) /\\
@@ -65,6 +66,11 @@ fn main() {
                                     forall x. forall y. (P3(x) /\\ P5(y) ==> ~R(x, y)) /\\
                                     forall x. (P4(x) \\/ P5(x) ==> exists y. (Q0(y) /\\ R(x, y)))
                                     ==> exists x. exists y. (P0(x) /\\ P0(y) /\\ exists z. (Q1(z) /\\ R(y, z) /\\ R(x, y)))");
+    */
+    let res = prover::prove::prove("forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z) /\\
+                                    forall x. mult(e(), x) = x /\\
+                                    forall x. mult(i(x), x) = e()
+                                     ==> forall x. mult(x, i(x)) = e()");
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());

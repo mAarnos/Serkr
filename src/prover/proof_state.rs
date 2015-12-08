@@ -48,17 +48,17 @@ impl ProofState {
     pub fn pick_best_clause(&mut self) -> Option<Clause> {
         self.unused_clauses.pop()
     }
-    
-    /// Adds the given clause to unused clauses.
-    pub fn add_to_unused(&mut self, cl: Clause) {
-        self.unused_clauses.push(cl);
-    }
-    
+          
     /// Adds the given clause to used clauses.
     pub fn add_to_used(&mut self, cl: Clause) {
         self.used_clauses.push(cl);
     }
     
+    /// Adds the given clause to unused clauses.
+    pub fn add_to_unused(&mut self, cl: Clause) {
+        self.unused_clauses.push(cl);
+    }
+  
     /// Get a reference term ordering used.
     pub fn get_term_ordering(&self) -> &TermOrdering {
         &*self.term_ordering
