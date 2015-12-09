@@ -538,7 +538,7 @@ mod test {
                              (exists x. Q(x) <=> forall y. Q(y))) <=>
                             ((exists x. forall y. Q(x) <=> Q(y)) <=>
                              (exists x. P(x) <=> forall y. P(y)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
 
@@ -578,7 +578,7 @@ mod test {
         let result = prove("forall x. (P(a()) /\\ (P(x) ==> exists y. (P(y) /\\ R(x, y))) ==> exists z. exists w. (P(z) /\\ R(x, w) /\\ R(w, z))) <=>
                             forall x. ((~P(a()) \\/ P(x) \\/ exists z. exists w. (P(z) /\\ R(x, w) /\\ R(w, z))) /\\
                             (~P(a()) \\/ ~exists y. (P(y) /\\ R(x, y)) \\/ exists z. exists w. (P(z) /\\ R(x, w) /\\ R(w, z))))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
     
@@ -672,7 +672,7 @@ mod test {
                             forall x. forall y. (P3(x) /\\ P5(y) ==> ~R(x, y)) /\\
                             forall x. (P4(x) \\/ P5(x) ==> exists y. (Q0(y) /\\ R(x, y)))
                             ==> exists x. exists y. (P0(x) /\\ P0(y) /\\ exists z. (Q1(z) /\\ R(y, z) /\\ R(x, y)))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
     
@@ -723,18 +723,16 @@ mod test {
         let result = prove("((exists x. exists y. (x <> y /\\ forall z. (z = x \\/ z = y))) ==>
                            (((exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))
                             <=> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w))))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
     
-    /*
     #[test]
     fn pelletier_54() {
         let result = prove("forall y. exists z. forall x. (F(x, z) <=> x = y) 
                             ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y)))))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
-    */
     
     #[test]
     fn pelletier_55() {
@@ -871,7 +869,7 @@ mod test {
     fn wishnu() {
         let result = prove("exists x. (x = f(g(x)) /\\ forall x1. (x1 = f(g(x1)) ==> x = x1)) <=>
                             exists y. (y = g(f(y)) /\\ forall y1. (y1 = g(f(y1)) ==> y = y1))");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
     
@@ -891,7 +889,7 @@ mod test {
                             forall x. mult(e(), x) = x /\\
                             forall x. mult(i(x), x) = e()
                              ==> forall x. mult(x, i(x)) = e()");
-        assert!(result.is_ok());
+        assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
     

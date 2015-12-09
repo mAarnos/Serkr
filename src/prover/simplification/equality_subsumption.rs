@@ -56,11 +56,7 @@ fn eqn_subsumes_literal(s: &Term, t: &Term, l: &Literal) -> bool {
 /// Checks if the clause cl1 equality subsumes the clause cl2.
 pub fn equality_subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
     if cl1.size() == 1 && cl1[0].is_positive() {
-        if cl2.iter().any(|l| eqn_subsumes_literal(cl1[0].get_lhs(), cl1[0].get_rhs(), l)) {
-            true
-        } else {
-            false
-        }
+        cl2.iter().any(|l| eqn_subsumes_literal(cl1[0].get_lhs(), cl1[0].get_rhs(), l))
     } else {
         false
     }
@@ -100,6 +96,18 @@ mod test {
         
         let cl1 = Clause::new(vec!(Literal::new(false, f_x_c, x)));
         let cl2 = Clause::new(vec!(Literal::new(false, g_y, g_f_y_c)));
+    
+        assert!(equality_subsumes_clause(&cl1, &cl2));
+    }
+    
+    #[test]
+    fn equality_subsumes_clause_3() {
+        // Check that f(x) = T subsumes T = f(x). 
+        let x = Term::new(-1, false, Vec::new());
+        let f_x = Term::new(1, true, vec!(x));
+        
+        let cl1 = Clause::new(vec!(Literal::new(false, f_x.clone(), Term::new_truth())));
+        let cl2 = Clause::new(vec!(Literal::new(false, Term::new_truth(), f_x.clone())));
     
         assert!(equality_subsumes_clause(&cl1, &cl2));
     }
