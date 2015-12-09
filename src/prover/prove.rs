@@ -726,13 +726,15 @@ mod test {
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
-    
+
+    /*
     #[test]
     fn pelletier_54() {
         let result = prove("forall y. exists z. forall x. (F(x, z) <=> x = y) 
                             ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y)))))");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
+    */
     
     #[test]
     fn pelletier_55() {
