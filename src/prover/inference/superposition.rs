@@ -140,7 +140,7 @@ fn superposition_generate<T: TermOrdering + ?Sized>(term_ordering: &T,
 /// Returns the amount of clauses generated.
 pub fn superposition<T: TermOrdering + ?Sized>(term_ordering: &T, 
                                                cl: &Clause, 
-                                               clauses: &Vec<Clause>, 
+                                               clauses: &[Clause], 
                                                generated: &mut Vec<Clause>) -> usize {
     let mut sp_count = 0;
                                                

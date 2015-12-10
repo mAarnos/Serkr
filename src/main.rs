@@ -32,11 +32,11 @@
 // Might as well make the warnings errors.
 #![deny(warnings)]
 
-// Clippy lints.
-// TODO: add clippy_pedantic 
+// Clippy lints turned to the max.
+#![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
-#![cfg_attr(feature="clippy", allow(len_zero))]
+#![cfg_attr(feature="clippy", deny(clippy_pedantic))]
 
 #[macro_use]
 pub mod utils;

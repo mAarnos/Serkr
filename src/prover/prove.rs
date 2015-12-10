@@ -60,7 +60,7 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 }
 
 /// Checks if a given clause is subsumed by some clause in a given set of clauses.
-fn forward_subsumed(cl: &Clause, clauses: &Vec<Clause>) -> bool {
+fn forward_subsumed(cl: &Clause, clauses: &[Clause]) -> bool {
     clauses.iter().any(|cl2| equality_subsumes_clause(cl2, cl) || subsumes_clause(cl2, cl))
 } 
 
@@ -83,7 +83,7 @@ fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> usize {
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.
-fn simplify(cl: &mut Clause, clauses: &Vec<Clause>) {
+fn simplify(cl: &mut Clause, clauses: &[Clause]) {
     for cl2 in clauses {
         simplify_reflect(cl2, cl);
     }
@@ -200,7 +200,7 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
 }
 
 /// If the problem contains one unary function, this function finds it.
-fn single_unary_function(clauses: &Vec<Clause>) -> Option<i64> {
+fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     let mut found_unary = None;
     
     for cl in clauses {
@@ -226,7 +226,7 @@ fn single_unary_function(clauses: &Vec<Clause>) -> Option<i64> {
     found_unary
 }
 
-fn create_term_ordering(lpo_over_kbo: bool, clauses: &Vec<Clause>) -> Box<TermOrdering> {
+fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> Box<TermOrdering> {
     if lpo_over_kbo {
         Box::new(LPO::new())
     } else {
