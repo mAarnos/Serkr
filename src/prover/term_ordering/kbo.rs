@@ -78,7 +78,7 @@ impl KBO {
                                      } else {
                                          1
                                      };
-            s.iter().fold(func_symbol_weight, |acc, t| acc + t.symbol_count())
+            s.iter().fold(func_symbol_weight, |acc, t| acc + self.weight(t))
         }
     }
 }
