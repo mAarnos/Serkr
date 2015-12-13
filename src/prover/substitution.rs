@@ -31,6 +31,7 @@ impl Substitution {
     }
     
     /// Used for getting the size of the substitution.
+    #[allow(dead_code)]
     pub fn size(&self) -> usize {
         self.subst.len()
     }
@@ -54,6 +55,7 @@ impl Substitution {
         self.subst.iter().all(|(_, v)| v.is_variable())
     }
     
+    /// Hack, remove.
     pub fn iter_mut(&mut self) -> IterMut<Term, Term> {
         self.subst.iter_mut()
     }

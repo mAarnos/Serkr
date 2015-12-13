@@ -16,6 +16,7 @@
 */
 
 use std::collections::HashMap;
+use std::vec::IntoIter;
 use std::slice::{Iter, IterMut};
 use std::ops::{Index, IndexMut};
 use std::fmt::{Debug, Formatter, Error};
@@ -124,7 +125,7 @@ impl Term {
         self.args.iter().fold(1, |acc, t| acc + t.symbol_count())
     }
     
-    /// Used for iterating the literals of the clause.
+    /// Used for iterating the subterms of a term.
     pub fn iter(&self) -> Iter<Term> {
         self.args.iter()
     }
@@ -133,6 +134,11 @@ impl Term {
     #[allow(dead_code)]
     pub fn iter_mut(&mut self) -> IterMut<Term> {
         self.args.iter_mut()
+    }
+    
+    /// Consumes the term and returns an iterator over the subterms.
+    pub fn into_iter(self) -> IntoIter<Term> {
+        self.args.into_iter()
     }
 }
 

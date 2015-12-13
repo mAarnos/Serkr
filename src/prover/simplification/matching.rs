@@ -24,7 +24,7 @@ pub fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bo
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1.is_function() && eq2.is_function() {
             if eq1.get_id() == eq2.get_id() {
-                for eq in eq1.iter().cloned().zip(eq2.iter().cloned()) {
+                for eq in eq1.into_iter().zip(eq2.into_iter()) {
                     eqs.push(eq);
                 }
             } else {
