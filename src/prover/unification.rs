@@ -15,11 +15,13 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::collections::HashMap;
 use prover::term::Term;
+use prover::substitution::Substitution;
 
-fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
-    let mut env = HashMap::<Term, Term>::new();
+/// Tries to find a substitution so that s and t are equal.
+fn unify(s: &Term, t: &Term) -> Option<Substitution> {
+    let mut env = Substitution::new();
+    let mut eqs = vec!((s.clone(), t.clone()));
 
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1 == eq2 {
@@ -50,7 +52,7 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
                 // eliminate
                 // We soon add a mapping of the form eq1 |-> eq2.
                 // We might have mappings of the form x |-> eq1 which need to be fixed to x |-> eq2.
-                for (_, v) in &mut env {
+                for (_, v) in env.iter_mut() {
                     v.subst_single(&eq1, &eq2);
                 }
                 
@@ -70,8 +72,8 @@ fn unify(mut eqs: Vec<(Term, Term)>) -> Option<HashMap<Term, Term>> {
 }
 
 /// Tries to find the most general unifier of two terms.
-pub fn mgu(p: &Term, q: &Term) -> Option<HashMap<Term, Term>> {
-    unify(vec!((p.clone(), q.clone())))
+pub fn mgu(s: &Term, t: &Term) -> Option<Substitution> {
+    unify(s, t)
 }
 
 #[cfg(test)]
@@ -100,7 +102,7 @@ mod test {
         let t1 = Term::new(1, false, vec!(x.clone(), g_y.clone()));
         let t2 = Term::new(1, false, vec!(g_z.clone(), w.clone()));
         let theta = mgu(&t1, &t2).unwrap();
-        assert_eq!(theta.len(), 2);
+        assert_eq!(theta.size(), 2);
         assert_eq!(theta.get(&x), Some(&g_z));
         assert_eq!(theta.get(&w), Some(&g_y));
     }
@@ -114,7 +116,7 @@ mod test {
         let t2 = Term::new(1, false, vec!(y.clone(), x.clone()));
         
         let theta = mgu(&t1, &t2).unwrap();
-        assert_eq!(theta.len(), 1);
+        assert_eq!(theta.size(), 1);
         assert!(theta.get(&y) == Some(&x) || theta.get(&x) == Some(&y));
     }
     
@@ -167,7 +169,7 @@ mod test {
         let t1 = Term::new(2, false, vec!(x.clone(), Term::new(3, false, vec!(x.clone()))));
         let t2 = Term::new(2, false, vec!(c.clone(), y.clone()));
         let theta = mgu(&t1, &t2).unwrap();
-        assert_eq!(theta.len(), 2);
+        assert_eq!(theta.size(), 2);
         assert_eq!(theta.get(&x), Some(&c));
         assert_eq!(theta.get(&y), Some(&Term::new(3, false, vec!(c))));
     }

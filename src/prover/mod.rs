@@ -23,6 +23,7 @@ mod clause;
 
 mod flatten_cnf;
 
+mod substitution;
 mod unification;
 
 mod simplification;

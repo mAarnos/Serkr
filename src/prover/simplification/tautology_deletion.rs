@@ -16,7 +16,7 @@
 */
 
 use prover::clause::Clause;
-use prover::literal::terms_equal;
+use prover::literal::{terms_equal, polarity_equal};
 
 /// Checks if a clause is a syntactical tautology and as such can be eliminated completely.
 pub fn trivial(cl: &Clause) -> bool {
@@ -31,11 +31,10 @@ fn td1(cl: &Clause) -> bool {
 
 /// Checks if a clause contains a literal and its negation.
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
-// TODO: see how much time is spent here.
 fn td2(cl: &Clause) -> bool {
     for (i, l1) in cl.iter().enumerate() {
         for l2 in cl.iter().skip(i + 1) {
-            if l1.is_positive() != l2.is_positive() && terms_equal(l1, l2) {
+            if !polarity_equal(l1, l2) && terms_equal(l1, l2) {
                 return true;
             }
         }

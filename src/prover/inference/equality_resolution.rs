@@ -22,7 +22,7 @@ use prover::term_ordering::traits::TermOrdering;
 /// Infers new clauses by (ordered) equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.
 /// Returns the amount of inferred clauses.
-pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, resolvents: &mut Vec<Clause>) -> usize {
+pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
     let mut er_count = 0;
     
     for (i, l) in cl.iter().enumerate() {
@@ -35,7 +35,7 @@ pub fn equality_resolution<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Cla
                 new_l.subst(&theta);
                 
                 if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &new_l)) {
-                    resolvents.push(new_cl);
+                    generated.push(new_cl);
                     er_count += 1;
                 } 
             }

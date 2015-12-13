@@ -17,11 +17,10 @@
 
 use std::ops::Index;
 use std::slice::{Iter, IterMut};
-use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::fmt::{Debug, Formatter, Error};
-use prover::term::Term;
 use prover::literal::Literal;
+use prover::substitution::Substitution;
 
 /// A multiset containing literals.
 // TODO: Eq and PartialEq are nonsensical at the moment but proper solutions would be expensive. What to do?
@@ -78,10 +77,10 @@ impl Clause {
         self.literals.append(&mut cl.literals);
     }
     
-    /// Substitutes terms in the clause according to the mapping.
-    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
+    /// Substitutes variables in the clause according to the substitution.
+    pub fn subst(&mut self, substitution: &Substitution) {
         for l in &mut self.literals {
-            l.subst(sfn);
+            l.subst(substitution);
         }
     }
     

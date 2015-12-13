@@ -24,7 +24,7 @@ use prover::term_ordering::traits::TermOrdering;
 /// Infers new clauses by equality factoring
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 /// Returns the amount of inferred clauses.
-pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, factors: &mut Vec<Clause>) -> usize {
+pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
     let mut ef_count = 0;
 
     for (i, l) in cl.iter().enumerate() {
@@ -38,10 +38,10 @@ pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clau
             }
             
             // So we have found two equality literals. There are four ways to try to combine them.
-            ef_count += equality_factoring_create_new(term_ordering, cl, factors, l.get_lhs(), l.get_rhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
-            ef_count += equality_factoring_create_new(term_ordering, cl, factors, l.get_lhs(), l.get_rhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
-            ef_count += equality_factoring_create_new(term_ordering, cl, factors, l.get_rhs(), l.get_lhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
-            ef_count += equality_factoring_create_new(term_ordering, cl, factors, l.get_rhs(), l.get_lhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_lhs(), l.get_rhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_lhs(), l.get_rhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_rhs(), l.get_lhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_rhs(), l.get_lhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
         }
     }
     
@@ -50,7 +50,7 @@ pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clau
 
 fn equality_factoring_create_new<T: TermOrdering + ?Sized>(term_ordering: &T, 
                                                            cl: &Clause, 
-                                                           factors: &mut Vec<Clause>, 
+                                                           generated: &mut Vec<Clause>, 
                                                            s: &Term, t: &Term, 
                                                            u: &Term, v: &Term, 
                                                            i: usize) -> usize {
@@ -69,7 +69,7 @@ fn equality_factoring_create_new<T: TermOrdering + ?Sized>(term_ordering: &T,
                 let mut new_ineq_lit = Literal::new(true, t.clone(), v.clone());
                 new_ineq_lit.subst(&theta);
                 new_cl.add_literal(new_ineq_lit);
-                factors.push(new_cl);
+                generated.push(new_cl);
                 ef_count += 1;
             }
         }

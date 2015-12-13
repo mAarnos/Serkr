@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use std::slice::{Iter, IterMut};
 use std::ops::{Index, IndexMut};
 use std::fmt::{Debug, Formatter, Error};
+use prover::substitution::Substitution;
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 
@@ -91,12 +92,12 @@ impl Term {
     }
     
     /// Substitutes according to the mapping.
-    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
-        if let Some(t) = sfn.get(&self) {
+    pub fn subst(&mut self, substitution: &Substitution) {
+        if let Some(t) = substitution.get(&self) {
             *self = t.clone();
         } else {
             for x in &mut self.args {
-                x.subst(sfn);
+                x.subst(substitution);
             }
         }
     }

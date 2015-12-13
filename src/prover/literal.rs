@@ -18,6 +18,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter, Error};
 use prover::term::Term;
+use prover::substitution::Substitution;
 
 /// A single (possibly negated) equation, or simply, a literal.
 /// Note: has custom PartialEq and Eq: if you add stuff to here remember to change them too.
@@ -66,16 +67,16 @@ impl Literal {
         &mut self.rhs
     }
     
+    /// Substitutes variables in the literal according to the substitution.
+    pub fn subst(&mut self, substitution: &Substitution) {
+        self.lhs.subst(substitution);
+        self.rhs.subst(substitution);
+    }
+    
     /// Renames all variables in a literal so that it has no variables in common with any clause other than the one it is a part of.
     pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
         self.lhs.rename_no_common(sfn, var_cnt);
         self.rhs.rename_no_common(sfn, var_cnt);
-    }
-    
-    /// Substitutes terms in the literal according to the mapping.
-    pub fn subst(&mut self, sfn: &HashMap<Term, Term>) {
-        self.lhs.subst(sfn);
-        self.rhs.subst(sfn);
     }
     
     /// Get the amount of symbols in this literal
@@ -86,7 +87,7 @@ impl Literal {
 
 impl PartialEq for Literal {
     fn eq(&self, other: &Literal) -> bool {
-        self.negated == other.negated && terms_equal(self, other)
+        polarity_equal(self, other) && terms_equal(self, other)
     }
 }
 
@@ -98,6 +99,11 @@ impl Debug for Literal {
         let eqn_sign = if self.is_positive() { "=" } else { "<>" }; 
         write!(formatter, "{:?} {} {:?}", self.lhs, eqn_sign, self.rhs)
     }
+}
+
+/// Checks if the literals have the same polarity.
+pub fn polarity_equal(l1: &Literal, l2: &Literal) -> bool {
+    l1.is_positive() == l2.is_positive()
 }
 
 /// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.

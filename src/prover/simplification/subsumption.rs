@@ -16,7 +16,7 @@
 */
 
 use prover::term::Term;
-use prover::literal::Literal;
+use prover::literal::{Literal, polarity_equal};
 use prover::clause::Clause;
 use prover::simplification::matching::term_match;
 
@@ -36,7 +36,7 @@ fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1:
         let l1 = &cl1[n];
 
         for (i, l2) in cl2.iter().enumerate() {
-            if !exclusion[i] && l1.is_positive() == l2.is_positive() {
+            if !exclusion[i] && polarity_equal(l1, l2) {
                 exclusion[i] = true;
                 let result = match_literals(env, l1, l2, false) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
                 exclusion[i] = false;
@@ -72,7 +72,7 @@ fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
     
         let mut found_match = false;
         for (i, l2) in cl2.iter().enumerate() {
-            if l1.is_positive() == l2.is_positive() && !exclusion[i] {
+            if !exclusion[i] && polarity_equal(l1, l2) {
                 let l_id_l = l1.get_lhs().get_id();
                 let r_id_l = l2.get_lhs().get_id();
                 let l_id_r = l1.get_rhs().get_id();
