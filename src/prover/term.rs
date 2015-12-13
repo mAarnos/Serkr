@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use std::slice::Iter;
+use std::slice::{Iter, IterMut};
 use std::ops::{Index, IndexMut};
 use std::fmt::{Debug, Formatter, Error};
 
@@ -101,7 +101,7 @@ impl Term {
         }
     }
     
-    /// Rename all variables in a term so that it has no variables in common with any other clause that the one it is a part of.
+    /// Rename all variables in a term so that it has no variables in common with any clause other than the one it is a part of.
     pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
         if self.is_variable() {
             if let Some(&t) = sfn.get(&self.id) {
@@ -126,6 +126,12 @@ impl Term {
     /// Used for iterating the literals of the clause.
     pub fn iter(&self) -> Iter<Term> {
         self.args.iter()
+    }
+    
+    /// Used for iterating the literals of the clause with the option of mutating them.
+    #[allow(dead_code)]
+    pub fn iter_mut(&mut self) -> IterMut<Term> {
+        self.args.iter_mut()
     }
 }
 

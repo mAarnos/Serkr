@@ -46,6 +46,12 @@ impl Clause {
         self.literals.is_empty()
     }
     
+    /// Used for checking if the clause is unit.
+    #[allow(dead_code)]
+    pub fn is_unit(&self) -> bool {
+        self.size() == 1
+    }
+    
     /// Used for iterating the literals of the clause.
     pub fn iter(&self) -> Iter<Literal> {
         self.literals.iter()

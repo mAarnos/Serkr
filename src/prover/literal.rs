@@ -44,16 +44,29 @@ impl Literal {
         self.negated
     }
     
-    /// Get a reference to the left hand side of the Literal.
+    /// Get a reference to the left hand side of the literal.
     pub fn get_lhs(&self) -> &Term {
         &self.lhs
     }
     
-    /// Get a reference to the right hand side of the Literal.
+    /// Get a mutable reference to the left hand side of the literal.
+    #[allow(dead_code)]
+    pub fn get_lhs_mut(&mut self) -> &mut Term {
+        &mut self.lhs
+    }
+    
+    /// Get a reference to the right hand side of the literal.
     pub fn get_rhs(&self) -> &Term {
         &self.rhs
     }
     
+    /// Get a mutable reference to the right hand side of the literal.
+    #[allow(dead_code)]
+    pub fn get_rhs_mut(&mut self) -> &mut Term {
+        &mut self.rhs
+    }
+    
+    /// Renames all variables in a literal so that it has no variables in common with any clause other than the one it is a part of.
     pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
         self.lhs.rename_no_common(sfn, var_cnt);
         self.rhs.rename_no_common(sfn, var_cnt);
