@@ -37,6 +37,7 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
+#![cfg_attr(feature="clippy", allow(result_unwrap_used))]
 
 #[macro_use]
 pub mod utils;

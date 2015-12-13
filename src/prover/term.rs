@@ -16,7 +16,7 @@
 */
 
 use std::collections::HashMap;
-use std::vec::IntoIter;
+use std::iter::IntoIterator;
 use std::slice::{Iter, IterMut};
 use std::ops::{Index, IndexMut};
 use std::fmt::{Debug, Formatter, Error};
@@ -135,11 +135,6 @@ impl Term {
     pub fn iter_mut(&mut self) -> IterMut<Term> {
         self.args.iter_mut()
     }
-    
-    /// Consumes the term and returns an iterator over the subterms.
-    pub fn into_iter(self) -> IntoIter<Term> {
-        self.args.into_iter()
-    }
 }
 
 impl Index<usize> for Term {
@@ -153,6 +148,16 @@ impl Index<usize> for Term {
 impl IndexMut<usize> for Term {
     fn index_mut(&mut self, index: usize) -> &mut Term {
         &mut self.args[index]
+    }
+}
+
+impl IntoIterator for Term {
+    type Item = Term;
+    type IntoIter = ::std::vec::IntoIter<Term>;
+
+    /// Consumes the term and returns an iterator over the subterms.
+    fn into_iter(self) -> Self::IntoIter {
+        self.args.into_iter()
     }
 }
 
