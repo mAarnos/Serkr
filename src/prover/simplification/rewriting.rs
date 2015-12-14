@@ -18,7 +18,6 @@
 use prover::term::Term;
 use prover::clause::Clause;
 use prover::term_ordering::traits::TermOrdering;
-use prover::unification::substitution::Substitution;
 use prover::unification::matching::term_match;
 
 /// Does one rewrite step.
@@ -28,7 +27,7 @@ fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Claus
         if cl.is_unit() && cl[0].is_positive() {
             let l = &cl[0];
             // TODO: only uses lhs currently, fix that
-            if let Some(theta) = term_match(Substitution::new(), vec!((l.get_lhs().clone(), u.clone()))) {
+            if let Some(theta) = term_match(l.get_lhs(), u) {
                 let mut new_s = l.get_lhs().clone();
                 let mut new_t = l.get_rhs().clone();
                 new_s.subst(&theta);

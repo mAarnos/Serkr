@@ -20,7 +20,7 @@ use std::collections::hash_map::IterMut;
 use prover::term::Term;
 
 /// Represents a substitution of from variables to terms.
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Substitution {
     subst: HashMap<Term, Term>
 }

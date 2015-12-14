@@ -17,7 +17,7 @@
 
 use prover::literal::{Literal, polarity_equal};
 use prover::clause::Clause;
-use prover::unification::matching::term_match;
+use prover::unification::matching::term_match_general;
 use prover::unification::substitution::Substitution;
 
 fn match_literals(substitution: Substitution, p: &Literal, q: &Literal, mixed: bool) -> Option<Substitution> {
@@ -25,7 +25,7 @@ fn match_literals(substitution: Substitution, p: &Literal, q: &Literal, mixed: b
                                (p.get_rhs().clone(), q.get_rhs().clone())) }
               else { vec!((p.get_rhs().clone(), q.get_lhs().clone()), 
                           (p.get_lhs().clone(), q.get_rhs().clone())) };
-    term_match(substitution, eqs)
+    term_match_general(substitution, eqs)
 }
 
 fn subsumes_clause0(substitution: Substitution, exclusion: &mut Vec<bool>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {

@@ -18,10 +18,17 @@
 use prover::term::Term;
 use prover::unification::substitution::Substitution;
 
-/// Checks whether we can update the substitution given in so that for all equations given the lhs is equal to the rhs.
-/// It must be noted that the substitution is only for lhs, unlike full unification.
-/// Returns the new substitution if it exists.
-pub fn term_match(mut substitution: Substitution, mut eqs: Vec<(Term, Term)>) -> Option<Substitution> {
+/// Tries to find a sigma so that s\sigma = t.
+/// Returns the substitution if it exists.
+/// It must be noted that we treat variables of a pair of to terms as distinct even if they have the same name.
+/// This might cause us to have trivial mappings like x |-> x.
+pub fn term_match(s: &Term, t: &Term) -> Option<Substitution> {
+    term_match_general(Substitution::new(), vec!((s.clone(), t.clone())))
+}
+
+/// A more general version of term_match.
+/// The only difference is that we can pass in a substitution to expand, and we can give more pairs of equations than just one.
+pub fn term_match_general(mut substitution: Substitution, mut eqs: Vec<(Term, Term)>) -> Option<Substitution> {
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1.is_function() && eq2.is_function() {
             if eq1.get_id() == eq2.get_id() {
@@ -60,16 +67,27 @@ pub fn term_match(mut substitution: Substitution, mut eqs: Vec<(Term, Term)>) ->
 /// Check if there is a sigma so that s\sigma = u and t\sigma = v (or with s and t switched).
 pub fn match_term_pairs(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
     let eqs = vec!((s.clone(), u.clone()), (t.clone(), v.clone()));
-    if term_match(Substitution::new(), eqs).is_some() {
+    if term_match_general(Substitution::new(), eqs).is_some() {
         true
     } else {
         let eqs2 = vec!((t.clone(), u.clone()), (s.clone(), v.clone()));
-        term_match(Substitution::new(), eqs2).is_some()
+        term_match_general(Substitution::new(), eqs2).is_some()
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::term_match;
+    use prover::term::Term;
 
+    #[test]
+    fn term_match_1() {
+        // f(x) = f(g(x))
+        // Unlike with unification, this should succeed.
+        let x = Term::new(-1, false, Vec::new());
+        let t1 = Term::new(1, false, vec!(x.clone()));
+        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));
+        assert!(term_match(&t1, &t2).is_some());
+    }
 } 
 
