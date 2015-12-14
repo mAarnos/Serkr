@@ -26,6 +26,7 @@ use prover::simplification::tautology_deletion::trivial;
 use prover::simplification::subsumption::subsumes_clause;
 use prover::simplification::equality_subsumption::equality_subsumes_clause;
 use prover::simplification::simplify_reflect::simplify_reflect;
+use prover::simplification::rewriting::rewrite_literals;
 
 use prover::term_ordering::traits::TermOrdering;
 use prover::term_ordering::lpo::LPO;
@@ -83,10 +84,11 @@ fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> usize {
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.
-fn simplify(cl: &mut Clause, clauses: &[Clause]) {
+fn simplify<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &mut Clause, clauses: &[Clause]) {
     for cl2 in clauses {
         simplify_reflect(cl2, cl);
     }
+    rewrite_literals(term_ordering, clauses, cl);
 }
 
 /// The main proof search loop.
@@ -131,7 +133,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
         }
         
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
-            simplify(&mut chosen_clause, proof_state.get_used());
+            simplify(proof_state.get_term_ordering(), &mut chosen_clause, proof_state.get_used());
             
             // A second retention test is necessary.
             if chosen_clause.is_empty() {

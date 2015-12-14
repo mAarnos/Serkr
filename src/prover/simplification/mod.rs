@@ -22,7 +22,6 @@ pub mod subsumption;
 pub mod equality_subsumption;
 
 /// Contains functions for rewriting positive and negative literals.
-#[allow(dead_code)]
 pub mod rewriting;
 
 /// Contains functions for performing positive and negative simplify-reflect simplifications.

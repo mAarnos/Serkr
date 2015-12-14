@@ -131,7 +131,6 @@ impl Term {
     }
     
     /// Used for iterating the literals of the clause with the option of mutating them.
-    #[allow(dead_code)]
     pub fn iter_mut(&mut self) -> IterMut<Term> {
         self.args.iter_mut()
     }

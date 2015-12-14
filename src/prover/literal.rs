@@ -51,7 +51,6 @@ impl Literal {
     }
     
     /// Get a mutable reference to the left hand side of the literal.
-    #[allow(dead_code)]
     pub fn get_lhs_mut(&mut self) -> &mut Term {
         &mut self.lhs
     }
@@ -62,7 +61,6 @@ impl Literal {
     }
     
     /// Get a mutable reference to the right hand side of the literal.
-    #[allow(dead_code)]
     pub fn get_rhs_mut(&mut self) -> &mut Term {
         &mut self.rhs
     }

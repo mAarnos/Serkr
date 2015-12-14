@@ -25,17 +25,9 @@ use prover::unification::matching::term_match;
 fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], u: &mut Term) -> bool {
     for cl in active {
         if cl.is_unit() && cl[0].is_positive() {
-            let l = &cl[0];
-            // TODO: only uses lhs currently, fix that
-            if let Some(theta) = term_match(l.get_lhs(), u) {
-                let mut new_s = l.get_lhs().clone();
-                let mut new_t = l.get_rhs().clone();
-                new_s.subst(&theta);
-                new_t.subst(&theta);
-                if term_ordering.gt(&new_s, &new_t) {
-                    *u = new_t;
-                    return true;
-                }
+            if try_rewrite_at_position(term_ordering, cl[0].get_lhs(), cl[0].get_rhs(), u) ||
+               try_rewrite_at_position(term_ordering, cl[0].get_rhs(), cl[0].get_lhs(), u) {
+                return true;
             }
         }
     }
@@ -43,8 +35,23 @@ fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Claus
     u.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
 }
 
+fn try_rewrite_at_position<T: TermOrdering + ?Sized>(term_ordering: &T, s: &Term, t: &Term, u: &mut Term) -> bool {
+    if let Some(theta) = term_match(s, u) {
+        let mut new_s = s.clone();
+        let mut new_t = t.clone();
+        new_s.subst(&theta);
+        new_t.subst(&theta);
+        if term_ordering.gt(&new_s, &new_t) {
+            *u = new_t;
+             return true;
+        }
+    }
+    
+    false
+}
+
 /// Reduces a term into normal form with regards to the active clause set.
-fn normal_form<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], t: &mut Term){
+fn normal_form<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], t: &mut Term) {
     while normal_form_step(term_ordering, active, t) {
     }
 }

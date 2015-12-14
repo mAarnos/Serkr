@@ -46,7 +46,6 @@ impl Clause {
     }
     
     /// Used for checking if the clause is unit.
-    #[allow(dead_code)]
     pub fn is_unit(&self) -> bool {
         self.size() == 1
     }
