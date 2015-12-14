@@ -51,7 +51,7 @@ fn negative_simplify_reflect(s: &Term, t: &Term, cl2: &mut Clause) {
     let mut i = 0;
     
     while i < cl2.size() {
-        if cl2[i].is_positive() && match_term_pairs(cl2[i].get_lhs(), cl2[i].get_rhs(), s, t) {
+        if cl2[i].is_positive() && match_term_pairs(s, t, cl2[i].get_lhs(), cl2[i].get_rhs()) {
             cl2.swap_remove(i);
             continue;
         }

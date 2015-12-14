@@ -103,12 +103,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
     let mut er_count = 0;
     let mut trivial_count = 0;
     
-    /*
-    println!("Initial clauses: {}", unused.len());
-    for cl in unused.iter() {
-        println!("{:?}", cl);
-    }
-    */
+    // println!("Initial clauses: {}", proof_state.get_unused_size());
     
     sw.start();
     
@@ -134,8 +129,8 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
         }
         
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
-            // println!("Chosen clause: {:?}", chosen_clause);
             simplify(proof_state.get_term_ordering(), &mut chosen_clause, proof_state.get_used());
+            // println!("Chosen clause: {:?}", chosen_clause);
             
             // A second retention test is necessary.
             if chosen_clause.is_empty() {
@@ -239,10 +234,16 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> Box<TermOrder
     }
 }
 
-/// Attempts to prove the FOL formula passed in.
-pub fn prove(s: &str) -> ProofAttemptResult {
+/// A more general version of prove with many parameters exposed.
+/// First we can decide whether we want to use LPO or KBO.
+/// Then there is the option for not negating the input clause if we are more interested in satisfiability.
+pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool) -> ProofAttemptResult {
     if let Ok(parsed_formula) = parse(s) {
-        let cnf_f = cnf(Formula::Not(Box::new(parsed_formula)));
+        let cnf_f = if negate_input_formula { 
+                        cnf(Formula::Not(Box::new(parsed_formula)))
+                    } else {
+                        cnf(parsed_formula)
+                    };                    
         if cnf_f == Formula::False {
             ProofAttemptResult::Refutation
         } else if cnf_f == Formula::True {
@@ -250,7 +251,7 @@ pub fn prove(s: &str) -> ProofAttemptResult {
         } else {
             let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
             let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
-            let term_ordering = create_term_ordering(true, &preprocessed_problem);
+            let term_ordering = create_term_ordering(use_lpo, &preprocessed_problem);
             let proof_state = ProofState::new(preprocessed_problem, term_ordering);
             serkr_loop(proof_state, renaming_info.var_cnt)
         }
@@ -259,9 +260,14 @@ pub fn prove(s: &str) -> ProofAttemptResult {
     }
 }
 
+/// Attempts to prove the formula passed in.
+pub fn prove(s: &str) -> ProofAttemptResult {
+    prove_general(s, true, true)
+}
+
 #[cfg(test)]
 mod test {
-    use super::{prove, ProofAttemptResult};
+    use super::{prove, prove_general, ProofAttemptResult};
     
     // Contains some problems negated so that we can make sure we don't prove a theorem not actually provable.
     
@@ -890,6 +896,13 @@ mod test {
                             forall x. mult(i(x), x) = e()
                              ==> forall x. mult(x, i(x)) = e()");
         assert_eq!(result, ProofAttemptResult::Refutation);
+    }
+    
+    #[test]
+    fn lists_1() {
+        let result = prove_general("forall x. suc(x) <> zero() /\\
+                                    forall x. forall y. (suc(x) = suc(y) ==> x = y)", true, false);
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     // This problem is _really_ tough.
