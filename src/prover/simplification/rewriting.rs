@@ -18,17 +18,30 @@
 use prover::term::Term;
 use prover::clause::Clause;
 use prover::term_ordering::traits::TermOrdering;
+use prover::unification::substitution::Substitution;
+use prover::unification::matching::term_match;
 
 /// Does one rewrite step.
 /// Returns true if something was rewritten.
-fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], t: &mut Term) -> bool {
+fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], u: &mut Term) -> bool {
     for cl in active {
         if cl.is_unit() && cl[0].is_positive() {
-            unimplemented!();
+            let l = &cl[0];
+            // TODO: only uses lhs currently, fix that
+            if let Some(theta) = term_match(Substitution::new(), vec!((l.get_lhs().clone(), u.clone()))) {
+                let mut new_s = l.get_lhs().clone();
+                let mut new_t = l.get_rhs().clone();
+                new_s.subst(&theta);
+                new_t.subst(&theta);
+                if term_ordering.gt(&new_s, &new_t) {
+                    *u = new_t;
+                    return true;
+                }
+            }
         }
     }
         
-    t.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
+    u.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
 }
 
 /// Reduces a term into normal form with regards to the active clause set.

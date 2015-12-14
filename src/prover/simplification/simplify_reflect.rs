@@ -17,7 +17,7 @@
 
 use prover::term::Term;
 use prover::clause::Clause;
-use prover::simplification::matching::match_term_pairs;
+use prover::unification::matching::match_term_pairs;
 use prover::simplification::equality_subsumption::eqn_subsumes_eqn;
 
 /// Simplifies cl2 by positive and negative simplify-reflect if possible.

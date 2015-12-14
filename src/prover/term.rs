@@ -20,7 +20,7 @@ use std::iter::IntoIterator;
 use std::slice::{Iter, IterMut};
 use std::ops::{Index, IndexMut};
 use std::fmt::{Debug, Formatter, Error};
-use prover::substitution::Substitution;
+use prover::unification::substitution::Substitution;
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one. 

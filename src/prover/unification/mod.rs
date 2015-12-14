@@ -15,20 +15,13 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search. 
+/// Defines a substitution of variables for terms.
+pub mod substitution;
 
-mod term;
-mod literal;
-mod clause;
+/// Contains functions for matching, i.e. finding a sigma so that s\sigma = t
+pub mod matching;
 
-mod flatten_cnf;
+/// Contains functions for unification, i.e. finding a sigma so that s\sigma = t\sigma
+/// In a certain sense matching is a cut-down version of unification, hence the name for the module.
+pub mod full_unification;
 
-mod simplification;
-mod term_ordering;
-mod inference;
-mod unification;
-
-mod proof_state;
-
-///
-pub mod prove;

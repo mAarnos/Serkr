@@ -18,7 +18,7 @@
 use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
-use prover::simplification::matching::match_term_pairs;
+use prover::unification::matching::match_term_pairs;
 
 /// Checks if the equation s = t equality subsumes u = v.
 // TODO: remove pub, rename into something more suited.

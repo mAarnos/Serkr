@@ -16,7 +16,7 @@
 */
 
 use prover::clause::Clause;
-use prover::unification::mgu;
+use prover::unification::full_unification::mgu;
 
 /// Simplifies a clause with cheap (i.e. fast to run) rules if possible.
 pub fn cheap_simplify(cl: &mut Clause) {

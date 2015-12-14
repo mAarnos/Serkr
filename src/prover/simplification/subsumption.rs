@@ -17,8 +17,8 @@
 
 use prover::literal::{Literal, polarity_equal};
 use prover::clause::Clause;
-use prover::simplification::matching::term_match;
-use prover::substitution::Substitution;
+use prover::unification::matching::term_match;
+use prover::unification::substitution::Substitution;
 
 fn match_literals(substitution: Substitution, p: &Literal, q: &Literal, mixed: bool) -> Option<Substitution> {
     let eqs = if !mixed { vec!((p.get_lhs().clone(), q.get_lhs().clone()), 

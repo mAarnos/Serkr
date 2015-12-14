@@ -16,7 +16,7 @@
 */
 
 use prover::clause::Clause;
-use prover::unification::mgu;
+use prover::unification::full_unification::mgu;
 use prover::term_ordering::traits::TermOrdering;
 
 /// Infers new clauses by (ordered) equality resolution.

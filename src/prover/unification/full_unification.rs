@@ -16,7 +16,7 @@
 */
 
 use prover::term::Term;
-use prover::substitution::Substitution;
+use prover::unification::substitution::Substitution;
 
 /// Tries to find a substitution so that s and t are equal.
 fn unify(s: &Term, t: &Term) -> Option<Substitution> {

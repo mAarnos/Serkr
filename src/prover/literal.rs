@@ -18,7 +18,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter, Error};
 use prover::term::Term;
-use prover::substitution::Substitution;
+use prover::unification::substitution::Substitution;
 
 /// A single (possibly negated) equation, or simply, a literal.
 /// Note: has custom PartialEq and Eq: if you add stuff to here remember to change them too.

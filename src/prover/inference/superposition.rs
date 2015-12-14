@@ -18,7 +18,7 @@
 use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
-use prover::unification::mgu;
+use prover::unification::full_unification::mgu;
 use prover::term_ordering::traits::TermOrdering;
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {

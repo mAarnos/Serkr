@@ -16,7 +16,7 @@
 */
 
 use prover::term::Term;
-use prover::substitution::Substitution;
+use prover::unification::substitution::Substitution;
 
 /// Checks whether we can update the substitution given in so that for all equations given the lhs is equal to the rhs.
 /// It must be noted that the substitution is only for lhs, unlike full unification.

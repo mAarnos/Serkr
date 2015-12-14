@@ -20,7 +20,7 @@ use std::slice::{Iter, IterMut};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Formatter, Error};
 use prover::literal::Literal;
-use prover::substitution::Substitution;
+use prover::unification::substitution::Substitution;
 
 /// A multiset containing literals.
 // TODO: Eq and PartialEq are nonsensical at the moment but proper solutions would be expensive. What to do?
