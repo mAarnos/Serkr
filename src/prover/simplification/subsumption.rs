@@ -15,43 +15,46 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
 use prover::literal::{Literal, polarity_equal};
 use prover::clause::Clause;
 use prover::simplification::matching::term_match;
+use prover::substitution::Substitution;
 
-fn match_literals(env: &mut Vec<(Term, Term)>, p: &Literal, q: &Literal, mixed: bool) -> bool {
+fn match_literals(substitution: Substitution, p: &Literal, q: &Literal, mixed: bool) -> Option<Substitution> {
     let eqs = if !mixed { vec!((p.get_lhs().clone(), q.get_lhs().clone()), 
                                (p.get_rhs().clone(), q.get_rhs().clone())) }
               else { vec!((p.get_rhs().clone(), q.get_lhs().clone()), 
                           (p.get_lhs().clone(), q.get_rhs().clone())) };
-    term_match(env, eqs)
+    term_match(substitution, eqs)
 }
 
-fn subsumes_clause0(env: &mut Vec<(Term, Term)>, exclusion: &mut Vec<bool>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {
+fn subsumes_clause0(substitution: Substitution, exclusion: &mut Vec<bool>, cl1: &Clause, cl2: &Clause, n: usize) -> bool {
     if n >= cl1.size() {
         true 
-    } else {
-        let s = env.len();  
+    } else { 
         let l1 = &cl1[n];
 
         for (i, l2) in cl2.iter().enumerate() {
-            if !exclusion[i] && polarity_equal(l1, l2) {
-                exclusion[i] = true;
-                let result = match_literals(env, l1, l2, false) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
-                exclusion[i] = false;
-                if result {
-                    return true;
+            if !exclusion[i] && polarity_equal(l1, l2) {   
+                // First one way... 
+                if let Some(new_substitution) = match_literals(substitution.clone(), l1, l2, false) {
+                    exclusion[i] = true;
+                    let res = subsumes_clause0(new_substitution, exclusion, cl1, cl2, n + 1);
+                    exclusion[i] = false;
+                    if res {
+                        return true;
+                    }
                 }
-                env.truncate(s);
                 
-                exclusion[i] = true;
-                let result = match_literals(env, l1, l2, true) && subsumes_clause0(env, exclusion, cl1, cl2, n + 1);
-                exclusion[i] = false;
-                if result {
-                    return true;
+                // ...and then the other way due to symmetry.
+                if let Some(new_substitution) = match_literals(substitution.clone(), l1, l2, true) {
+                    exclusion[i] = true;
+                    let res = subsumes_clause0(new_substitution, exclusion, cl1, cl2, n + 1);
+                    exclusion[i] = false;
+                    if res {
+                        return true;
+                    }
                 }
-                env.truncate(s);
             }
         }
         
@@ -108,9 +111,8 @@ fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
 pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
     if cl1.size() <= cl2.size() {
         if function_symbols_subsume(cl1, cl2) {
-            let mut env = Vec::<(Term, Term)>::new();
             let mut exclusion = vec![false; cl2.size()];
-            subsumes_clause0(&mut env, &mut exclusion, cl1, cl2, 0)
+            subsumes_clause0(Substitution::new(), &mut exclusion, cl1, cl2, 0)
         } else {
             false
         }    

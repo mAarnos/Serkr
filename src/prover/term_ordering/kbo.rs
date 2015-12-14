@@ -120,12 +120,8 @@ fn variable_domination(s: &Term, t: &Term) -> bool {
 
 fn variable_count(counts: &mut HashMap<i64, i64>, t: &Term, weight: i64) {
     if t.is_variable() {
-        // NOTE: suffers from if let borrow bug.
-        if let Some(v) = counts.get_mut(&t.get_id()) {
-            *v += weight;
-            return;
-        }
-        counts.insert(t.get_id(), weight);
+        let v = counts.entry(t.get_id()).or_insert(0);
+        *v += weight;
     } else {
         for x in t.iter() {
             variable_count(counts, x, weight);

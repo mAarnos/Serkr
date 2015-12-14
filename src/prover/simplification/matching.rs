@@ -16,11 +16,12 @@
 */
 
 use prover::term::Term;
+use prover::substitution::Substitution;
 
 /// Checks whether we can update the substitution given in so that for all equations given the lhs is equal to the rhs.
-/// Returns true if it finds such a substitution.
-/// Note that stuff might be added to the end of env.
-pub fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bool {
+/// It must be noted that the substitution is only for lhs, unlike full unification.
+/// Returns the new substitution if it exists.
+pub fn term_match(mut substitution: Substitution, mut eqs: Vec<(Term, Term)>) -> Option<Substitution> {
     while let Some((eq1, eq2)) = eqs.pop() {
         if eq1.is_function() && eq2.is_function() {
             if eq1.get_id() == eq2.get_id() {
@@ -28,46 +29,42 @@ pub fn term_match(env: &mut Vec<(Term, Term)>, mut eqs: Vec<(Term, Term)>) -> bo
                     eqs.push(eq);
                 }
             } else {
-                return false;
+                return None;
             }
         } else if eq1.is_variable() {
-            let mut success = false;
-            for x in env.iter() {
-                if x.0 == eq1 {
-                    if x.1 != eq2 {
-                        return false;
-                    }
-                    success = true;
-                    break;
-                }
+            // Can't unify between two different sorts.
+            if eq2.get_sort_predicate() {
+                return None;
             }
             
-            if !success {
-                // Can't unify between two different sorts.
-                if eq2.get_sort_predicate() {
-                    return false;
+            // Suffers from the lexical scope borrow bug.
+            let mut probe_success = false;
+            if let Some(v) = substitution.get(&eq1) {
+                if *v != eq2 {
+                    return None;
                 }
-                env.push((eq1, eq2));
-            }
+                probe_success = true;
+            } 
             
+            if !probe_success {
+                substitution.insert(eq1, eq2);
+            }
         } else {
-            return false;
+            return None;
         }
     }
     
-    true
+    Some(substitution)
 }
 
 /// Check if there is a sigma so that s\sigma = u and t\sigma = v (or with s and t switched).
 pub fn match_term_pairs(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
-    let mut env = Vec::new();
     let eqs = vec!((s.clone(), u.clone()), (t.clone(), v.clone()));
-    if term_match(&mut env, eqs) {
+    if term_match(Substitution::new(), eqs).is_some() {
         true
     } else {
         let eqs2 = vec!((t.clone(), u.clone()), (s.clone(), v.clone()));
-        env.clear();
-        term_match(&mut env, eqs2)
+        term_match(Substitution::new(), eqs2).is_some()
     }
 }
 
