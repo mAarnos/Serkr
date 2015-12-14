@@ -113,6 +113,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
     sw.start();
     
     while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
+        iterations += 1;
         if sw.elapsed_ms() > ms_count {
             println!("info time {} iterations {} used {} unused {} sp {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
                                                                                                               iterations, 
@@ -133,6 +134,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
         }
         
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
+            // println!("Chosen clause: {:?}", chosen_clause);
             simplify(proof_state.get_term_ordering(), &mut chosen_clause, proof_state.get_used());
             
             // A second retention test is necessary.
@@ -140,14 +142,13 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
                 return ProofAttemptResult::Refutation;
             }
             
-            if forward_subsumed(&chosen_clause, proof_state.get_used()) {
+            if forward_subsumed(&chosen_clause, proof_state.get_used()) {              
                 fs_count += 1;
                 continue;
             }
             
             bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
         
-            // println!("Chosen clause: {:?}", chosen_clause);
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
             let mut inferred_clauses = Vec::new();
@@ -171,8 +172,6 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
         } else {
             fs_count += 1;
         }
-        
-        iterations += 1;
     }
     
     ProofAttemptResult::Saturation
@@ -722,9 +721,9 @@ mod test {
     /*
     #[test]
     fn pelletier_53() {
-        let result = prove("((exists x. exists y. (x <> y /\\ forall z. (z = x \\/ z = y))) ==>
-                           (((exists z. forall x. ((exists w. forall y. (F(x, y) <=> y = w)) <=> x = z)))
-                            <=> (exists w. forall y. ((exists z. forall x. (F(x, y) <=> x = z)) <=> y = w))))");
+        let result = prove("exists x. exists y. (x <> y /\\ forall z. (z = x \\/ z = y)) <=>
+                           (exists z. forall x. (exists w. forall y. (F(x, y) <=> y = w) <=> x = z)
+                            <=> exists w. forall y. (exists z. forall x. (F(x, y) <=> x = z) <=> y = w))");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     */
@@ -801,7 +800,6 @@ mod test {
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
-    /*
     #[test]
     fn pelletier_63() {
         let result = prove("forall x. forall y. forall z. f(f(x, y), z) = f(x, f(y, z)) /\\ 
@@ -810,7 +808,6 @@ mod test {
                             ==> forall x. forall y. forall z. (f(x, y) = f(z, y) ==> x = z)");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
-    */
     
     #[test]
     fn pelletier_64() {
@@ -886,7 +883,6 @@ mod test {
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
-    /*
     #[test]
     fn group_left_inverse_means_right_inverse() {
         let result = prove("forall x. forall y. forall z. mult(x, mult(y, z)) = mult(mult(x, y), z) /\\
@@ -895,7 +891,6 @@ mod test {
                              ==> forall x. mult(x, i(x)) = e()");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
-    */
     
     // This problem is _really_ tough.
     /*
