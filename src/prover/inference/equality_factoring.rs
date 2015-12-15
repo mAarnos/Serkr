@@ -19,12 +19,12 @@ use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::full_unification::mgu;
-use prover::term_ordering::traits::TermOrdering;
+use prover::ordering::term_ordering::TermOrdering;
 
 /// Infers new clauses by equality factoring
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 /// Returns the amount of inferred clauses.
-pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
+pub fn equality_factoring(term_ordering: &TermOrdering, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
     let mut ef_count = 0;
 
     for (i, l) in cl.iter().enumerate() {
@@ -48,12 +48,12 @@ pub fn equality_factoring<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &Clau
     ef_count
 }
 
-fn equality_factoring_create_new<T: TermOrdering + ?Sized>(term_ordering: &T, 
-                                                           cl: &Clause, 
-                                                           generated: &mut Vec<Clause>, 
-                                                           s: &Term, t: &Term, 
-                                                           u: &Term, v: &Term, 
-                                                           i: usize) -> usize {
+fn equality_factoring_create_new(term_ordering: &TermOrdering, 
+                                 cl: &Clause, 
+                                 generated: &mut Vec<Clause>, 
+                                 s: &Term, t: &Term, 
+                                 u: &Term, v: &Term, 
+                                 i: usize) -> usize {
     let mut ef_count = 0;
     
     if let Some(theta) = mgu(s, u) {

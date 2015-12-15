@@ -19,7 +19,7 @@ use prover::term::Term;
 use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::full_unification::mgu;
-use prover::term_ordering::traits::TermOrdering;
+use prover::ordering::term_ordering::TermOrdering;
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {
     let mut new_term = u.clone();
@@ -36,14 +36,14 @@ fn create_overlapped_term0(u_p: &mut Term, t: &Term, trace: &[usize], n: usize) 
     }
 }
 
-fn overlaps<T: TermOrdering + ?Sized>(term_ordering: &T, 
-                                      s: &Term, t: &Term, 
-                                      u: &Term, v: &Term, u_v_negated: bool,
-                                      u_p: &Term,
-                                      cl1: &Clause, cl1_i: usize, 
-                                      cl2: &Clause,  cl2_i: usize, 
-                                      trace: &mut Vec<usize>,
-                                      generated: &mut Vec<Clause>) -> usize {
+fn overlaps(term_ordering: &TermOrdering, 
+            s: &Term, t: &Term, 
+            u: &Term, v: &Term, u_v_negated: bool,
+            u_p: &Term,
+            cl1: &Clause, cl1_i: usize, 
+            cl2: &Clause,  cl2_i: usize, 
+            trace: &mut Vec<usize>,
+            generated: &mut Vec<Clause>) -> usize {
     let mut sp_count = 0;
     
     if !u_p.is_variable() {
@@ -94,10 +94,10 @@ fn overlaps<T: TermOrdering + ?Sized>(term_ordering: &T,
     sp_count
 }
 
-fn overlaps_literal<T: TermOrdering + ?Sized>(term_ordering: &T, 
-                                              cl1: &Clause, cl1_i: usize, 
-                                              cl2: &Clause, cl2_i: usize, 
-                                              generated: &mut Vec<Clause>) -> usize {
+fn overlaps_literal(term_ordering: &TermOrdering, 
+                    cl1: &Clause, cl1_i: usize, 
+                    cl2: &Clause, cl2_i: usize, 
+                    generated: &mut Vec<Clause>) -> usize {
     let mut trace = Vec::new();
     let l_lhs = cl1[cl1_i].get_lhs();
     let l_rhs = cl1[cl1_i].get_rhs();
@@ -117,10 +117,10 @@ fn overlaps_literal<T: TermOrdering + ?Sized>(term_ordering: &T,
 
 /// Generates superposition inferences between two clauses, in one direction.
 /// Returns the amount of generated clauses.
-fn superposition_generate<T: TermOrdering + ?Sized>(term_ordering: &T, 
-                                                    cl1: &Clause, 
-                                                    cl2: &Clause, 
-                                                    generated: &mut Vec<Clause>) -> usize {
+fn superposition_generate(term_ordering: &TermOrdering, 
+                          cl1: &Clause, 
+                          cl2: &Clause, 
+                          generated: &mut Vec<Clause>) -> usize {
     let mut sp_count = 0;
     
     for (i, l1) in cl1.iter().enumerate() {
@@ -138,10 +138,10 @@ fn superposition_generate<T: TermOrdering + ?Sized>(term_ordering: &T,
 /// Time complexity is who the fuck knows.
 /// Assumes that cl was renamed so that it has no variables in common with any other clause.
 /// Returns the amount of clauses generated.
-pub fn superposition<T: TermOrdering + ?Sized>(term_ordering: &T, 
-                                               cl: &Clause, 
-                                               clauses: &[Clause], 
-                                               generated: &mut Vec<Clause>) -> usize {
+pub fn superposition(term_ordering: &TermOrdering, 
+                     cl: &Clause, 
+                     clauses: &[Clause], 
+                     generated: &mut Vec<Clause>) -> usize {
     let mut sp_count = 0;
                                                
     for cl2 in clauses {

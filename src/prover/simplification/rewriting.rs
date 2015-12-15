@@ -17,12 +17,12 @@
 
 use prover::term::Term;
 use prover::clause::Clause;
-use prover::term_ordering::traits::TermOrdering;
+use prover::ordering::term_ordering::TermOrdering;
 use prover::unification::matching::term_match;
 
 /// Does one rewrite step.
 /// Returns true if something was rewritten.
-fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], u: &mut Term) -> bool {
+fn normal_form_step(term_ordering: &TermOrdering, active: &[Clause], u: &mut Term) -> bool {
     for cl in active {
         if cl.is_positive_unit() {
             if try_rewrite_at_position(term_ordering, cl[0].get_lhs(), cl[0].get_rhs(), u) ||
@@ -35,7 +35,7 @@ fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Claus
     u.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
 }
 
-fn try_rewrite_at_position<T: TermOrdering + ?Sized>(term_ordering: &T, s: &Term, t: &Term, u: &mut Term) -> bool {
+fn try_rewrite_at_position(term_ordering: &TermOrdering, s: &Term, t: &Term, u: &mut Term) -> bool {
     if let Some(theta) = term_match(s, u) {
         let mut new_s = s.clone();
         let mut new_t = t.clone();
@@ -51,13 +51,13 @@ fn try_rewrite_at_position<T: TermOrdering + ?Sized>(term_ordering: &T, s: &Term
 }
 
 /// Reduces a term into normal form with regards to the active clause set.
-fn normal_form<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], t: &mut Term) {
+fn normal_form(term_ordering: &TermOrdering, active: &[Clause], t: &mut Term) {
     while normal_form_step(term_ordering, active, t) {
     }
 }
 
 /// Rewrites a given clause into normal form with regards to the active clause set.
-pub fn rewrite_literals<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], cl: &mut Clause) {
+pub fn rewrite_literals(term_ordering: &TermOrdering, active: &[Clause], cl: &mut Clause) {
     for l in cl.iter_mut() {
         normal_form(term_ordering, active, l.get_lhs_mut());
         normal_form(term_ordering, active, l.get_rhs_mut());

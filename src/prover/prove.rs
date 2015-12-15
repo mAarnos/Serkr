@@ -28,9 +28,7 @@ use prover::simplification::equality_subsumption::equality_subsumes_clause;
 use prover::simplification::simplify_reflect::simplify_reflect;
 use prover::simplification::rewriting::rewrite_literals;
 
-use prover::term_ordering::traits::TermOrdering;
-use prover::term_ordering::lpo::LPO;
-use prover::term_ordering::kbo::KBO;
+use prover::ordering::term_ordering::TermOrdering;
 
 use prover::inference::equality_resolution::equality_resolution;
 use prover::inference::equality_factoring::equality_factoring;
@@ -84,7 +82,7 @@ fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> usize {
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.
-fn simplify<T: TermOrdering + ?Sized>(term_ordering: &T, cl: &mut Clause, clauses: &[Clause]) {
+fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
     for cl2 in clauses {
         simplify_reflect(cl2, cl);
     }
@@ -222,15 +220,11 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     found_unary
 }
 
-fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> Box<TermOrdering> {
+fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering {
     if lpo_over_kbo {
-        Box::new(LPO::new())
+        TermOrdering::LPO
     } else {
-        if let Some(unary_func) = single_unary_function(&clauses) {
-            Box::new(KBO::new(true, unary_func))
-        } else {
-            Box::new(KBO::new(false, 0))
-        } 
+        TermOrdering::KBO(single_unary_function(clauses)) 
     }
 }
 

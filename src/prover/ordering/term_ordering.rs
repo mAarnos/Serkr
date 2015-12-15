@@ -18,18 +18,35 @@
 use std::cmp::min;
 use prover::term::Term;
 use prover::literal::Literal;
+use prover::ordering::lpo::{lpo_gt, lpo_ge};
+use prover::ordering::kbo::{kbo_gt, kbo_ge};
 
-/// A trait for term orderings.
-pub trait TermOrdering {
-    /// Returns true if term t is greater than term s according to the term ordering.
-    fn gt(&self, s: &Term, t: &Term) -> bool;
+/// A generic term ordering. Currently e have the option of using either LPO or KBO.
+pub enum TermOrdering {
+    LPO,
+    KBO(Option<i64>)
+}
+
+impl TermOrdering {
+    /// Returns true if term s is greater than term t according to the term ordering.
+    pub fn gt(&self, s: &Term, t: &Term) -> bool {
+        match *self {
+            TermOrdering::LPO => lpo_gt(s, t),
+            TermOrdering::KBO(only_unary_func) => kbo_gt(&only_unary_func, s, t)
+        }
+    }
     
-    /// Returns true if t is greater than or equal to s according to the term ordering.
-    fn ge(&self, s: &Term, t: &Term) -> bool;  
+    /// Returns true if s is greater than or equal to t according to the term ordering.
+    #[allow(dead_code)]
+    pub fn ge(&self, s: &Term, t: &Term) -> bool {
+        match *self {
+            TermOrdering::LPO => lpo_ge(s, t),
+            TermOrdering::KBO(only_unary_func) => kbo_ge(&only_unary_func, s, t)
+        }
+    }
     
     /// Returns true if literal l1 is greater than literal l2 according to a multiset extension of the term ordering.
-    /// Should not be overridden.
-    fn gt_lit(&self, l1: &Literal, l2: &Literal) -> bool {
+    pub fn gt_lit(&self, l1: &Literal, l2: &Literal) -> bool {
         // A term equal to another term can never be greater than it.
         if l1 == l2 {
             return false;
@@ -60,8 +77,7 @@ pub trait TermOrdering {
     }
     
     /// Returns true if literal l1 is greater than or equal to literal l2 according to a multiset extension of the term ordering.
-    /// Should not be overridden.
-    fn ge_lit(&self, l1: &Literal, l2: &Literal) -> bool {
+    pub fn ge_lit(&self, l1: &Literal, l2: &Literal) -> bool {
         l1 == l2 || self.gt_lit(l1, l2)
     }
 }
@@ -72,43 +88,42 @@ pub trait TermOrdering {
 fn multiset_difference(l: &Literal, r: &Literal) -> [usize; 2] {
     let mut l_count = [if l.is_negative() { 2 } else { 1 }, if l.is_negative() { 2 } else { 1 }];
     let mut r_count = [if r.is_negative() { 2 } else { 1 }, if r.is_negative() { 2 } else { 1 }];
-    
+        
     // Special handling of the case when lhs == rhs
     if l.get_lhs() == l.get_rhs() {
         l_count[0] += l_count[1];
         l_count[1] = 0;
     }
-    
+        
     // Same here.
     if r.get_lhs() == r.get_rhs() {
         r_count[0] += r_count[1];
         r_count[1] = 0;
     }
-    
+        
     if r.get_lhs() == l.get_lhs() {
         let min_diff = min(l_count[0], r_count[0]);
         l_count[0] -= min_diff;
         r_count[0] -= min_diff;
     }
-    
+        
     if r.get_lhs() == l.get_rhs() {
-        let min_diff = min(l_count[1], r_count[0]);
+         let min_diff = min(l_count[1], r_count[0]);
         l_count[1] -= min_diff;
         r_count[0] -= min_diff;
     }
-    
+        
     if r.get_rhs() == l.get_lhs() {
         let min_diff = min(l_count[0], r_count[1]);
         l_count[0] -= min_diff;
         r_count[1] -= min_diff;
     }
-    
+        
     if r.get_rhs() == l.get_rhs() {
         let min_diff = min(l_count[1], r_count[1]);
         l_count[1] -= min_diff;
         r_count[1] -= min_diff;
     }
-    
+        
     l_count
 }
-

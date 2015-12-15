@@ -17,18 +17,18 @@
 
 use std::collections::BinaryHeap;
 use prover::clause::Clause;
-use prover::term_ordering::traits::TermOrdering;
+use prover::ordering::term_ordering::TermOrdering;
 
 /// Contains the current proof state, that is, the used, the unused clauses and the term ordering used.
 pub struct ProofState {
     used_clauses: Vec<Clause>,
     unused_clauses: BinaryHeap<Clause>,
-    term_ordering: Box<TermOrdering>,
+    term_ordering: TermOrdering,
 }
 
 impl ProofState {
     /// Creates a new proof state with the used clauses empty, the preprocessed_clauses in unused and the given term ordering.
-    pub fn new(preprocessed_clauses: Vec<Clause>, term_order: Box<TermOrdering>) -> ProofState {
+    pub fn new(preprocessed_clauses: Vec<Clause>, term_order: TermOrdering) -> ProofState {
         ProofState { used_clauses: Vec::new(), 
                      unused_clauses: preprocessed_clauses.into_iter().collect(), 
                      term_ordering: term_order }
@@ -61,7 +61,7 @@ impl ProofState {
   
     /// Get a reference term ordering used.
     pub fn get_term_ordering(&self) -> &TermOrdering {
-        &*self.term_ordering
+        &self.term_ordering
     }
     
     /// Get a reference to the used clauses.

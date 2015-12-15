@@ -24,7 +24,7 @@ mod clause;
 mod flatten_cnf;
 
 mod simplification;
-mod term_ordering;
+mod ordering;
 mod inference;
 mod unification;
 

@@ -15,11 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/// Contains traits for defining term orderings.
-pub mod traits;
+/// Contains a generic term ordering for ordering terms and literals.
+pub mod term_ordering;
 
 /// Contains an implementation of the lexicographic path ordering.
-pub mod lpo;
+mod lpo;
 
 /// Contains an implementation of the Knuth-Bendix ordering.
-pub mod kbo;
+mod kbo;
