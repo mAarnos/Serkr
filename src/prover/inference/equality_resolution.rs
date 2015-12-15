@@ -27,12 +27,12 @@ pub fn equality_resolution(term_ordering: &TermOrdering, cl: &Clause, generated:
     
     for (i, l) in cl.iter().enumerate() {
         if l.is_negative() {
-            if let Some(theta) = mgu(l.get_lhs(), l.get_rhs()) {
+            if let Some(sigma) = mgu(l.get_lhs(), l.get_rhs()) {
                 let mut new_cl = cl.clone();
                 let mut new_l = l.clone();
                 new_cl.swap_remove(i);
-                new_cl.subst(&theta);
-                new_l.subst(&theta);
+                new_cl.subst(&sigma);
+                new_l.subst(&sigma);
                 
                 if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &new_l)) {
                     generated.push(new_cl);

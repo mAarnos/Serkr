@@ -101,10 +101,10 @@ mod test {
         
         let t1 = Term::new(1, false, vec!(x.clone(), g_y.clone()));
         let t2 = Term::new(1, false, vec!(g_z.clone(), w.clone()));
-        let theta = mgu(&t1, &t2).expect("MGU should exist");
-        assert_eq!(theta.size(), 2);
-        assert_eq!(theta.get(&x), Some(&g_z));
-        assert_eq!(theta.get(&w), Some(&g_y));
+        let sigma = mgu(&t1, &t2).expect("MGU should exist");
+        assert_eq!(sigma.size(), 2);
+        assert_eq!(sigma.get(&x), Some(&g_z));
+        assert_eq!(sigma.get(&w), Some(&g_y));
     }
 
     #[test]
@@ -115,9 +115,9 @@ mod test {
         let t1 = Term::new(1, false, vec!(x.clone(), y.clone()));
         let t2 = Term::new(1, false, vec!(y.clone(), x.clone()));
         
-        let theta = mgu(&t1, &t2).expect("MGU should exist");
-        assert_eq!(theta.size(), 1);
-        assert!(theta.get(&y) == Some(&x) || theta.get(&x) == Some(&y));
+        let sigma = mgu(&t1, &t2).expect("MGU should exist");
+        assert_eq!(sigma.size(), 1);
+        assert!(sigma.get(&y) == Some(&x) || sigma.get(&x) == Some(&y));
     }
     
     #[test]
@@ -168,9 +168,9 @@ mod test {
         let c = Term::new(1, false, Vec::new());
         let t1 = Term::new(2, false, vec!(x.clone(), Term::new(3, false, vec!(x.clone()))));
         let t2 = Term::new(2, false, vec!(c.clone(), y.clone()));
-        let theta = mgu(&t1, &t2).expect("MGU should exist");
-        assert_eq!(theta.size(), 2);
-        assert_eq!(theta.get(&x), Some(&c));
-        assert_eq!(theta.get(&y), Some(&Term::new(3, false, vec!(c))));
+        let sigma = mgu(&t1, &t2).expect("MGU should exist");
+        assert_eq!(sigma.size(), 2);
+        assert_eq!(sigma.get(&x), Some(&c));
+        assert_eq!(sigma.get(&y), Some(&Term::new(3, false, vec!(c))));
     }
 }    

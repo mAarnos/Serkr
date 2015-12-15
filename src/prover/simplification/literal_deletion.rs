@@ -63,9 +63,9 @@ pub fn destructive_equality_resolution(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
         if cl[i].is_negative() && cl[i].get_lhs().is_variable() && cl[i].get_rhs().is_variable() {
-            if let Some(theta) = mgu(cl[i].get_lhs(), cl[i].get_rhs()) {
+            if let Some(sigma) = mgu(cl[i].get_lhs(), cl[i].get_rhs()) {
                 cl.swap_remove(i);
-                cl.subst(&theta);
+                cl.subst(&sigma);
                 // Since we always remove one literal from the clause the recursion stops at some point.
                 destructive_equality_resolution(cl);
                 break;

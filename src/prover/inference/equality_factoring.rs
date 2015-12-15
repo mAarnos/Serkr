@@ -56,18 +56,18 @@ fn equality_factoring_create_new(term_ordering: &TermOrdering,
                                  i: usize) -> usize {
     let mut ef_count = 0;
     
-    if let Some(theta) = mgu(s, u) {
+    if let Some(sigma) = mgu(s, u) {
         let mut l = Literal::new(false, s.clone(), t.clone());
-        l.subst(&theta);
+        l.subst(&sigma);
         
         if !term_ordering.gt(l.get_rhs(), l.get_lhs()) {        
             let mut new_cl = cl.clone();
             new_cl.swap_remove(i);
-            new_cl.subst(&theta);
+            new_cl.subst(&sigma);
             
             if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &l)) {
                 let mut new_ineq_lit = Literal::new(true, t.clone(), v.clone());
-                new_ineq_lit.subst(&theta);
+                new_ineq_lit.subst(&sigma);
                 new_cl.add_literal(new_ineq_lit);
                 generated.push(new_cl);
                 ef_count += 1;

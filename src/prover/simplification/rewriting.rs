@@ -22,6 +22,7 @@ use prover::unification::matching::term_match;
 
 /// Does one rewrite step.
 /// Returns true if something was rewritten.
+#[cfg_attr(feature="clippy", allow(collapsible_if))]
 fn normal_form_step(term_ordering: &TermOrdering, active: &[Clause], u: &mut Term) -> bool {
     for cl in active {
         if cl.is_positive_unit() {
@@ -36,11 +37,11 @@ fn normal_form_step(term_ordering: &TermOrdering, active: &[Clause], u: &mut Ter
 }
 
 fn try_rewrite_at_position(term_ordering: &TermOrdering, s: &Term, t: &Term, u: &mut Term) -> bool {
-    if let Some(theta) = term_match(s, u) {
+    if let Some(sigma) = term_match(s, u) {
         let mut new_s = s.clone();
         let mut new_t = t.clone();
-        new_s.subst(&theta);
-        new_t.subst(&theta);
+        new_s.subst(&sigma);
+        new_t.subst(&sigma);
         if term_ordering.gt(&new_s, &new_t) {
             *u = new_t;
              return true;

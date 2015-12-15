@@ -18,21 +18,23 @@
 use std::cmp::min;
 use prover::term::Term;
 use prover::literal::Literal;
+use prover::ordering::precedence::Precedence;
 use prover::ordering::lpo::{lpo_gt, lpo_ge};
 use prover::ordering::kbo::{kbo_gt, kbo_ge};
 
-/// A generic term ordering. Currently e have the option of using either LPO or KBO.
+/// A generic term ordering. Currently we have the option of using either LPO or KBO.
+#[allow(variant_size_differences)]
 pub enum TermOrdering {
-    LPO,
-    KBO(Option<i64>)
+    LPO(Precedence),
+    KBO(Precedence, Option<i64>)
 }
 
 impl TermOrdering {
     /// Returns true if term s is greater than term t according to the term ordering.
     pub fn gt(&self, s: &Term, t: &Term) -> bool {
         match *self {
-            TermOrdering::LPO => lpo_gt(s, t),
-            TermOrdering::KBO(only_unary_func) => kbo_gt(&only_unary_func, s, t)
+            TermOrdering::LPO(ref precedence) => lpo_gt(precedence, s, t),
+            TermOrdering::KBO(ref precedence, only_unary_func) => kbo_gt(precedence, &only_unary_func, s, t)
         }
     }
     
@@ -40,8 +42,8 @@ impl TermOrdering {
     #[allow(dead_code)]
     pub fn ge(&self, s: &Term, t: &Term) -> bool {
         match *self {
-            TermOrdering::LPO => lpo_ge(s, t),
-            TermOrdering::KBO(only_unary_func) => kbo_ge(&only_unary_func, s, t)
+            TermOrdering::LPO(ref precedence) => lpo_ge(precedence, s, t),
+            TermOrdering::KBO(ref precedence, only_unary_func) => kbo_ge(precedence, &only_unary_func, s, t)
         }
     }
     
@@ -84,7 +86,7 @@ impl TermOrdering {
 
 /// Calculates the multiset difference of two literals.
 /// We map s = t to { s, t } and s <> t to { s, s, t, t }
-// TODO: improve efficiency
+// TODO: improve efficiency?
 fn multiset_difference(l: &Literal, r: &Literal) -> [usize; 2] {
     let mut l_count = [if l.is_negative() { 2 } else { 1 }, if l.is_negative() { 2 } else { 1 }];
     let mut r_count = [if r.is_negative() { 2 } else { 1 }, if r.is_negative() { 2 } else { 1 }];

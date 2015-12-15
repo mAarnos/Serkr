@@ -16,17 +16,18 @@
 */
 
 use prover::term::Term;
+use prover::ordering::precedence::Precedence;
 
 /// Checks if s is greater than t according to the ordering.   
-pub fn lpo_gt(s: &Term, t: &Term) -> bool {
+pub fn lpo_gt(precedence: &Precedence, s: &Term, t: &Term) -> bool {
     if s.is_function() && t.is_function() {
-        if s.iter().any(|arg| lpo_ge(arg, t)) {
+        if s.iter().any(|arg| lpo_ge(precedence, arg, t)) {
             true
-        } else if t.iter().all(|arg| lpo_gt(s, arg)) {
-            if s.get_id() == t.get_id() && lexical_ordering(s, t) {
+        } else if t.iter().all(|arg| lpo_gt(precedence, s, arg)) {
+            if s.get_id() == t.get_id() && lexical_ordering(precedence, s, t) {
                 true
             } else {
-                precedence(s, t)
+                precedence.gt(s, t)
             }    
         } else {
             false
@@ -39,16 +40,16 @@ pub fn lpo_gt(s: &Term, t: &Term) -> bool {
 }
 
 /// Checks if s is greater than or equal to t according to the ordering.        
-pub fn lpo_ge(s: &Term, t: &Term) -> bool {
-    s == t || lpo_gt(s, t)
+pub fn lpo_ge(precedence: &Precedence, s: &Term, t: &Term) -> bool {
+    s == t || lpo_gt(precedence, s, t)
 }
 
-fn lexical_ordering(s: &Term, t: &Term) -> bool {
+fn lexical_ordering(precedence: &Precedence, s: &Term, t: &Term) -> bool {
     assert_eq!(s.get_id(), t.get_id());
     assert_eq!(s.get_arity(), t.get_arity());
             
     for i in 0..s.get_arity() {
-        if lpo_gt(&s[i], &t[i]) {
+        if lpo_gt(precedence, &s[i], &t[i]) {
             return true;
         } else if s[i] != t[i] {
             return false;
@@ -58,80 +59,78 @@ fn lexical_ordering(s: &Term, t: &Term) -> bool {
     false
 }
 
-/// Returns true if s is "heavier" than t.
-/// Heavier means that it either has a larger arity or in the case that the arities are equal a larger id. 
-fn precedence(s: &Term, t: &Term) -> bool {
-    if s.get_arity() == t.get_arity()  {
-        s.get_id() > t.get_id()
-    } else {
-        s.get_arity() > t.get_arity()
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::{lpo_gt, lpo_ge};    
     use prover::term::Term;
+    use prover::ordering::precedence::Precedence;
     
     #[test]
     fn lpo_gt_1() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let y = Term::new(-2, false, Vec::new());       
-        assert!(!lpo_gt(&x, &y));
-        assert!(!lpo_gt(&y, &x));
+        assert!(!lpo_gt(&precedence, &x, &y));
+        assert!(!lpo_gt(&precedence, &y, &x));
     }
     
     #[test]
     fn lpo_gt_2() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x.clone()));       
-        assert!(lpo_gt(&f_x, &x));
-        assert!(!lpo_gt(&x, &f_x));
+        assert!(lpo_gt(&precedence, &f_x, &x));
+        assert!(!lpo_gt(&precedence, &x, &f_x));
     }
     
     #[test]
     fn lpo_gt_3() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let y = Term::new(-2, false, Vec::new());
         let f_y = Term::new(1, false, vec!(y));       
-        assert!(!lpo_gt(&f_y, &x));
-        assert!(!lpo_gt(&x, &f_y));
+        assert!(!lpo_gt(&precedence, &f_y, &x));
+        assert!(!lpo_gt(&precedence, &x, &f_y));
     }
     
     #[test]
     fn lpo_gt_4() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x.clone()));       
         let f_f_x = Term::new(1, false, vec!(f_x.clone()));   
-        assert!(lpo_gt(&f_f_x, &f_x));
-        assert!(!lpo_gt(&f_x, &f_f_x));
-        assert!(lpo_gt(&f_f_x, &x));
-        assert!(!lpo_gt(&x, &f_f_x));
+        assert!(lpo_gt(&precedence, &f_f_x, &f_x));
+        assert!(!lpo_gt(&precedence, &f_x, &f_f_x));
+        assert!(lpo_gt(&precedence, &f_f_x, &x));
+        assert!(!lpo_gt(&precedence, &x, &f_f_x));
     }
     
     #[test]
     fn lpo_gt_5() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x.clone()))));         
-        assert!(lpo_gt(&f_g_x, &x));
-        assert!(!lpo_gt(&x, &f_g_x));
+        assert!(lpo_gt(&precedence, &f_g_x, &x));
+        assert!(!lpo_gt(&precedence, &x, &f_g_x));
     }
     
     #[test]
     fn lpo_gt_6() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let f_x_x = Term::new(1, false, vec!(x.clone(), x)); 
         let t = Term::new_truth();
-        assert!(lpo_gt(&f_x_x, &t));
-        assert!(!lpo_gt(&t, &f_x_x));
+        assert!(lpo_gt(&precedence, &f_x_x, &t));
+        assert!(!lpo_gt(&precedence, &t, &f_x_x));
     }
     
     #[test]
     fn lpo_ge_1() {
+        let precedence = Precedence::default();
         let x = Term::new(-1, false, Vec::new());
         let f_x = Term::new(1, false, vec!(x));         
-        assert!(!lpo_gt(&f_x, &f_x));
-        assert!(lpo_ge(&f_x, &f_x));
+        assert!(!lpo_gt(&precedence, &f_x, &f_x));
+        assert!(lpo_ge(&precedence, &f_x, &f_x));
     }
     
     /*

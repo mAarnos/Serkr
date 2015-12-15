@@ -17,16 +17,17 @@
 
 use std::collections::hash_map::HashMap;
 use prover::term::Term;
+use prover::ordering::precedence::Precedence;
         
 /// Checks if s is greater than t according to the ordering.    
-pub fn kbo_gt(only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+pub fn kbo_gt(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
     if s.is_function() && t.is_function() {
         let s_weight = weight(only_unary_func, s);
         let t_weight = weight(only_unary_func, t);
         if s_weight > t_weight {
             variable_domination(s, t)
         } else if s_weight == t_weight {
-            if precedence(only_unary_func, s, t) || (s.get_id() == t.get_id() && lexical_ordering(only_unary_func, s, t)) {
+            if kbo_precedence(precedence, only_unary_func, s, t) || (s.get_id() == t.get_id() && lexical_ordering(precedence, only_unary_func, s, t)) {
                 variable_domination(s, t)
             } else {
                 false
@@ -42,10 +43,11 @@ pub fn kbo_gt(only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
 }
 
 /// Checks if s is greater than or equal to t according to the ordering.    
-pub fn kbo_ge(only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
-    s == t || kbo_gt(only_unary_func, s, t)
+pub fn kbo_ge(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+    s == t || kbo_gt(precedence, only_unary_func, s, t)
 }
 
+/// Checks if for every variable x the amount of x in s is greater than or equal to the amount in t.
 fn variable_domination(s: &Term, t: &Term) -> bool {
     let mut variable_counts = HashMap::new();
     variable_count(&mut variable_counts, s, 1);
@@ -64,12 +66,12 @@ fn variable_count(counts: &mut HashMap<i64, i64>, t: &Term, weight: i64) {
     }
 }
 
-fn lexical_ordering(only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+fn lexical_ordering(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
     assert_eq!(s.get_id(), t.get_id());
     assert_eq!(s.get_arity(), t.get_arity());
             
     for i in 0..s.get_arity() {
-        if kbo_gt(only_unary_func, &s[i], &t[i]) {
+        if kbo_gt(precedence, only_unary_func, &s[i], &t[i]) {
             return true;
         } else if s[i] != t[i] {
             return false;
@@ -79,21 +81,16 @@ fn lexical_ordering(only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
     false
 }
 
-/// Returns true if s is "heavier" than t.
-/// Heavier means that it either has a larger arity or in the case that the arities are equal a larger id. 
-/// One small exception: if there is exactly one unary function in the problem, that function is greater than all other functions.
-fn precedence(only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+/// Expands the precedence so that it is suitable for KBO. 
+/// If there is exactly one unary function in the problem, that function is greater than all other functions.
+fn kbo_precedence(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
     if Some(s.get_id()) == *only_unary_func {
         return true;
     } else if Some(t.get_id()) == *only_unary_func {
         return false;
     }
         
-    if s.get_arity() == t.get_arity()  {
-        s.get_id() > t.get_id()
-    } else {
-        s.get_arity() > t.get_arity()
-    }
+    precedence.gt(s, t)
 }
 
 /// Gives a weight to all terms.

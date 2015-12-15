@@ -18,6 +18,9 @@
 /// Contains a generic term ordering for ordering terms and literals.
 pub mod term_ordering;
 
+/// Contains function symbol precedence stuff, used by both LPO and KBO.
+pub mod precedence;
+
 /// Contains an implementation of the lexicographic path ordering.
 mod lpo;
 

@@ -28,6 +28,7 @@ use prover::simplification::equality_subsumption::equality_subsumes_clause;
 use prover::simplification::simplify_reflect::simplify_reflect;
 use prover::simplification::rewriting::rewrite_literals;
 
+use prover::ordering::precedence::Precedence;
 use prover::ordering::term_ordering::TermOrdering;
 
 use prover::inference::equality_resolution::equality_resolution;
@@ -90,6 +91,7 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 }
 
 /// The main proof search loop.
+/// Note that we use the DISCOUNT version of the given clause algorithm.
 fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResult {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
@@ -222,9 +224,9 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
 
 fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering {
     if lpo_over_kbo {
-        TermOrdering::LPO
+        TermOrdering::LPO(Precedence::default())
     } else {
-        TermOrdering::KBO(single_unary_function(clauses)) 
+        TermOrdering::KBO(Precedence::default(), single_unary_function(clauses)) 
     }
 }
 
