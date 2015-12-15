@@ -50,6 +50,11 @@ impl Clause {
         self.size() == 1
     }
     
+   /// Used for checking if the clause is a positive unit clause.
+    pub fn is_positive_unit(&self) -> bool {
+        self.is_unit() && self.literals[0].is_positive()
+    }
+    
     /// Used for iterating the literals of the clause.
     pub fn iter(&self) -> Iter<Literal> {
         self.literals.iter()

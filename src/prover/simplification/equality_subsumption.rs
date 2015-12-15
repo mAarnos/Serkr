@@ -55,7 +55,7 @@ fn eqn_subsumes_literal(s: &Term, t: &Term, l: &Literal) -> bool {
 
 /// Checks if the clause cl1 equality subsumes the clause cl2.
 pub fn equality_subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
-    if cl1.size() == 1 && cl1[0].is_positive() {
+    if cl1.is_positive_unit() {
         cl2.iter().any(|l| eqn_subsumes_literal(cl1[0].get_lhs(), cl1[0].get_rhs(), l))
     } else {
         false

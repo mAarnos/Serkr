@@ -24,7 +24,7 @@ use prover::unification::matching::term_match;
 /// Returns true if something was rewritten.
 fn normal_form_step<T: TermOrdering + ?Sized>(term_ordering: &T, active: &[Clause], u: &mut Term) -> bool {
     for cl in active {
-        if cl.is_unit() && cl[0].is_positive() {
+        if cl.is_positive_unit() {
             if try_rewrite_at_position(term_ordering, cl[0].get_lhs(), cl[0].get_rhs(), u) ||
                try_rewrite_at_position(term_ordering, cl[0].get_rhs(), cl[0].get_lhs(), u) {
                 return true;
