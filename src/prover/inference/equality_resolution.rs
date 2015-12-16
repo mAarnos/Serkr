@@ -18,6 +18,7 @@
 use prover::clause::Clause;
 use prover::unification::full_unification::mgu;
 use prover::ordering::term_ordering::TermOrdering;
+use prover::inference::maximality::literal_maximal_in;
 
 /// Infers new clauses by (ordered) equality resolution.
 /// Time complexity is O(n) where n is the amount of literals in the clause.
@@ -34,7 +35,9 @@ pub fn equality_resolution(term_ordering: &TermOrdering, cl: &Clause, generated:
                 new_cl.subst(&sigma);
                 new_l.subst(&sigma);
                 
-                if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &new_l)) {
+                assert_eq!(new_l.get_lhs(), new_l.get_rhs());
+                
+                if literal_maximal_in(term_ordering, &new_cl, &new_l) {
                     generated.push(new_cl);
                     er_count += 1;
                 } 

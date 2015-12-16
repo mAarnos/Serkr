@@ -20,6 +20,7 @@ use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::full_unification::mgu;
 use prover::ordering::term_ordering::TermOrdering;
+use prover::inference::maximality::{literal_maximal_in, literal_strictly_maximal_in};
 
 fn create_overlapped_term(u: &Term, t: &Term, trace: &[usize]) -> Term {
     let mut new_term = u.clone();
@@ -60,15 +61,15 @@ fn overlaps(term_ordering: &TermOrdering,
                     new_c.swap_remove(cl1_i);
                     new_c.subst(&sigma);
                     
-                    if new_c.iter().all(|lit| !term_ordering.ge_lit(lit, &new_s_t)) {                                                      
+                    if literal_strictly_maximal_in(term_ordering, &new_c, &new_s_t) {                                                      
                         let mut new_d = cl2.clone();
                         new_d.swap_remove(cl2_i);
                         new_d.subst(&sigma);
                         
                         let maximality_condition_fulfilled = if u_v_negated { 
-                                                                new_d.iter().all(|lit| !term_ordering.gt_lit(lit, &new_u_v)) 
+                                                                literal_maximal_in(term_ordering, &new_d, &new_u_v)
                                                              } else { 
-                                                                new_d.iter().all(|lit| !term_ordering.ge_lit(lit, &new_u_v)) 
+                                                                literal_strictly_maximal_in(term_ordering, &new_d, &new_u_v)
                                                              };
                         if maximality_condition_fulfilled {
                             let new_u = create_overlapped_term(u, t, trace);

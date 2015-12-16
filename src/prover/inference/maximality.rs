@@ -15,14 +15,16 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/// Contains an implementation of equality resolution.
-pub mod equality_resolution;
+use prover::literal::Literal;
+use prover::clause::Clause;
+use prover::ordering::term_ordering::TermOrdering;
 
-/// Contains an implementation of equality factoring.
-pub mod equality_factoring;
+/// Checks if a given literal is maximal in a clause according to a given term ordering.
+pub fn literal_maximal_in(term_ordering: &TermOrdering, cl: &Clause, l: &Literal) -> bool {
+    cl.iter().all(|l2| !term_ordering.gt_lit(l2, l))
+}
 
-/// Contains implementations of positive and negative superposition.
-pub mod superposition;
-
-/// Stuff for checking maximality of literals in clauses.
-mod maximality;
+/// Checks if a given literal is strictly maximal in a clause according to a given term ordering.
+pub fn literal_strictly_maximal_in(term_ordering: &TermOrdering, cl: &Clause, l: &Literal) -> bool {
+    cl.iter().all(|l2| !term_ordering.ge_lit(l2, l))
+}

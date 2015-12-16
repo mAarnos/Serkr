@@ -20,6 +20,7 @@ use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::full_unification::mgu;
 use prover::ordering::term_ordering::TermOrdering;
+use prover::inference::maximality::literal_maximal_in;
 
 /// Infers new clauses by equality factoring
 /// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
@@ -65,7 +66,7 @@ fn equality_factoring_create_new(term_ordering: &TermOrdering,
             new_cl.swap_remove(i);
             new_cl.subst(&sigma);
             
-            if new_cl.iter().all(|lit| !term_ordering.gt_lit(lit, &l)) {
+            if literal_maximal_in(term_ordering, &new_cl, &l) {
                 let mut new_ineq_lit = Literal::new(true, t.clone(), v.clone());
                 new_ineq_lit.subst(&sigma);
                 new_cl.add_literal(new_ineq_lit);

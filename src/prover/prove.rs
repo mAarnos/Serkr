@@ -123,25 +123,16 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
             ms_count += 1000;
         }
         
+        // We start by simplifying the chosen clause as much as possible.
+        simplify(proof_state.get_term_ordering(), &mut chosen_clause, proof_state.get_used());
+        
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
             return ProofAttemptResult::Refutation;
         }
         
+        // Check if the clause is redundant in some way. If it is no need to process it more.
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
-            simplify(proof_state.get_term_ordering(), &mut chosen_clause, proof_state.get_used());
-            // println!("Chosen clause: {:?}", chosen_clause);
-            
-            // A second retention test is necessary.
-            if chosen_clause.is_empty() {
-                return ProofAttemptResult::Refutation;
-            }
-            
-            if forward_subsumed(&chosen_clause, proof_state.get_used()) {              
-                fs_count += 1;
-                continue;
-            }
-            
             bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
         
             rename_clause(&mut chosen_clause, &mut var_cnt);
@@ -163,7 +154,8 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
                 }
             }
             
-            proof_state.add_to_used(chosen_clause); // Not quite sure if this should be here or before.
+            // Not quite sure if this should be here or before. Doesn't _seem_ incomplete due to this.
+            proof_state.add_to_used(chosen_clause); 
         } else {
             fs_count += 1;
         }
