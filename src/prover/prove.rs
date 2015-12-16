@@ -17,6 +17,8 @@
 
 use std::collections::HashMap;
 use prover::flatten_cnf::flatten_cnf;
+
+use prover::term::Term;
 use prover::clause::Clause;
 
 use prover::proof_state::ProofState;
@@ -214,11 +216,38 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     found_unary
 }
 
+fn update_function_symbol_count(counts: &mut HashMap<i64, i64>, t: &Term) {
+    if t.is_function() {
+        // Get around lifetime stuff.
+        {
+            let v = counts.entry(t.get_id()).or_insert(0);
+            *v += 1;
+        }    
+        for sub_t in t.iter() {
+            update_function_symbol_count(counts, sub_t)
+        }
+    }
+}
+
+fn create_function_symbol_count(clauses: &[Clause]) -> HashMap<i64, i64> {
+    let mut counts = HashMap::new();
+    
+    for cl in clauses {
+        for l in cl.iter() {
+            update_function_symbol_count(&mut counts, l.get_lhs());
+            update_function_symbol_count(&mut counts, l.get_rhs());
+        }
+    }
+    
+    counts
+}
+
 fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering {
     if lpo_over_kbo {
         TermOrdering::LPO(Precedence::default())
     } else {
-        TermOrdering::KBO(Precedence::default(), single_unary_function(clauses)) 
+        let counts = create_function_symbol_count(clauses);
+        TermOrdering::KBO(Precedence::ArityFrequency(counts), single_unary_function(clauses)) 
     }
 }
 

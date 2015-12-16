@@ -16,19 +16,32 @@
 */
 
 use std::default::Default;
+use std::collections::HashMap;
 use prover::term::Term;
 
 /// Defines a partial orders on the function symbols.
 /// Different enums represent different partial orders.
+#[allow(dead_code)]
 pub enum Precedence {
     ArityId,
+    ArityFrequency(HashMap<i64, i64>),
+    Frequency(HashMap<i64, i64>),
+    Arity,
+    Id,
 }
 
 impl Precedence {
     /// Checks if s has precedence over t.
     pub fn gt(&self, s: &Term, t: &Term) -> bool {
+        assert!(s.is_function());
+        assert!(t.is_function());
+        
         match *self {
             Precedence::ArityId => arity_id_gt(s, t),
+            Precedence::ArityFrequency(ref frequency_table) => arity_frequency_gt(frequency_table, s, t),
+            Precedence::Frequency(ref frequency_table) => frequency_gt(frequency_table, s, t),
+            Precedence::Arity => arity_gt(s, t),
+            Precedence::Id => id_gt(s, t)
         }
     }
 }
@@ -39,13 +52,39 @@ impl Default for Precedence {
     }
 }
 
-/// Orders terms based on arity. In case the two terms have the same arity we break the tie with the id number.
+/// Orders function symbols first based on arity and then by ID number.
 fn arity_id_gt(s: &Term, t: &Term) -> bool {
-    if s.get_arity() == t.get_arity()  {
-        s.get_id() > t.get_id()
+    if s.get_arity() == t.get_arity() {
+        id_gt(s, t)
     } else {
-        s.get_arity() > t.get_arity()
+        arity_gt(s, t)
     }
+}
+
+/// Orders function symbols first based on arity and then based on rarity according to some count table.
+fn arity_frequency_gt(frequency_table: &HashMap<i64, i64>, s: &Term, t: &Term) -> bool {
+    if s.get_arity() == t.get_arity() {
+        frequency_gt(frequency_table, s, t)
+    } else {
+        arity_gt(s, t)
+    }
+}
+
+/// Orders function symbols based on their rarity according to some count table.
+fn frequency_gt(frequency_table: &HashMap<i64, i64>, s: &Term, t: &Term) -> bool {
+    let s_freq = frequency_table.get(&s.get_id()).expect("Symbol not found in frequency table");
+    let t_freq = frequency_table.get(&t.get_id()).expect("Symbol not found in frequency table");
+    s_freq < t_freq
+}
+
+/// Orders function symbols based on their arity. 
+fn arity_gt(s: &Term, t: &Term) -> bool {
+    s.get_arity() > t.get_arity()
+}
+
+/// Orders function symbols based on their ID. 
+fn id_gt(s: &Term, t: &Term) -> bool {
+    s.get_id() > t.get_id()
 }
 
 #[cfg(test)]
