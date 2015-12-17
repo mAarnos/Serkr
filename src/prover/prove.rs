@@ -95,7 +95,7 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 
 /// The main proof search loop.
 /// Note that we use the DISCOUNT version of the given clause algorithm.
-fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResult {
+fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64) -> ProofAttemptResult {
     let mut sw = Stopwatch::new();
     let mut ms_count = 1000;
     let mut iterations = 0;
@@ -112,6 +112,12 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
     
     while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
         iterations += 1;
+        
+        // If we have spent too much time already just give up.
+        if sw.elapsed_ms() > max_time_in_ms {
+            return ProofAttemptResult::Timeout;
+        }
+        
         if sw.elapsed_ms() > ms_count {
             println!("info time {} iterations {} used {} unused {} sp {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
                                                                                                               iterations, 
@@ -250,7 +256,7 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering 
 /// A more general version of prove with many parameters exposed.
 /// First we can decide whether we want to use LPO or KBO.
 /// Then there is the option for not negating the input clause if we are more interested in satisfiability.
-pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool) -> ProofAttemptResult {
+pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_time_in_s: u64) -> ProofAttemptResult {
     if let Ok(parsed_formula) = parse(s) {
         let cnf_f = if negate_input_formula { 
                         cnf(Formula::Not(Box::new(parsed_formula)))
@@ -266,7 +272,7 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool) -> Proo
             let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
             let term_ordering = create_term_ordering(use_lpo, &preprocessed_problem);
             let proof_state = ProofState::new(preprocessed_problem, term_ordering);
-            serkr_loop(proof_state, renaming_info.var_cnt)
+            serkr_loop(proof_state, renaming_info.var_cnt, max_time_in_s * 1000)
         }
     } else {
         ProofAttemptResult::Error
@@ -275,7 +281,7 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool) -> Proo
 
 /// Attempts to prove the formula passed in.
 pub fn prove(s: &str) -> ProofAttemptResult {
-    prove_general(s, false, true)
+    prove_general(s, false, true, 300)
 }
 
 #[cfg(test)]
@@ -913,7 +919,7 @@ mod test {
     #[test]
     fn lists_1() {
         let result = prove_general("forall x. suc(x) <> zero() /\\
-                                    forall x. forall y. (suc(x) = suc(y) ==> x = y)", true, false);
+                                    forall x. forall y. (suc(x) = suc(y) ==> x = y)", true, false, 300);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
 } 

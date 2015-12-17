@@ -66,7 +66,7 @@ fn main() {
                                                                                      forall x2. forall y2. ((mult(a, x2) = b /\\ mult(y2, a) = b) ==> x = x2 /\\ y = y2)) /\\
                                             forall x. forall y. forall z. mult(mult(z, x), mult(y, z)) = mult(z, mult(mult(x, y), z))
                                             ==> exists e. forall a. (mult(e, a) = a /\\ mult(a, e) = a)
-                                            ", false, true);
+                                            ", false, true, 300);
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
