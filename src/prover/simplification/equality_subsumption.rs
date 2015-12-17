@@ -72,7 +72,7 @@ mod test {
     #[test]
     fn equality_subsumes_clause_1() {
         // Check that f(x) = x subsumes g(f(a), f(b)) = g(a,b). 
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let a = Term::new(1, false, Vec::new());
         let b = Term::new(2, false, Vec::new());  
         let g_f_a_f_b = Term::new(4, false, vec!(Term::new(3, false, vec!(a.clone())), Term::new(3, false, vec!(b.clone()))));
@@ -87,8 +87,8 @@ mod test {
     #[test]
     fn equality_subsumes_clause_2() {
         // Check that f(x, c) = x subsumes g(y) = g(f(y, c)). 
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
         let c = Term::new(1, false, Vec::new());
         let f_x_c = Term::new(2, false, vec!(x.clone(), c.clone()));
         let g_y = Term::new(3, false, vec!(y.clone()));
@@ -103,7 +103,7 @@ mod test {
     #[test]
     fn equality_subsumes_clause_3() {
         // Check that f(x) = T subsumes T = f(x). 
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_x = Term::new(1, true, vec!(x));
         
         let cl1 = Clause::new(vec!(Literal::new(false, f_x.clone(), Term::new_truth())));

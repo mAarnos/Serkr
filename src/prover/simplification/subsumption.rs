@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::literal::{Literal, polarity_equal};
+use prover::literal::Literal;
 use prover::clause::Clause;
 use prover::unification::matching::term_match_general;
 use prover::unification::substitution::Substitution;
@@ -35,7 +35,7 @@ fn subsumes_clause0(substitution: Substitution, exclusion: &mut Vec<bool>, cl1: 
         let l1 = &cl1[n];
 
         for (i, l2) in cl2.iter().enumerate() {
-            if !exclusion[i] && polarity_equal(l1, l2) {   
+            if !exclusion[i] && l1.polarity_equal(l2) {
                 // First one way... 
                 if let Some(new_substitution) = match_literals(substitution.clone(), l1, l2, false) {
                     exclusion[i] = true;
@@ -75,7 +75,7 @@ fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
     
         let mut found_match = false;
         for (i, l2) in cl2.iter().enumerate() {
-            if !exclusion[i] && polarity_equal(l1, l2) {
+            if !exclusion[i] && l1.polarity_equal(l2) {
                 let l_id_l = l1.get_lhs().get_id();
                 let r_id_l = l2.get_lhs().get_id();
                 let l_id_r = l1.get_rhs().get_id();
@@ -130,10 +130,10 @@ mod test {
     
     #[test]
     fn subsumes_clause_1() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
-        let w = Term::new(-4, false, Vec::new());   
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
+        let w = Term::new_variable(-4);   
         let l1 = Literal::new(false, x, y.clone());
         let l2 = Literal::new(false, z, w.clone());
         let l3 = Literal::new(false, y.clone(), w.clone());
@@ -145,10 +145,10 @@ mod test {
     
     #[test]
     fn subsumes_clause_2() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
-        let w = Term::new(-4, false, Vec::new()); 
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
+        let w = Term::new_variable(-4); 
         let f_x = Term::new(1, false, vec!(x));
         let l1 = Literal::new(false, f_x, y);
         let l2 = Literal::new(false, z, w);
@@ -160,10 +160,10 @@ mod test {
     
     #[test]
     fn subsumes_clause_3() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
-        let w = Term::new(-4, false, Vec::new()); 
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
+        let w = Term::new_variable(-4); 
         let f_x = Term::new(1, false, vec!(x));
         let l1 = Literal::new(false, z, w);
         let l2 = Literal::new(false, f_x, y);
@@ -175,8 +175,8 @@ mod test {
     
     #[test]
     fn subsumes_clause_4() {
-        let x1 = Term::new(-1, false, Vec::new());
-        let x2 = Term::new(-2, false, Vec::new());
+        let x1 = Term::new_variable(-1);
+        let x2 = Term::new_variable(-2);
         let cl_l1 = Literal::new(false, Term::new(1, true, vec!(x1.clone())), Term::new_truth());
         let cl1_l2 = Literal::new(true, Term::new(2, true, vec!(x1)), Term::new_truth());
         let cl2_l2 = Literal::new(true, Term::new(2, true, vec!(x2)), Term::new_truth());

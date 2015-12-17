@@ -40,6 +40,12 @@ impl Term {
         Term { id: id, sort_predicate: sort_predicate, args: args }
     }
     
+    /// Creates a new variable. Note that the ID passed in should be negative.
+    pub fn new_variable(id: i64) -> Term {
+        assert!(id < 0);
+        Term { id: id, sort_predicate: false, args: Vec::new() }
+    }
+    
     /// Create a new term representing truth. 
     /// Used in the transformation of first order logic to pure equational logic.
     pub fn new_truth() -> Term {

@@ -87,11 +87,11 @@ fn create_term(t: Term, ri: &mut RenamingInfo) -> term::Term {
     match t {
          Term::Variable(s) => 
             if let Some(&x) = ri.var_map.get(&s) {
-                term::Term::new(x, false, Vec::new())
+                term::Term::new_variable(x)
             } else {
                 ri.var_cnt -= 1;
                 ri.var_map.insert(s, ri.var_cnt);
-                term::Term::new(ri.var_cnt, false, Vec::new())
+                term::Term::new_variable(ri.var_cnt)
             },
         Term::Function(s, args) => {
                 let sort_pred = s.chars().next().expect("Should have a name").is_uppercase();

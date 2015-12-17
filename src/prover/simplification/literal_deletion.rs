@@ -26,7 +26,7 @@ pub fn cheap_simplify(cl: &mut Clause) {
 }
 
 /// Deletes all duplicated literals from a clause.
-/// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
+/// Time complexity is O(n^2) where n is the amount of literals.
 pub fn delete_duplicates(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
@@ -84,9 +84,9 @@ mod test {
     
     #[test]
     fn delete_resolved_1() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let l1 = Literal::new(false, x.clone(), y.clone());
         let l2 = Literal::new(true, z.clone(), x.clone());
         let l3 = Literal::new(true, y.clone(), y.clone());
@@ -102,9 +102,9 @@ mod test {
     
     #[test]
     fn delete_resolved_2() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let l1 = Literal::new(false, x.clone(), y);
         let l2 = Literal::new(true, z, x);
         let mut cl = Clause::new(vec!(l1, l2));
@@ -116,7 +116,7 @@ mod test {
     
     #[test]
     fn delete_resolved_3() {
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let l = Literal::new(true, x.clone(), x);
         let mut cl = Clause::new(vec!(l.clone(), l.clone(), l));
           
@@ -126,9 +126,9 @@ mod test {
     
     #[test]
     fn delete_duplicates_1() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let l1 = Literal::new(true, x.clone(), y.clone());
         let l2 = Literal::new(false, z.clone(), x.clone());
         let l3 = Literal::new(true, y, x);
@@ -143,10 +143,10 @@ mod test {
     
     #[test]
     fn delete_duplicates_2() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
-        let w = Term::new(-4, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
+        let w = Term::new_variable(-4);
         let l1 = Literal::new(true, x.clone(), y.clone());
         let l2 = Literal::new(true, z.clone(), w.clone());
         let l3 = Literal::new(false, w.clone(), x.clone());
@@ -160,7 +160,7 @@ mod test {
     
     #[test]
     fn delete_duplicates_3() {
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let l = Literal::new(false, x.clone(), x);
         let mut cl = Clause::new(vec!(l.clone(), l.clone(), l.clone()));
           

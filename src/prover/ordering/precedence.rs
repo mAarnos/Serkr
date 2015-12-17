@@ -95,9 +95,9 @@ mod test {
     #[test]
     fn arity_id_1() {
         let precedence = Precedence::ArityId;
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let f_x_y = Term::new(1, false, vec!(x, y));
         let g_z = Term::new(2, false, vec!(z));
         assert!(precedence.gt(&f_x_y, &g_z));

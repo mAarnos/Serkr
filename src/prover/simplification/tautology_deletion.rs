@@ -16,7 +16,6 @@
 */
 
 use prover::clause::Clause;
-use prover::literal::{terms_equal, polarity_equal};
 
 /// Checks if a clause is a syntactical tautology and as such can be eliminated completely.
 pub fn trivial(cl: &Clause) -> bool {
@@ -34,7 +33,7 @@ fn td1(cl: &Clause) -> bool {
 fn td2(cl: &Clause) -> bool {
     for (i, l1) in cl.iter().enumerate() {
         for l2 in cl.iter().skip(i + 1) {
-            if !polarity_equal(l1, l2) && terms_equal(l1, l2) {
+            if !l1.polarity_equal(l2) && l1.terms_equal(l2) {
                 return true;
             }
         }
@@ -51,9 +50,9 @@ mod test {
     
     #[test]
     fn td1_1() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let l1 = Literal::new(false, x.clone(), y.clone());
         let l2 = Literal::new(true, z.clone(), x.clone());
         let l3 = Literal::new(false, y.clone(), y.clone());
@@ -65,9 +64,9 @@ mod test {
     
     #[test]
     fn td1_2() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let l1 = Literal::new(true, x.clone(), z.clone());
         let l2 = Literal::new(true, z.clone(), x.clone());
         let l3 = Literal::new(false, y, z);
@@ -84,9 +83,9 @@ mod test {
     
     #[test]
     fn td2_1() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
         let l1 = Literal::new(true, x.clone(), y.clone());
         let l2 = Literal::new(false, z, x.clone());
         let l3 = Literal::new(false, y, x);
@@ -97,8 +96,8 @@ mod test {
     
     #[test]
     fn td2_2() {
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
         let l1 = Literal::new(true, x.clone(), y.clone());
         let l2 = Literal::new(true, x, y);
         let cl = Clause::new(vec!(l1, l2));

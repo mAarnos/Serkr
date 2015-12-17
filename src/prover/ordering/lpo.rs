@@ -68,8 +68,8 @@ mod test {
     #[test]
     fn lpo_gt_1() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());       
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);       
         assert!(!lpo_gt(&precedence, &x, &y));
         assert!(!lpo_gt(&precedence, &y, &x));
     }
@@ -77,7 +77,7 @@ mod test {
     #[test]
     fn lpo_gt_2() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_x = Term::new(1, false, vec!(x.clone()));       
         assert!(lpo_gt(&precedence, &f_x, &x));
         assert!(!lpo_gt(&precedence, &x, &f_x));
@@ -86,8 +86,8 @@ mod test {
     #[test]
     fn lpo_gt_3() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
         let f_y = Term::new(1, false, vec!(y));       
         assert!(!lpo_gt(&precedence, &f_y, &x));
         assert!(!lpo_gt(&precedence, &x, &f_y));
@@ -96,7 +96,7 @@ mod test {
     #[test]
     fn lpo_gt_4() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_x = Term::new(1, false, vec!(x.clone()));       
         let f_f_x = Term::new(1, false, vec!(f_x.clone()));   
         assert!(lpo_gt(&precedence, &f_f_x, &f_x));
@@ -108,7 +108,7 @@ mod test {
     #[test]
     fn lpo_gt_5() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x.clone()))));         
         assert!(lpo_gt(&precedence, &f_g_x, &x));
         assert!(!lpo_gt(&precedence, &x, &f_g_x));
@@ -117,7 +117,7 @@ mod test {
     #[test]
     fn lpo_gt_6() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_x_x = Term::new(1, false, vec!(x.clone(), x)); 
         let t = Term::new_truth();
         assert!(lpo_gt(&precedence, &f_x_x, &t));
@@ -127,7 +127,7 @@ mod test {
     #[test]
     fn lpo_ge_1() {
         let precedence = Precedence::default();
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_x = Term::new(1, false, vec!(x));         
         assert!(!lpo_gt(&precedence, &f_x, &f_x));
         assert!(lpo_ge(&precedence, &f_x, &f_x));
@@ -136,7 +136,7 @@ mod test {
     /*
     #[test]
     fn lpo_ge_lit_1() {
-        let x = Term::new(-1, false, Vec::new());
+        let x = Term::new_variable(-1);
         let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));  
         let l = Literal::new(false, f_g_x, Term::new_truth());
         assert!(!lpo_gt_lit(&l, &l));

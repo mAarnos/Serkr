@@ -15,8 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::collections::HashMap;
 use std::fmt::{Debug, Formatter, Error};
+use std::iter::Iterator;
 use prover::term::Term;
 use prover::unification::substitution::Substitution;
 
@@ -30,7 +30,7 @@ pub struct Literal {
 }
 
 impl Literal {
-    /// Creates a new Literal.
+    /// Creates a new literal.
     pub fn new(negated: bool, lhs: Term, rhs: Term) -> Literal {
         Literal { lhs: lhs, rhs: rhs, negated: negated }
     }
@@ -70,22 +70,73 @@ impl Literal {
         self.lhs.subst(substitution);
         self.rhs.subst(substitution);
     }
-    
-    /// Renames all variables in a literal so that it has no variables in common with any clause other than the one it is a part of.
-    pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
-        self.lhs.rename_no_common(sfn, var_cnt);
-        self.rhs.rename_no_common(sfn, var_cnt);
+       
+    /// Checks if the given literal has the same polarity.
+    pub fn polarity_equal(&self, l: &Literal) -> bool {
+        self.is_positive() == l.is_positive()
+    }
+
+    /// Checks if the given literal has the same terms, taking into account symmetry.
+    pub fn terms_equal(&self, l: &Literal) -> bool {
+        (self.lhs == l.lhs && self.rhs == l.rhs) || (self.lhs == l.rhs && self.rhs == l.lhs)
     }
     
     /// Get the amount of symbols in this literal
     pub fn symbol_count(&self) -> usize {
         1 + self.lhs.symbol_count() + self.rhs.symbol_count()
     }
+    
+    /// Used for iterating through the lhs and rhs of the literal. 
+    pub fn iter(&self) -> Iter {
+        Iter { literal: self, index: 0 }
+    }
 }
+
+struct Iter<'a> {
+    literal: &'a Literal,
+    index: u8,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = &'a Term;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = match self.index {
+            0 => Some(self.literal.get_lhs()),
+            1 => Some(self.literal.get_rhs()),
+            _ => None
+        };
+        self.index += 1;
+        
+        result
+    }
+}
+
+/*
+struct IterMut<'a> {
+    literal: &'a mut Literal,
+    index: u8,
+}
+
+impl<'a> Iterator for IterMut<'a> {
+    type Item = &'a mut Term;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = match self.index {
+            0 => Some(&mut self.literal.lhs),
+            1 => Some(self.literal.get_rhs_mut()),
+            _ => None
+        };
+        self.index += 1;
+        
+        result
+    }
+}
+*/
 
 impl PartialEq for Literal {
     fn eq(&self, other: &Literal) -> bool {
-        polarity_equal(self, other) && terms_equal(self, other)
+        self.polarity_equal(other) && self.terms_equal(other)
     }
 }
 
@@ -98,15 +149,3 @@ impl Debug for Literal {
         write!(formatter, "{:?} {} {:?}", self.lhs, eqn_sign, self.rhs)
     }
 }
-
-/// Checks if the literals have the same polarity.
-pub fn polarity_equal(l1: &Literal, l2: &Literal) -> bool {
-    l1.is_positive() == l2.is_positive()
-}
-
-/// Checks if the lhs and rhs of the two given Literals match, taking into account symmetry.
-pub fn terms_equal(l1: &Literal, l2: &Literal) -> bool {
-    (l1.get_lhs() == l2.get_lhs() && l1.get_rhs() == l2.get_rhs()) ||
-    (l1.get_lhs() == l2.get_rhs() && l1.get_rhs() == l2.get_lhs())
-}
-

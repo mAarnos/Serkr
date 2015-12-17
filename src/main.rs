@@ -51,10 +51,9 @@ fn main() {
     
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
+    /*
     let res = prover::prove::prove_general("forall x. add(e(), x) = x /\\ 
-                                            forall x. add(x, e()) = x /\\
                                             forall x. add(inv(x), x) = e() /\\
-                                            forall x. add(x, inv(x)) = e() /\\
                                             forall x. forall y. forall z. add(add(x, y), z) = add(x, add(y, z)) /\\
                                             forall x. forall y. add(x, y) = add(y, x) /\\
                                             forall x. forall y. forall z. mult(mult(x, y), z) = mult(x, mult(y, z)) /\\
@@ -62,6 +61,12 @@ fn main() {
                                             forall x. forall y. forall z. mult(add(x, y), z) = add(mult(x, z), mult(y, z)) /\\
                                             forall x. mult(mult(x, x), x) = x 
                                             ==> forall x. forall y. mult(x, y) = mult(y, x)", false, true);
+    */                                        
+    let res = prover::prove::prove_general("forall a. forall b. exists x. exists y. (mult(a, x) = b /\\ mult(y, a) = b /\\ 
+                                                                                     forall x2. forall y2. ((mult(a, x2) = b /\\ mult(y2, a) = b) ==> x = x2 /\\ y = y2)) /\\
+                                            forall x. forall y. forall z. mult(mult(z, x), mult(y, z)) = mult(z, mult(mult(x, y), z))
+                                            ==> exists e. forall a. (mult(e, a) = a /\\ mult(a, e) = a)
+                                            ", false, true);
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());

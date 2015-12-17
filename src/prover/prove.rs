@@ -57,7 +57,8 @@ pub enum ProofAttemptResult {
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     let mut var_map = HashMap::<i64, i64>::new();
     for l in cl.iter_mut() {
-        l.rename_no_common(&mut var_map, var_cnt);
+        l.get_lhs_mut().rename_no_common(&mut var_map, var_cnt);
+        l.get_rhs_mut().rename_no_common(&mut var_map, var_cnt);
     }
 }
 
@@ -105,7 +106,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64) -> ProofAttemptResu
     let mut er_count = 0;
     let mut trivial_count = 0;
     
-    // println!("Initial clauses: {}", proof_state.get_unused_size());
+    println!("Initial clauses: {}", proof_state.get_unused_size());
     
     sw.start();
     
@@ -195,19 +196,13 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     
     for cl in clauses {
         for l in cl.iter() {
-            if l.get_lhs().get_arity() == 1 {
-                if found_unary.is_some() {
-                    return None;
-                } else {
-                    found_unary = Some(l.get_lhs().get_id());
-                }
-            }
-            
-            if l.get_rhs().get_arity() == 1 {
-                if found_unary.is_some() {
-                    return None;
-                } else {
-                    found_unary = Some(l.get_rhs().get_id());
+            for t in l.iter() {
+                if t.get_arity() == 1 {
+                    if found_unary.is_some() {
+                        return None;
+                    } else {
+                        found_unary = Some(t.get_id());
+                    }
                 }
             }
         }
@@ -234,8 +229,9 @@ fn create_function_symbol_count(clauses: &[Clause]) -> HashMap<i64, i64> {
     
     for cl in clauses {
         for l in cl.iter() {
-            update_function_symbol_count(&mut counts, l.get_lhs());
-            update_function_symbol_count(&mut counts, l.get_rhs());
+            for t in l.iter() {
+                update_function_symbol_count(&mut counts, t)
+            }
         }
     }
     
@@ -279,7 +275,7 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool) -> Proo
 
 /// Attempts to prove the formula passed in.
 pub fn prove(s: &str) -> ProofAttemptResult {
-    prove_general(s, true, true)
+    prove_general(s, false, true)
 }
 
 #[cfg(test)]
@@ -710,8 +706,9 @@ mod test {
     
     #[test]
     fn pelletier_49() {
-        let result = prove("((exists x. exists y. forall z. (z = x \\/ z = y) /\\ ((P(a()) /\\ P(b)) /\\ a() <> b()))
-                              ==> forall x. P(x))");
+        let result = prove("exists x. exists y. forall z. (z = x \\/ z = y) /\\ 
+                            P(a()) /\\ P(b) /\\ a() <> b()
+                            ==> forall x. P(x)");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
@@ -751,14 +748,12 @@ mod test {
     }
     */
 
-    /*
     #[test]
     fn pelletier_54() {
         let result = prove("forall y. exists z. forall x. (F(x, z) <=> x = y) 
                             ==> ~exists w. forall x. (F(x, w) <=> forall u. (F(x, u) ==> exists y. (F(y, u) /\\ ~exists z. (F(z, u) /\\ F(z, y)))))");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
-    */
     
     #[test]
     fn pelletier_55() {
@@ -921,23 +916,4 @@ mod test {
                                     forall x. forall y. (suc(x) = suc(y) ==> x = y)", true, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
-    
-    // This problem is _really_ tough.
-    /*
-    #[test]
-    fn lusk6() {
-        let result = prove("forall x. add(e(), x) = x /\\ 
-                            forall x. add(x, e()) = x /\\
-                            forall x. add(inv(x), x) = e() /\\
-                            forall x. add(x, inv(x)) = e() /\\
-                            forall x. forall y. forall z. add(add(x, y), z) = add(x, add(y, z)) /\\
-                            forall x. forall y. add(x, y) = add(y, x) /\\
-                            forall x. forall y. forall z. mult(mult(x, y), z) = mult(x, mult(y, z)) /\\
-                            forall x. forall y. forall z. mult(x, add(y, z)) = add(mult(x, y), mult(x, z)) /\\
-                            forall x. forall y. forall z. mult(add(x, y), z) = add(mult(x, z), mult(y, z)) /\\
-                            forall x. mult(mult(x, x), x) = x 
-                            ==> forall x. forall y. mult(x, y) = mult(y, x)");
-        assert_eq!(result, ProofAttemptResult::Refutation);
-    }
-    */
 } 
