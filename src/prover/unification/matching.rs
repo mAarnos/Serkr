@@ -84,10 +84,31 @@ mod test {
     fn term_match_1() {
         // f(x) = f(g(x))
         // Unlike with unification, this should succeed.
-        let x = Term::new(-1, false, Vec::new());
-        let t1 = Term::new(1, false, vec!(x.clone()));
-        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));
-        assert!(term_match(&t1, &t2).is_some());
+        let x = Term::new_variable(-1);
+        let f_x = Term::new(1, false, vec!(x.clone()));
+        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));
+        assert!(term_match(&f_x, &f_g_x).is_some());
+    }
+    
+    #[test]
+    fn term_match_2() {
+        // f(g(y)) = f(x)
+        // With unification this would be trivial, but with matching there is no substitution.
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let f_g_y = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
+        let f_x = Term::new(1, false, vec!(x));
+        assert!(term_match(&f_g_y, &f_x).is_none());
+    }
+    
+    #[test]
+    fn term_match_3() {
+        // Like with unification, there should be no substitution.
+        // f(x) = g(x)
+        let x = Term::new_variable(-1);
+        let f_x = Term::new(1, false, vec!(x.clone()));
+        let g_x = Term::new(2, false, vec!(x));
+        assert!(term_match(&f_x, &g_x).is_none());
     }
 } 
 

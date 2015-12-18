@@ -450,6 +450,12 @@ mod test {
     }
     
     #[test]
+    fn pelletier_22_negated() {
+        let result = prove_general("forall x. (P <=> F(x)) ==> (P <=> forall x. F(x))", true, false, 30);
+        assert_eq!(result, ProofAttemptResult::Saturation);
+    }
+    
+    #[test]
     fn pelletier_23() {
         let result = prove("forall x. (P \\/ F(x)) <=> P \\/ forall x. F(x)");
         assert_eq!(result, ProofAttemptResult::Refutation);
@@ -528,7 +534,7 @@ mod test {
     
     #[test]
     fn pelletier_30_negated() {
-        let result = prove("~(forall x. (F(x) \\/ G(x) ==> ~H(x)) /\\ forall x. ((G(x) ==> ~I(x)) ==> F(x) /\\ H(x)) ==> forall x. I(x))");
+        let result = prove_general("forall x. (F(x) \\/ G(x) ==> ~H(x)) /\\ forall x. ((G(x) ==> ~I(x)) ==> F(x) /\\ H(x)) ==> forall x. I(x)", true, false, 30);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -726,7 +732,7 @@ mod test {
     
     #[test]
     fn pelletier_50_negated() {
-        let result = prove("~(forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> ~exists x. forall y. F(x, y))");
+        let result = prove_general("forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> exists x. forall y. F(x, y)", true, false, 30);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -782,6 +788,12 @@ mod test {
     fn pelletier_56() {
         let result = prove("forall x. (exists y. (F(y) /\\ x = f(y)) ==> F(x)) <=> forall x. (F(x) ==> F(f(x)))");
         assert_eq!(result, ProofAttemptResult::Refutation);
+    }
+    
+    #[test]
+    fn pelletier_56_negated() {
+        let result = prove_general("forall x. (exists y. (F(y) /\\ x = f(y)) ==> F(x)) <=> forall x. (F(x) ==> F(f(x)))", true, false, 30);
+        assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
     #[test]
@@ -875,8 +887,8 @@ mod test {
     
     #[test]
     fn djikstra_negated() {
-        let result = prove("~(forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
-                              ==> forall x. f(x) = x)");
+        let result = prove_general("forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
+                                    ==> forall x. f(x) = x", true, false, 30);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -913,6 +925,14 @@ mod test {
                             forall x. mult(e(), x) = x /\\
                             forall x. mult(i(x), x) = e()
                              ==> forall x. mult(x, i(x)) = e()");
+        assert_eq!(result, ProofAttemptResult::Refutation);
+    }
+    
+    #[test]
+    fn set_union_is_commutative() {
+        let result = prove("forall a. forall b. forall x. (F(x, union(a, b)) <=> F(x, a) \\/ F(x, b)) /\\
+                            forall a. forall b. (forall x. (F(x, a) <=> F(x, b)) ==> a = b)
+                            ==> forall a. forall b. union(a, b) = union(b, a)");
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     

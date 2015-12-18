@@ -84,18 +84,18 @@ mod test {
     #[test]
     fn mgu_1() {
         // x = f_p()
-        let t1 = Term::new(-1, false, Vec::new());
-        let t2 = Term::new(1, true, Vec::new());
-        assert!(mgu(&t1, &t2).is_none());
+        let x = Term::new_variable(-1);
+        let f_p = Term::new(1, true, Vec::new());
+        assert!(mgu(&x, &f_p).is_none());
     }
     
     #[test]
     fn mgu_2() {
         // f(x, g(y)) = f(g(z), w)
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
-        let z = Term::new(-3, false, Vec::new());
-        let w = Term::new(-4, false, Vec::new());   
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let z = Term::new_variable(-3);
+        let w = Term::new_variable(-4);
         let g_y = Term::new(2, false, vec!(y.clone()));
         let g_z = Term::new(2, false, vec!(z.clone()));
         
@@ -110,8 +110,8 @@ mod test {
     #[test]
     fn mgu_3() {
         // f(x, y) = f(y, x)
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());         
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);        
         let t1 = Term::new(1, false, vec!(x.clone(), y.clone()));
         let t2 = Term::new(1, false, vec!(y.clone(), x.clone()));
         
@@ -124,26 +124,26 @@ mod test {
     fn mgu_4() {
         // In HOL this would work.
         // f(x) = g(x)
-        let x = Term::new(-1, false, Vec::new());
-        let t1 = Term::new(1, false, vec!(x.clone()));
-        let t2 = Term::new(2, false, vec!(x));
-        assert!(mgu(&t1, &t2).is_none());
+        let x = Term::new_variable(-1);
+        let f_x = Term::new(1, false, vec!(x.clone()));
+        let g_x = Term::new(2, false, vec!(x));
+        assert!(mgu(&f_x, &g_x).is_none());
     }
     
     #[test]
     fn mgu_5() {
-        // f(y) = f(g(y))
-        let y = Term::new(-1, false, Vec::new());
-        let t1 = Term::new(1, false, vec!(y.clone()));
-        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
-        assert!(mgu(&t1, &t2).is_none());
+        // f(x) = f(g(x))
+        let x = Term::new_variable(-1);
+        let f_x = Term::new(1, false, vec!(x.clone()));
+        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));
+        assert!(mgu(&f_x, &f_g_x).is_none());
     }
     
     #[test]
     fn mgu_6() {
         // f(x) = f(g(y))
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
         let t1 = Term::new(1, false, vec!(x));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
         assert!(mgu(&t1, &t2).is_some());
@@ -153,8 +153,8 @@ mod test {
     #[test]
     fn mgu_7() {
         // f(y, y) = f(g(x), x)
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
         let t1 = Term::new(1, false, vec!(x.clone(), x));
         let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone())), y));
         assert!(mgu(&t1, &t2).is_none());
@@ -163,8 +163,8 @@ mod test {
     #[test]
     fn mgu_8() {
         // f(x, g(x)) = f(c, y)
-        let x = Term::new(-1, false, Vec::new());
-        let y = Term::new(-2, false, Vec::new());
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
         let c = Term::new(1, false, Vec::new());
         let t1 = Term::new(2, false, vec!(x.clone(), Term::new(3, false, vec!(x.clone()))));
         let t2 = Term::new(2, false, vec!(c.clone(), y.clone()));
