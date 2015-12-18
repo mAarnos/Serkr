@@ -31,6 +31,7 @@ use prover::simplification::simplify_reflect::simplify_reflect;
 use prover::simplification::rewriting::rewrite_literals;
 
 use prover::ordering::precedence::Precedence;
+use prover::ordering::weight::Weight;
 use prover::ordering::term_ordering::TermOrdering;
 
 use prover::inference::equality_resolution::equality_resolution;
@@ -249,7 +250,7 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering 
         TermOrdering::LPO(Precedence::default())
     } else {
         let counts = create_function_symbol_count(clauses);
-        TermOrdering::KBO(Precedence::ArityFrequency(counts), single_unary_function(clauses)) 
+        TermOrdering::KBO(Precedence::ArityFrequency(counts), Weight::SimpleWeight, single_unary_function(clauses)) 
     }
 }
 

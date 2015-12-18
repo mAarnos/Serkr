@@ -21,6 +21,9 @@ pub mod term_ordering;
 /// Contains function symbol precedence stuff, used by both LPO and KBO.
 pub mod precedence;
 
+/// Contains weight function stuff which is used by KBO.
+pub mod weight;
+
 /// Contains an implementation of the lexicographic path ordering.
 mod lpo;
 

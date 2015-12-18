@@ -18,16 +18,18 @@
 use std::collections::hash_map::HashMap;
 use prover::term::Term;
 use prover::ordering::precedence::Precedence;
+use prover::ordering::weight::Weight;
         
 /// Checks if s is greater than t according to the ordering.    
-pub fn kbo_gt(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+pub fn kbo_gt(precedence: &Precedence, weight: &Weight, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
     if s.is_function() && t.is_function() {
-        let s_weight = weight(only_unary_func, s);
-        let t_weight = weight(only_unary_func, t);
+        let s_weight = weight.weight(only_unary_func, s);
+        let t_weight = weight.weight(only_unary_func, t);
         if s_weight > t_weight {
             variable_domination(s, t)
         } else if s_weight == t_weight {
-            if kbo_precedence(precedence, only_unary_func, s, t) || (s.get_id() == t.get_id() && lexical_ordering(precedence, only_unary_func, s, t)) {
+            if kbo_precedence(precedence, only_unary_func, s, t) || 
+              (s.get_id() == t.get_id() && lexical_ordering(precedence, weight, only_unary_func, s, t)) {
                 variable_domination(s, t)
             } else {
                 false
@@ -43,8 +45,8 @@ pub fn kbo_gt(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, 
 }
 
 /// Checks if s is greater than or equal to t according to the ordering.    
-pub fn kbo_ge(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
-    s == t || kbo_gt(precedence, only_unary_func, s, t)
+pub fn kbo_ge(precedence: &Precedence, weight: &Weight, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+    s == t || kbo_gt(precedence, weight, only_unary_func, s, t)
 }
 
 /// Checks if for every variable x the amount of x in s is greater than or equal to the amount in t.
@@ -66,12 +68,12 @@ fn variable_count(counts: &mut HashMap<i64, i64>, t: &Term, weight: i64) {
     }
 }
 
-fn lexical_ordering(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
+fn lexical_ordering(precedence: &Precedence, weight: &Weight, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
     assert_eq!(s.get_id(), t.get_id());
     assert_eq!(s.get_arity(), t.get_arity());
             
     for i in 0..s.get_arity() {
-        if kbo_gt(precedence, only_unary_func, &s[i], &t[i]) {
+        if kbo_gt(precedence, weight, only_unary_func, &s[i], &t[i]) {
             return true;
         } else if s[i] != t[i] {
             return false;
@@ -91,23 +93,6 @@ fn kbo_precedence(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Te
     }
         
     precedence.gt(s, t)
-}
-
-/// Gives a weight to all terms.
-/// Variables have weight 1.
-/// If there is exactly one unary function in the problem, it has weight 0. All other symbols have weight 1.
-/// The weight function is extended to terms like so: weight(f(t1, ..., tn)) = weight(f) + weight(t1) + weight(...) + weight(tn).
-fn weight(only_unary_func: &Option<i64>, s: &Term) -> usize {
-    if s.is_variable() {
-        1
-    } else {
-        let func_symbol_weight = if Some(s.get_id()) == *only_unary_func {
-                                     0
-                                 } else {
-                                     1
-                                 };
-        s.iter().fold(func_symbol_weight, |acc, t| acc + weight(only_unary_func, t))
-    }
 }
 
 #[cfg(test)]

@@ -19,14 +19,14 @@ use std::cmp::min;
 use prover::term::Term;
 use prover::literal::Literal;
 use prover::ordering::precedence::Precedence;
+use prover::ordering::weight::Weight;
 use prover::ordering::lpo::{lpo_gt, lpo_ge};
 use prover::ordering::kbo::{kbo_gt, kbo_ge};
 
 /// A generic term ordering. Currently we have the option of using either LPO or KBO.
-#[allow(variant_size_differences)]
 pub enum TermOrdering {
     LPO(Precedence),
-    KBO(Precedence, Option<i64>)
+    KBO(Precedence, Weight, Option<i64>)
 }
 
 impl TermOrdering {
@@ -34,7 +34,7 @@ impl TermOrdering {
     pub fn gt(&self, s: &Term, t: &Term) -> bool {
         match *self {
             TermOrdering::LPO(ref precedence) => lpo_gt(precedence, s, t),
-            TermOrdering::KBO(ref precedence, only_unary_func) => kbo_gt(precedence, &only_unary_func, s, t)
+            TermOrdering::KBO(ref precedence, ref weight, only_unary_func) => kbo_gt(precedence, weight, &only_unary_func, s, t)
         }
     }
     
@@ -43,7 +43,7 @@ impl TermOrdering {
     pub fn ge(&self, s: &Term, t: &Term) -> bool {
         match *self {
             TermOrdering::LPO(ref precedence) => lpo_ge(precedence, s, t),
-            TermOrdering::KBO(ref precedence, only_unary_func) => kbo_ge(precedence, &only_unary_func, s, t)
+            TermOrdering::KBO(ref precedence, ref weight, only_unary_func) => kbo_ge(precedence, weight, &only_unary_func, s, t)
         }
     }
     
