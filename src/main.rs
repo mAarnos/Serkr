@@ -69,7 +69,7 @@ fn main() {
                                             ==> exists e. forall a. (mult(e, a) = a /\\ mult(a, e) = a)", false, true, 300);
     */  
     /*
-    let res = prover::prove::prove_general("forall a. forall b. forall x. (F(x, intersection(a, b)) <=> F(x, a) \\/ F(x, b)) /\\
+    let res = prover::prove::prove_general("forall a. forall b. forall x. (F(x, intersection(a, b)) <=> F(x, a) /\\ F(x, b)) /\\
                                             forall a. forall b. (forall x. (F(x, a) <=> F(x, b)) ==> a = b)
                                             ==> forall a. forall b. intersection(a, b) = intersection(b, a)", false, true, 60); 
     */                                        
