@@ -15,26 +15,33 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/// All occurences of String are replaced with i64 for convenience.
+/// We could theoretically have different ASTs for different phases of the CNF transformation.
+/// However, it seems to me that some invariants are impossible to capture.
+
 /// Data type for FOL terms. 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 #[allow(missing_docs)]
+#[allow(dead_code)]
+#[allow(variant_size_differences)]
 pub enum Term {
-    Variable(String),
-    Function(String, Vec<Term>)
+    Variable(i64),
+    Function(i64, Vec<Term>)
 }
 
 /// Data type for FOL formulas. 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 #[allow(missing_docs)]
+#[allow(dead_code)]
 pub enum Formula {
     True,
     False,
-    Predicate(String, Vec<Term>),
+    Predicate(i64, Vec<Term>),
     Not(Box<Formula>),
     And(Box<Formula>, Box<Formula>),
     Or(Box<Formula>, Box<Formula>),
     Implies(Box<Formula>, Box<Formula>),
     Equivalent(Box<Formula>, Box<Formula>),
-    Forall(String, Box<Formula>),
-    Exists(String, Box<Formula>),
+    Forall(i64, Box<Formula>),
+    Exists(i64, Box<Formula>),
 }
