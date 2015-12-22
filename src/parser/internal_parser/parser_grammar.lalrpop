@@ -1,4 +1,4 @@
-use parser::formula::{Term, Formula};
+use parser::internal_parser::ast::{Term, Formula};
 
 grammar;
 

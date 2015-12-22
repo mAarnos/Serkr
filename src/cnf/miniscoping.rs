@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::Formula;
+use parser::internal_parser::ast::Formula;
 
 /// Moves quantifiers inwards as far as possible with the aim of minimizing the arity of skolem functions.
 #[allow(dead_code)]

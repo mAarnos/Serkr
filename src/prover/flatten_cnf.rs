@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use prover::term;
 use prover::clause::Clause;
 use prover::literal::Literal;
-use parser::formula::{Term, Formula};
+use parser::internal_parser::ast::{Term, Formula};
 
 /// Mappings from literals, terms and variables to ids.
 pub struct RenamingInfo {

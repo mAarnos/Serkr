@@ -38,7 +38,7 @@ use prover::inference::equality_resolution::equality_resolution;
 use prover::inference::equality_factoring::equality_factoring;
 use prover::inference::superposition::superposition;
 
-use parser::formula::Formula;
+use parser::internal_parser::ast::Formula;
 use parser::internal_parser::parser::parse;
 use utils::stopwatch::Stopwatch;
 use cnf::naive_cnf::cnf;

@@ -16,7 +16,7 @@
 */
 
 use parser::internal_parser::parser_grammar;
-use parser::formula::Formula;
+use parser::internal_parser::ast::Formula;
 
 /// Parses a string into a FOL formula, if possible.
 pub fn parse(s: &str) -> Result<Formula, parser_grammar::__lalrpop_util::ParseError<usize, (usize, &str), ()>> {
@@ -25,7 +25,7 @@ pub fn parse(s: &str) -> Result<Formula, parser_grammar::__lalrpop_util::ParseEr
 
 #[cfg(test)]
 mod test {
-    use parser::formula::Formula;
+    use parser::internal_parser::ast::Formula;
     use parser::internal_parser::parser_grammar::{parse_Term, parse_Formula};
 
     #[test]

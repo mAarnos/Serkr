@@ -25,4 +25,7 @@ mod parser_grammar;
 /// Contains a function for parsing a formula in the internal format to the abstract syntax tree and lots of tests for it.
 pub mod parser;
 
+/// The abstract syntax tree the parser constructs.
+pub mod ast;
+
 

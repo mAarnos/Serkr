@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Term, Formula};
+use parser::internal_parser::ast::{Term, Formula};
 
 /// Renames variables so that different occurences of quantifiers bind different variables.
 pub fn rename(f: Formula, n: &mut isize) -> Formula {

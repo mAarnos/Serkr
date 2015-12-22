@@ -1,13 +1,13 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
-use parser::formula::{Term, Formula};
+use parser::internal_parser::ast::{Term, Formula};
 extern crate lalrpop_util as __lalrpop_util;
 use self::__lalrpop_util::ParseError as __ParseError;
 
 mod __parse__Formula {
     #![allow(non_snake_case, non_camel_case_types, unused_mut, unused_variables, unused_imports)]
 
-    use parser::formula::{Term, Formula};
+    use parser::internal_parser::ast::{Term, Formula};
     extern crate lalrpop_util as __lalrpop_util;
     use self::__lalrpop_util::ParseError as __ParseError;
     pub fn parse_Formula<
@@ -8669,7 +8669,7 @@ pub use self::__parse__Formula::parse_Formula;
 mod __parse__Term {
     #![allow(non_snake_case, non_camel_case_types, unused_mut, unused_variables, unused_imports)]
 
-    use parser::formula::{Term, Formula};
+    use parser::internal_parser::ast::{Term, Formula};
     extern crate lalrpop_util as __lalrpop_util;
     use self::__lalrpop_util::ParseError as __ParseError;
     pub fn parse_Term<

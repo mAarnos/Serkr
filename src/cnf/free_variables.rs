@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::{Term, Formula};
+use parser::internal_parser::ast::{Term, Formula};
 use std::collections::hash_set::HashSet;
 
 /// Used for checking if a term t is free in a formula f.

@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use parser::formula::Formula;
+ use parser::internal_parser::ast::Formula;
 
 /// Move all universal quantifiers outwards.
 pub fn pull_out_quantifiers(f: Formula) -> Formula {

@@ -17,9 +17,6 @@
 
 //! Contains different parsers.
 
-/// Contains the abstract syntax tree for FOL formulas and terms.
-pub mod formula;
-
 /// Contains the parser for the internal FOL format.
-/// This one ise meant only for development.
+/// This one is meant only for development.
 pub mod internal_parser;

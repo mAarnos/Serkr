@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use parser::formula::Formula;
+use parser::internal_parser::ast::Formula;
 
 /// Distributes ORs inwards over ANDs.
 pub fn distribute_ors_over_ands(f: Formula) -> Formula {

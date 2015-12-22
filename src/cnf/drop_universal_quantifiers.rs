@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
- use parser::formula::Formula;
+ use parser::internal_parser::ast::Formula;
 
 /// Drops all universal quantifiers from the start of a formula. 
 pub fn drop_universal_quantifiers(f: Formula) -> Formula {

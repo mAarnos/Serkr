@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::formula::Formula;
+use parser::internal_parser::ast::Formula;
 use cnf::nnf::nnf;
 use cnf::standard_skolemization::skolemize;
 use cnf::pull_out_quantifiers::pull_out_quantifiers;
