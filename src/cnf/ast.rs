@@ -22,7 +22,6 @@
 /// Data type for FOL terms. 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 #[allow(missing_docs)]
-#[allow(dead_code)]
 #[allow(variant_size_differences)]
 pub enum Term {
     Variable(i64),
@@ -32,7 +31,6 @@ pub enum Term {
 /// Data type for FOL formulas. 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 #[allow(missing_docs)]
-#[allow(dead_code)]
 pub enum Formula {
     True,
     False,

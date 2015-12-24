@@ -19,9 +19,11 @@
 //!
 //! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
-mod ast;
-#[allow(dead_code)]
-mod ast_transformer;
+/// Contains the AST used during the CNF transformation.
+pub mod ast;
+
+/// Contains functions for turning the parser AST into the CNF AST.
+pub mod ast_transformer;
 
 mod free_variables;
 

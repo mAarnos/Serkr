@@ -15,80 +15,84 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::internal_parser::ast::{Term, Formula};
+use cnf::ast::{Term, Formula};
 
 /// Renames variables so that different occurences of quantifiers bind different variables.
-pub fn rename(f: Formula, n: &mut isize) -> Formula {
+pub fn rename(f: Formula, n: &mut i64) -> Formula {
     match f {
         Formula::Not(p) => Formula::Not(Box::new(rename(*p, n))),
         Formula::And(p, q) => Formula::And(Box::new(rename(*p, n)), Box::new(rename(*q, n))),
         Formula::Or(p, q) => Formula::Or(Box::new(rename(*p, n)), Box::new(rename(*q, n))),
-        Formula::Forall(s, p) => rename_quantifier(s, *p, n, true),
-        Formula::Exists(s, p) => rename_quantifier(s, *p, n, false),
+        Formula::Forall(id, p) => rename_quantifier(id, *p, n, true),
+        Formula::Exists(id, p) => rename_quantifier(id, *p, n, false),
         _ => f
     }
 }
 
-fn rename_quantifier(s: String, p: Formula, n: &mut isize, universal_quantifier: bool) -> Formula {
-    let new_var = format!("v{}", *n); 
-    *n += 1;
-    let renamed_p = rename(rename_variable(p, &s, &new_var), n);
+fn rename_quantifier(id: i64, p: Formula, n: &mut i64, universal_quantifier: bool) -> Formula {
+    *n -= 1;
+    let new_id = *n;
+    let renamed_p = rename(rename_variable(p, id, *n), n);
+    
     if universal_quantifier {
-        Formula::Forall(new_var, Box::new(renamed_p))
+        Formula::Forall(new_id, Box::new(renamed_p))
     } else {
-        Formula::Exists(new_var, Box::new(renamed_p))
+        Formula::Exists(new_id, Box::new(renamed_p))
     }
 }
 
-/// Renames a single variable in a formula. 
-/// We assume that the new variable does not exist already.
-fn rename_variable(f: Formula, from: &str, to: &str) -> Formula {
+/// Renames all occurrences of a single variable in a formula to another variable.
+fn rename_variable(f: Formula, from: i64, to: i64) -> Formula {
     match f {
-        Formula::Predicate(s, terms) => Formula::Predicate(s, terms.into_iter().map(|t| rename_variable_in_term(t, from, to)).collect()),
+        Formula::Predicate(id, terms) => Formula::Predicate(id, terms.into_iter().map(|t| rename_variable_in_term(t, from, to)).collect()),
         Formula::Not(p) => Formula::Not(Box::new(rename_variable(*p, from, to))),
         Formula::And(p, q) => Formula::And(Box::new(rename_variable(*p, from, to)), Box::new(rename_variable(*q, from, to))),
         Formula::Or(p, q) => Formula::Or(Box::new(rename_variable(*p, from, to)), Box::new(rename_variable(*q, from, to))),
-        Formula::Forall(s, p) => Formula::Forall(if s == from { to.to_owned() } else { s }, Box::new(rename_variable(*p, from, to))),
-        Formula::Exists(s, p) => Formula::Exists(if s == from { to.to_owned() } else { s }, Box::new(rename_variable(*p, from, to))),
+        Formula::Forall(id, p) => Formula::Forall(if id == from { to } else { id }, Box::new(rename_variable(*p, from, to))),
+        Formula::Exists(id, p) => Formula::Exists(if id == from { to } else { id }, Box::new(rename_variable(*p, from, to))),
         _ => f
     }
 }
 
-/// Renames a single variable in a term. 
-/// We assume that the new variable does not exist already.
-fn rename_variable_in_term(t: Term, from: &str, to: &str) -> Term {
+/// Renames all occurrences of a single variable in a term to another variable.
+fn rename_variable_in_term(t: Term, from: i64, to: i64) -> Term {
     match t {
-        Term::Variable(s) => if from == s { Term::Variable(to.to_owned()) } else { Term::Variable(s) },
-        Term::Function(s, args) => Term::Function(s, args.into_iter().map(|t2| rename_variable_in_term(t2, from, to)).collect())
+        Term::Variable(id) => if from == id { Term::Variable(to) } else { Term::Variable(id) },
+        Term::Function(id, args) => Term::Function(id, args.into_iter().map(|t2| rename_variable_in_term(t2, from, to)).collect())
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::rename;
-    use parser::internal_parser::parser::parse;
+    use super::{rename, rename_variable};
+    use cnf::ast_transformer::parse_to_cnf_ast;
+    
+    // The tests here are very fragile. Never figured out a better way for doing them though.
     
     #[test]
     fn rename_1() {
-        let mut n = 0;
-        let f = parse("forall x. exists x. P(x)").unwrap(); 
-        let correct_f = parse("forall v0. exists v1. P(v1)").unwrap(); 
-        assert_eq!(rename(f, &mut n), correct_f);
+        let (f, mut ri) = parse_to_cnf_ast("forall x. exists x. P(x)").unwrap(); 
+        let (almost_correct_f, _) = parse_to_cnf_ast("forall v0. exists v1. P(v1)").unwrap(); 
+        let correct_f = rename_variable(rename_variable(almost_correct_f, -2, -3), -1, -2);
+        
+        assert_eq!(rename(f, &mut ri.var_cnt), correct_f);
     }
     
     #[test]
     fn rename_2() {
-        let mut n = 0;
-        let f = parse("forall x. forall y. (P(x, y) /\\ Q(y, z))").unwrap(); 
-        let correct_f = parse("forall v0. forall v1. (P(v0, v1) /\\ Q(v1, z))").unwrap(); 
-        assert_eq!(rename(f, &mut n), correct_f);
+        let (f, mut ri) = parse_to_cnf_ast("forall x. forall y. (P(x, y) /\\ Q(y, z))").unwrap(); 
+        let (almost_correct_f, _) = parse_to_cnf_ast("forall v0. forall v1. (P(v0, v1) /\\ Q(v1, z))").unwrap(); 
+        let correct_f = rename_variable(rename_variable(almost_correct_f, -1, -4), -2, -5);
+        
+        assert_eq!(rename(f, &mut ri.var_cnt), correct_f);
     }
     
     #[test]
     fn rename_3() {
-        let mut n = 0;
-        let f = parse("forall x. (R(x, x) /\\ exists y. (P(y) \\/ forall x. exists y. (R(x, y) \\/ forall z. Q(z))))").unwrap(); 
-        let correct_f = parse("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
-        assert_eq!(rename(f, &mut n), correct_f);
+        let (f, mut ri) = parse_to_cnf_ast("forall x. (R(x, x) /\\ exists y. (P(y) \\/ forall x. exists y. (R(x, y) \\/ forall z. Q(z))))").unwrap(); 
+        let (almost_correct_f, _) = parse_to_cnf_ast("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
+        let correct_f = rename_variable(rename_variable(rename_variable(rename_variable(rename_variable(almost_correct_f, -4, -7), -5, -8), -1, -4), -2, -5), -3, -6);
+        
+        assert_eq!(rename(f, &mut ri.var_cnt), correct_f);
     }
 }    

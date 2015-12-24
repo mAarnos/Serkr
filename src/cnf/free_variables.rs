@@ -15,18 +15,18 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::internal_parser::ast::{Term, Formula};
 use std::collections::hash_set::HashSet;
+use cnf::ast::{Term, Formula};
 
 /// Used for checking if a term t is free in a formula f.
 pub fn free_in(f: &Formula, t: &Term) -> bool {
     match *f {
         Formula::True | Formula::False => false,
         Formula::Predicate(_, ref args) => args.iter().any(|x| occurs_in(x, t)),
-        Formula::Not(ref p) => free_in(&p, t),
+        Formula::Not(ref p) => free_in(p, t),
         Formula::And(ref p, ref q) | Formula::Or(ref p, ref q) | 
-        Formula::Implies(ref p, ref q) | Formula::Equivalent(ref p, ref q) => free_in(&p, t) || free_in(&q, t),
-        Formula::Forall(ref s, ref p) | Formula::Exists(ref s, ref p) => !occurs_in(&Term::Variable(s.clone()), t) && free_in(&p, t),
+        Formula::Implies(ref p, ref q) | Formula::Equivalent(ref p, ref q) => free_in(p, t) || free_in(q, t),
+        Formula::Forall(id, ref p) | Formula::Exists(id, ref p) => !occurs_in(&Term::Variable(id), t) && free_in(p, t),
     }
 }
 
@@ -39,47 +39,51 @@ pub fn occurs_in(t: &Term, s: &Term) -> bool {
 }
 
 /// Get the free variables of a formula.
-pub fn fv(f: Formula) -> HashSet<String> {
-    match f {
+pub fn fv(f: &Formula) -> HashSet<i64> {
+    match *f {
         Formula::True | Formula::False => HashSet::new(),
-        Formula::Predicate(_, params) => params.into_iter().flat_map(fvt).collect(),
-        Formula::Not(p) => fv(*p),
-        Formula::And(p, q) | Formula::Or(p, q) | 
-        Formula::Implies(p, q) | Formula::Equivalent (p, q) => fv(*p).union(&fv(*q)).cloned().collect(),
-        Formula::Forall(s, p) | Formula::Exists(s, p) => { let mut lhs = fv(*p); lhs.remove(&s); lhs },
+        Formula::Predicate(_, ref params) => params.iter().flat_map(fvt).collect(),
+        Formula::Not(ref p) => fv(p),
+        Formula::And(ref p, ref q) | Formula::Or(ref p, ref q) | 
+        Formula::Implies(ref p, ref q) | Formula::Equivalent (ref p, ref q) => fv(p).union(&fv(q)).cloned().collect(),
+        Formula::Forall(id, ref p) | Formula::Exists(id, ref p) => { let mut lhs = fv(p); lhs.remove(&id); lhs },
     }
 }
 
 /// Get the free variables of a term.
-pub fn fvt(t: Term) -> HashSet<String> {
-    match t {
-        Term::Variable(s) => {let mut set = HashSet::new(); set.insert(s); set },
-        Term::Function(_, params) => params.into_iter().flat_map(fvt).collect(),
+pub fn fvt(t: &Term) -> HashSet<i64> {
+    match *t {
+        Term::Variable(id) => { let mut set = HashSet::new(); set.insert(id); set },
+        Term::Function(_, ref params) => params.iter().flat_map(fvt).collect(),
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::fv;
-    use parser::internal_parser::parser::parse;
+    use cnf::ast_transformer::parse_to_cnf_ast;
+    
+    // These tests aren't really that robust.
+    // If they fail the most likely reason is some change to the parser.
+    // TODO: add tests for free_in
     
     #[test]
     fn fv_1() {
-        let f = parse("P(f(g(x, y), g(y, z)))").unwrap();
-        let free_variables = fv(f);
+        let (f, _) = parse_to_cnf_ast("P(f(g(x, y), g(y, z)))").unwrap();
+        let free_variables = fv(&f);
         assert_eq!(free_variables.len(), 3);
-        assert!(free_variables.contains("x"));
-        assert!(free_variables.contains("y"));
-        assert!(free_variables.contains("z"));
+        assert!(free_variables.contains(&-1));
+        assert!(free_variables.contains(&-2));
+        assert!(free_variables.contains(&-3));
     }
     
     #[test]
     fn fv_2() {
-        let f = parse("exists v. (P(c2) /\\ forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z)))").unwrap();
-        let free_variables = fv(f);
+        let (f, _) = parse_to_cnf_ast("exists v. (P(c2) /\\ forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z)))").unwrap();
+        let free_variables = fv(&f);
         assert_eq!(free_variables.len(), 3);
-        assert!(free_variables.contains("c"));
-        assert!(free_variables.contains("c2"));
-        assert!(free_variables.contains("z"));
+        assert!(free_variables.contains(&-2));
+        assert!(free_variables.contains(&-5));
+        assert!(free_variables.contains(&-6));
     }
 }    

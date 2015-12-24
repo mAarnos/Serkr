@@ -16,6 +16,7 @@
 */
 
 use std::collections::HashMap;
+use parser::internal_parser::parser::{parse, ParseError};
 use parser::internal_parser::ast::Term as ParserTerm;
 use parser::internal_parser::ast::Formula as ParserFormula;
 use cnf::ast::Term as CnfTerm;
@@ -23,6 +24,8 @@ use cnf::ast::Formula as CnfFormula;
 
 /// Mappings from literals, terms and variables to IDs.
 /// Variables get a negative ID, functions get a positive ID while equality gets 0.
+#[derive(Debug, Eq, PartialEq, Clone)]
+#[allow(missing_docs)]
 pub struct RenamingInfo {
     pub fun_map: HashMap<(String, usize), i64>,
     pub var_map: HashMap<String, i64>,
@@ -73,10 +76,25 @@ impl RenamingInfo {
 }
 
 /// Transforms the AST format given by the internal parser into the AST format of the CNF transformer.
-pub fn parser_ast_to_cnf_ast(f: ParserFormula) -> (CnfFormula, RenamingInfo) {
-    let mut renaming_info = RenamingInfo::new();
+fn parser_ast_to_cnf_ast(f: ParserFormula, mut renaming_info: RenamingInfo) -> (CnfFormula, RenamingInfo) {
     let transformed_f = transform_ast(f, &mut renaming_info);
     (transformed_f, renaming_info)
+}
+
+/// Parses the given string into the CNF AST, if possible.
+pub fn parse_to_cnf_ast(s: &str) -> Result<(CnfFormula, RenamingInfo), ParseError> { 
+    parse_to_cnf_ast_general(s, RenamingInfo::new())
+}
+
+/// Parses the given string into the CNF AST, if possible.
+/// Uses the given renaming info as a starting point for the IDs.
+pub fn parse_to_cnf_ast_general(s: &str, renaming_info: RenamingInfo) -> Result<(CnfFormula, RenamingInfo), ParseError> { 
+    let f_result = parse(s);
+    if let Ok(f) = f_result {
+        Ok(parser_ast_to_cnf_ast(f, renaming_info))
+    } else {
+        Err(f_result.unwrap_err())
+    }
 }
 
 fn transform_ast(f: ParserFormula, ri: &mut RenamingInfo) -> CnfFormula {

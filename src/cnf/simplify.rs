@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use parser::internal_parser::ast::{Term, Formula};
+use cnf::ast::{Term, Formula};
 use cnf::free_variables::free_in;
 
 /// Simplifies a formula by performing some equivalence-preserving first-order simplifications.
@@ -34,8 +34,8 @@ fn simplify(f: Formula) -> Formula {
         Formula::Or(p, q) => simplify_or(*p, *q),
         Formula::Implies(p, q) => simplify_implies(*p, *q),
         Formula::Equivalent(p, q) => simplify_equivalent(*p, *q),
-        Formula::Forall(s, p) => simplify_quantifier(s, *p, true),
-        Formula::Exists(s, p) => simplify_quantifier(s, *p, false),
+        Formula::Forall(id, p) => simplify_quantifier(id, *p, true),
+        Formula::Exists(id, p) => simplify_quantifier(id, *p, false),
         _ => f,
     }
 }
@@ -108,13 +108,13 @@ fn simplify_equivalent(f1: Formula, f2: Formula) -> Formula {
 }
 
 /// "forall x. p" and "exists x. p" can be written as "p" if x does not occur free in p.
-fn simplify_quantifier(s: String, f: Formula, forall: bool) -> Formula {
+fn simplify_quantifier(id: i64, f: Formula, forall: bool) -> Formula {
     let simplified_f = simplify(f);
-    if free_in(&simplified_f, &Term::Variable(s.clone())) {
+    if free_in(&simplified_f, &Term::Variable(id)) {
         if forall {
-            Formula::Forall(s, Box::new(simplified_f))
+            Formula::Forall(id, Box::new(simplified_f))
         } else {
-            Formula::Exists(s, Box::new(simplified_f))
+            Formula::Exists(id, Box::new(simplified_f))
         }   
     } else {
         simplified_f
@@ -149,12 +149,12 @@ fn contains_true_or_false(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::{simplify_formula, simplify_quantifier, simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent};   
-    use parser::internal_parser::ast::Formula;
-    use parser::internal_parser::parser::parse;
+    use cnf::ast::Formula;
+    use cnf::ast_transformer::{parse_to_cnf_ast, parse_to_cnf_ast_general};
     
     #[test]
     fn simplify_1() {
-        let f = parse("((P <=> P) \\/ Q(x, y))").unwrap();
+        let (f, _) = parse_to_cnf_ast("((P <=> P) \\/ Q(x, y))").unwrap();
         assert_eq!(simplify_formula(f), Formula::True);
     }
     
@@ -170,187 +170,187 @@ mod test {
     
     #[test]
     fn simplify_not_3() {
-        let f = parse("P(x, f(y), g(f(z)))").unwrap();
-        let correct_f = parse("~P(x, f(y), g(f(z)))").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x, f(y), g(f(z)))").unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("~P(x, f(y), g(f(z)))").unwrap();
         assert_eq!(simplify_not(f), correct_f);
     }
     
     #[test]
     fn simplify_and_1() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_and(Formula::True, f.clone()), f);
         assert_eq!(simplify_and(f.clone(), Formula::True), f);
     }
     
     #[test]
     fn simplify_and_2() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_and(Formula::False, f.clone()), Formula::False);
         assert_eq!(simplify_and(f, Formula::False), Formula::False);
     }
     
     #[test]
     fn simplify_and_3() {
-        let f1 = parse("P(x, y)").unwrap();
-        let f2 = parse("~P(x, y)").unwrap();
+        let (f1, _) = parse_to_cnf_ast("P(x, y)").unwrap();
+        let (f2, _) = parse_to_cnf_ast("~P(x, y)").unwrap();
         assert_eq!(simplify_and(f1.clone(), f2.clone()), Formula::False);
         assert_eq!(simplify_and(f2, f1), Formula::False);
     }
      
     #[test]
     fn simplify_and_4() {
-        let f1 = parse("P(x)").unwrap();
-        let f2 = parse("~Q(x)").unwrap();
-        let correct_f = parse("(P(x) /\\ ~Q(x))").unwrap();
+        let (f1, ri) = parse_to_cnf_ast("P(x)").unwrap();
+        let (f2, _) = parse_to_cnf_ast_general("~Q(x)", ri).unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("P(x) /\\ ~Q(x)").unwrap();
         assert_eq!(simplify_and(f1.clone(), f2.clone()), correct_f);
         assert_eq!(simplify_and(f2, f1), correct_f);
     }
         
     #[test]
     fn simplify_and_5() {
-        let f = parse("P(x, y)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x, y)").unwrap();
         assert_eq!(simplify_and(f.clone(), f.clone()), f);
     }
     
     #[test]
     fn simplify_and_6() {
-        let f1 = parse("P(x)").unwrap();
-        let f2 = parse("Q(x)").unwrap();
-        let correct_f = parse("(P(x) /\\ Q(x))").unwrap();
+        let (f1, ri) = parse_to_cnf_ast("P(y)").unwrap();
+        let (f2, _) = parse_to_cnf_ast_general("Q(x)", ri).unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("P(y) /\\ Q(x)").unwrap();
         assert_eq!(simplify_and(f1, f2), correct_f);
     }
      
     #[test]
     fn simplify_or_1() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_or(Formula::True, f.clone()), Formula::True);
         assert_eq!(simplify_or(f, Formula::True), Formula::True);
     }
     
     #[test]
     fn simplify_or_2() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_or(Formula::False, f.clone()), f.clone());
         assert_eq!(simplify_or(f.clone(), Formula::False), f);
     }
     
     #[test]
     fn simplify_or_3() {
-        let f1 = parse("P(x)").unwrap();
-        let f2 = parse("~P(x)").unwrap();
+        let (f1, _) = parse_to_cnf_ast("P(x)").unwrap();
+        let (f2, _) = parse_to_cnf_ast("~P(x)").unwrap();
         assert_eq!(simplify_or(f1.clone(), f2.clone()), Formula::True);
         assert_eq!(simplify_or(f2, f1), Formula::True);
     }
     
     #[test]
     fn simplify_or_4() {
-        let f1 = parse("P").unwrap();
-        let f2 = parse("~Q").unwrap();
-        let correct_f = parse("(P \\/ ~Q)").unwrap();
+        let (f1, ri) = parse_to_cnf_ast("P").unwrap();
+        let (f2, _) = parse_to_cnf_ast_general("~Q", ri).unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("P \\/ ~Q").unwrap();
         assert_eq!(simplify_or(f1.clone(), f2.clone()), correct_f);
         assert_eq!(simplify_or(f2, f1), correct_f);
     }
     
     #[test]
     fn simplify_or_5() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_or(f.clone(), f.clone()), f);
     }
     
     #[test]
     fn simplify_or_6() {
-        let f1 = parse("P").unwrap();
-        let f2 = parse("Q").unwrap();
-        let correct_f = parse("(P \\/ Q)").unwrap();
+        let (f1, ri) = parse_to_cnf_ast("P").unwrap();
+        let (f2, _) = parse_to_cnf_ast_general("Q", ri).unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("P \\/ Q").unwrap();
         assert_eq!(simplify_or(f1, f2), correct_f);
     }
     
     #[test]
     fn simplify_implies_1() {
-        let f = parse("P(x, y, z, w)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x, y, z, w)").unwrap();
         assert_eq!(simplify_implies(f.clone(), f), Formula::True);
     }
     
     #[test]
     fn simplify_implies_2() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_implies(f, Formula::True), Formula::True);
     }
     
     #[test]
     fn simplify_implies_3() {
-        let f = parse("P(c)").unwrap();
-        let correct_f = parse("~P(c)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(c())").unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("~P(c())").unwrap();
         assert_eq!(simplify_implies(f.clone(), Formula::False), correct_f);
     }
     
     #[test]
     fn simplify_implies_4() {
-        let f = parse("P(c, f(x))").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(c(), f(x))").unwrap();
         assert_eq!(simplify_implies(Formula::True, f.clone()), f);
     }
     
     #[test]
     fn simplify_implies_5() {
-        let f = parse("P").unwrap();
+        let (f, _) = parse_to_cnf_ast("P").unwrap();
         assert_eq!(simplify_implies(Formula::False, f), Formula::True);
     }
     
     #[test]
     fn simplify_implies_6() {
-        let f1 = parse("P").unwrap();
-        let f2 = parse("Q").unwrap();
-        let correct_f = parse("(P ==> Q)").unwrap();
+        let (f1, ri) = parse_to_cnf_ast("P").unwrap();
+        let (f2, _) = parse_to_cnf_ast_general("Q", ri).unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("P ==> Q").unwrap();
         assert_eq!(simplify_implies(f1.clone(), f2.clone()), correct_f);
     }
     
     #[test]
     fn simplify_equivalent_1() {
-        let f = parse("P(x, y)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x, y)").unwrap();
         assert_eq!(simplify_equivalent(f.clone(), f), Formula::True);
     }
     
     #[test]
     fn simplify_equivalent_2() {
-        let f = parse("P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
         assert_eq!(simplify_equivalent(f.clone(), Formula::True), f);
         assert_eq!(simplify_equivalent(Formula::True, f.clone()), f);
     }
     
     #[test]
     fn simplify_equivalent_3() {
-        let f = parse("P(x)").unwrap();
-        let correct_f = parse("~P(x)").unwrap();
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("~P(x)").unwrap();
         assert_eq!(simplify_equivalent(f.clone(), Formula::False), correct_f);
         assert_eq!(simplify_equivalent(Formula::False, f), correct_f);
     }
     
     #[test]
     fn simplify_equivalent_4() {
-        let f1 = parse("P(x)").unwrap();
-        let f2 = parse("Q(x, y)").unwrap();
-        let correct_f = parse("(P(x) <=> Q(x, y))").unwrap();
+        let (f1, ri) = parse_to_cnf_ast("P(x)").unwrap();
+        let (f2, _) = parse_to_cnf_ast_general("Q(x, y)", ri).unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("P(x) <=> Q(x, y)").unwrap();
         assert_eq!(simplify_equivalent(f1, f2), correct_f);
     }
     
     #[test]
     fn simplify_quantifier_1() {
-        let f = parse("exists y. (Odd(n) \\/ Even(n))").unwrap();
-        let correct_f = parse("(Odd(n) \\/ Even(n))").unwrap();
-        assert_eq!(simplify_quantifier("x".to_owned(), f, true), correct_f);
+        let (f, ri) = parse_to_cnf_ast("exists y. (Odd(n) \\/ Even(n))").unwrap();
+        let (correct_f, _) = parse_to_cnf_ast_general("Odd(n) \\/ Even(n)", ri).unwrap();
+        assert_eq!(simplify_quantifier(-1, f, true), correct_f);
     }
     
     #[test]
     fn simplify_quantifier_2() {
-        let f = parse("exists y. (Odd(n) \\/ Even(n))").unwrap();
-        let correct_f = parse("forall n. (Odd(n) \\/ Even(n))").unwrap();
-        assert_eq!(simplify_quantifier("n".to_owned(), f, true), correct_f);
+        let (f, ri) = parse_to_cnf_ast("exists y. (Odd(n) \\/ Even(n))").unwrap();
+        let (correct_f, _) = parse_to_cnf_ast_general("forall n. (Odd(n) \\/ Even(n))", ri).unwrap();
+        assert_eq!(simplify_quantifier(-2, f, true), correct_f);
     }
     
     #[test]
     fn simplify_quantifier_3() {
-        let f = parse("P(x)").unwrap();
-        let correct_f = parse("exists x. P(x)").unwrap();
-        assert_eq!(simplify_quantifier("x".to_owned(), f, false), correct_f);
+        let (f, _) = parse_to_cnf_ast("P(x)").unwrap();
+        let (correct_f, _) = parse_to_cnf_ast("exists x. P(x)").unwrap();
+        assert_eq!(simplify_quantifier(-1, f, false), correct_f);
     }
 }

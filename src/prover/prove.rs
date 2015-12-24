@@ -38,10 +38,10 @@ use prover::inference::equality_resolution::equality_resolution;
 use prover::inference::equality_factoring::equality_factoring;
 use prover::inference::superposition::superposition;
 
-use parser::internal_parser::ast::Formula;
-use parser::internal_parser::parser::parse;
-use utils::stopwatch::Stopwatch;
+use cnf::ast::Formula;
+use cnf::ast_transformer::parse_to_cnf_ast;
 use cnf::naive_cnf::cnf;
+use utils::stopwatch::Stopwatch;
 
 /// Contains the result of a proof attempt.
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
@@ -258,18 +258,18 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering 
 /// First we can decide whether we want to use LPO or KBO.
 /// Then there is the option for not negating the input clause if we are more interested in satisfiability.
 pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_time_in_s: u64) -> ProofAttemptResult {
-    if let Ok(parsed_formula) = parse(s) {
+    if let Ok((parsed_formula, mut renaming_info)) = parse_to_cnf_ast(s) {
         let cnf_f = if negate_input_formula { 
-                        cnf(Formula::Not(Box::new(parsed_formula)))
+                        cnf(Formula::Not(Box::new(parsed_formula)), &mut renaming_info)
                     } else {
-                        cnf(parsed_formula)
+                        cnf(parsed_formula, &mut renaming_info)
                     };                    
         if cnf_f == Formula::False {
             ProofAttemptResult::Refutation
         } else if cnf_f == Formula::True {
             ProofAttemptResult::Saturation
         } else {
-            let (flattened_cnf_f, renaming_info) = flatten_cnf(cnf_f);
+            let flattened_cnf_f = flatten_cnf(cnf_f);
             let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
             let term_ordering = create_term_ordering(use_lpo, &preprocessed_problem);
             let proof_state = ProofState::new(preprocessed_problem, term_ordering);
