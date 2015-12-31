@@ -35,9 +35,16 @@ pub struct Term {
 }
 
 impl Term {
-    /// Creates a new term.
-    pub fn new(id: i64, sort_predicate: bool, args: Vec<Term>) -> Term {
-        Term { id: id, sort_predicate: sort_predicate, args: args }
+    /// Creates a new normal function.
+    pub fn new_function(id: i64, args: Vec<Term>) -> Term {
+        assert!(id > 0);
+        Term { id: id, sort_predicate: false, args: args }
+    }
+    
+    /// Creates a new special function. Used in the elimination of non-equality literals.
+    pub fn new_special_function(id: i64, args: Vec<Term>) -> Term {
+        assert!(id > 0);
+        Term { id: id, sort_predicate: true, args: args }
     }
     
     /// Creates a new variable. Note that the ID passed in should be negative.
@@ -46,8 +53,7 @@ impl Term {
         Term { id: id, sort_predicate: false, args: Vec::new() }
     }
     
-    /// Create a new term representing truth. 
-    /// Used in the transformation of first order logic to pure equational logic.
+    /// Create a new term representing truth. Used in the elimination of non-equality literals.
     pub fn new_truth() -> Term {
         Term { id: 0, sort_predicate: true, args: Vec::new() }
     }
@@ -56,12 +62,7 @@ impl Term {
     pub fn get_id(&self) -> i64 {
         self.id
     }
-    
-    /// Check if the term is in the sort P instead of the sort VF.
-    pub fn get_sort_predicate(&self) -> bool {
-        self.sort_predicate
-    }
-    
+       
     /// Get the arity of the term.
     pub fn get_arity(&self) -> usize {
         self.args.len()
@@ -70,6 +71,11 @@ impl Term {
     /// Checks if this term is a function.
     pub fn is_function(&self) -> bool {
         self.id >= 0
+    }
+    
+    /// Check if the term is a special function.
+    pub fn is_special_function(&self) -> bool {
+        self.sort_predicate
     }
     
     /// Checks if this term is a variable.

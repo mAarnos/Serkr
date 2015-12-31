@@ -23,7 +23,7 @@ use cnf::ast::Formula;
 
 /// Turns a formula in CNF into a flat representation more suited for the prover.
 /// Also converts the formula into pure equational logic.
-/// We assume that the trivial cases of True and False have been handled already.
+/// We assume that the trivial cases of a formula being just True and False have been handled already.
 pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
     collect(f)
 }
@@ -64,10 +64,17 @@ fn create_literal(negated: bool, id: i64, args: Vec<CnfTerm>) -> Literal {
     }
 }
 
-fn create_term(t: CnfTerm, predicate_sort: bool) -> ProverTerm {
+fn create_term(t: CnfTerm, special_fn: bool) -> ProverTerm {
     match t {
         CnfTerm::Variable(id) => ProverTerm::new_variable(id),
-        CnfTerm::Function(id, args) => ProverTerm::new(id, predicate_sort, args.into_iter().map(|t2| create_term(t2, false)).collect()),
+        CnfTerm::Function(id, args) => {
+                let new_args = args.into_iter().map(|t2| create_term(t2, false)).collect();
+                if special_fn {
+                    ProverTerm::new_special_function(id, new_args)
+                } else {
+                    ProverTerm::new_function(id, new_args)
+                }
+            },
     }
 }
 

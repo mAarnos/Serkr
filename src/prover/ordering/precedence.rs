@@ -98,8 +98,8 @@ mod test {
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
         let z = Term::new_variable(-3);
-        let f_x_y = Term::new(1, false, vec!(x, y));
-        let g_z = Term::new(2, false, vec!(z));
+        let f_x_y = Term::new_function(1, vec!(x, y));
+        let g_z = Term::new_function(2, vec!(z));
         assert!(precedence.gt(&f_x_y, &g_z));
         assert!(!precedence.gt(&g_z, &f_x_y));
     }
@@ -108,8 +108,8 @@ mod test {
     fn arity_id_2() {
         let precedence = Precedence::ArityId;
         let t = Term::new_truth();
-        let c1 = Term::new(1, false, Vec::new());
-        let c2 = Term::new(2, false, Vec::new());
+        let c1 = Term::new_function(1, Vec::new());
+        let c2 = Term::new_function(2, Vec::new());
         assert!(!precedence.gt(&t, &c1));
         assert!(!precedence.gt(&c1, &c2));
         assert!(precedence.gt(&c2, &c1));

@@ -40,7 +40,7 @@ pub fn term_match_general(mut substitution: Substitution, mut eqs: Vec<(Term, Te
             }
         } else if eq1.is_variable() {
             // Can't unify between two different sorts.
-            if eq2.get_sort_predicate() {
+            if eq2.is_special_function() {
                 return None;
             }
             
@@ -85,8 +85,8 @@ mod test {
         // f(x) = f(g(x))
         // Unlike with unification, this should succeed.
         let x = Term::new_variable(-1);
-        let f_x = Term::new(1, false, vec!(x.clone()));
-        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));
+        let f_x = Term::new_function(1, vec!(x.clone()));
+        let f_g_x = Term::new_function(1, vec!(Term::new_function(2, vec!(x))));
         assert!(term_match(&f_x, &f_g_x).is_some());
     }
     
@@ -96,8 +96,8 @@ mod test {
         // With unification this would be trivial, but with matching there is no substitution.
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
-        let f_g_y = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
-        let f_x = Term::new(1, false, vec!(x));
+        let f_g_y = Term::new_function(1, vec!(Term::new_function(2, vec!(y))));
+        let f_x = Term::new_function(1, vec!(x));
         assert!(term_match(&f_g_y, &f_x).is_none());
     }
     
@@ -106,8 +106,8 @@ mod test {
         // Like with unification, there should be no substitution.
         // f(x) = g(x)
         let x = Term::new_variable(-1);
-        let f_x = Term::new(1, false, vec!(x.clone()));
-        let g_x = Term::new(2, false, vec!(x));
+        let f_x = Term::new_function(1, vec!(x.clone()));
+        let g_x = Term::new_function(2, vec!(x));
         assert!(term_match(&f_x, &g_x).is_none());
     }
 } 

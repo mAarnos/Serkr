@@ -45,7 +45,7 @@ fn unify(s: &Term, t: &Term) -> Option<Substitution> {
                 return None; // check
             } else {
                 // Can't unify between two different sorts.
-                if eq2.get_sort_predicate() {
+                if eq2.is_special_function() {
                     return None;
                 }
                 
@@ -85,7 +85,7 @@ mod test {
     fn mgu_1() {
         // x = f_p()
         let x = Term::new_variable(-1);
-        let f_p = Term::new(1, true, Vec::new());
+        let f_p = Term::new_special_function(1, Vec::new());
         assert!(mgu(&x, &f_p).is_none());
     }
     
@@ -96,11 +96,11 @@ mod test {
         let y = Term::new_variable(-2);
         let z = Term::new_variable(-3);
         let w = Term::new_variable(-4);
-        let g_y = Term::new(2, false, vec!(y.clone()));
-        let g_z = Term::new(2, false, vec!(z.clone()));
+        let g_y = Term::new_function(2, vec!(y.clone()));
+        let g_z = Term::new_function(2, vec!(z.clone()));
         
-        let t1 = Term::new(1, false, vec!(x.clone(), g_y.clone()));
-        let t2 = Term::new(1, false, vec!(g_z.clone(), w.clone()));
+        let t1 = Term::new_function(1, vec!(x.clone(), g_y.clone()));
+        let t2 = Term::new_function(1, vec!(g_z.clone(), w.clone()));
         let sigma = mgu(&t1, &t2).expect("MGU should exist");
         assert_eq!(sigma.size(), 2);
         assert_eq!(sigma.get(&x), Some(&g_z));
@@ -112,8 +112,8 @@ mod test {
         // f(x, y) = f(y, x)
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);        
-        let t1 = Term::new(1, false, vec!(x.clone(), y.clone()));
-        let t2 = Term::new(1, false, vec!(y.clone(), x.clone()));
+        let t1 = Term::new_function(1, vec!(x.clone(), y.clone()));
+        let t2 = Term::new_function(1, vec!(y.clone(), x.clone()));
         
         let sigma = mgu(&t1, &t2).expect("MGU should exist");
         assert_eq!(sigma.size(), 1);
@@ -125,8 +125,8 @@ mod test {
         // In HOL this would work.
         // f(x) = g(x)
         let x = Term::new_variable(-1);
-        let f_x = Term::new(1, false, vec!(x.clone()));
-        let g_x = Term::new(2, false, vec!(x));
+        let f_x = Term::new_function(1, vec!(x.clone()));
+        let g_x = Term::new_function(2, vec!(x));
         assert!(mgu(&f_x, &g_x).is_none());
     }
     
@@ -134,8 +134,8 @@ mod test {
     fn mgu_5() {
         // f(x) = f(g(x))
         let x = Term::new_variable(-1);
-        let f_x = Term::new(1, false, vec!(x.clone()));
-        let f_g_x = Term::new(1, false, vec!(Term::new(2, false, vec!(x))));
+        let f_x = Term::new_function(1, vec!(x.clone()));
+        let f_g_x = Term::new_function(1, vec!(Term::new_function(2, vec!(x))));
         assert!(mgu(&f_x, &f_g_x).is_none());
     }
     
@@ -144,8 +144,8 @@ mod test {
         // f(x) = f(g(y))
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
-        let t1 = Term::new(1, false, vec!(x));
-        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y))));
+        let t1 = Term::new_function(1, vec!(x));
+        let t2 = Term::new_function(1, vec!(Term::new_function(2, vec!(y))));
         assert!(mgu(&t1, &t2).is_some());
         assert!(mgu(&t2, &t1).is_some());
     }
@@ -155,8 +155,8 @@ mod test {
         // f(y, y) = f(g(x), x)
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
-        let t1 = Term::new(1, false, vec!(x.clone(), x));
-        let t2 = Term::new(1, false, vec!(Term::new(2, false, vec!(y.clone())), y));
+        let t1 = Term::new_function(1, vec!(x.clone(), x));
+        let t2 = Term::new_function(1, vec!(Term::new_function(2, vec!(y.clone())), y));
         assert!(mgu(&t1, &t2).is_none());
     }
     
@@ -165,12 +165,12 @@ mod test {
         // f(x, g(x)) = f(c, y)
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
-        let c = Term::new(1, false, Vec::new());
-        let t1 = Term::new(2, false, vec!(x.clone(), Term::new(3, false, vec!(x.clone()))));
-        let t2 = Term::new(2, false, vec!(c.clone(), y.clone()));
+        let c = Term::new_function(1, Vec::new());
+        let t1 = Term::new_function(2, vec!(x.clone(), Term::new_function(3, vec!(x.clone()))));
+        let t2 = Term::new_function(2, vec!(c.clone(), y.clone()));
         let sigma = mgu(&t1, &t2).expect("MGU should exist");
         assert_eq!(sigma.size(), 2);
         assert_eq!(sigma.get(&x), Some(&c));
-        assert_eq!(sigma.get(&y), Some(&Term::new(3, false, vec!(c))));
+        assert_eq!(sigma.get(&y), Some(&Term::new_function(3, vec!(c))));
     }
 }    

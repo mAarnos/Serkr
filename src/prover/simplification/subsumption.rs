@@ -63,6 +63,7 @@ fn subsumes_clause0(substitution: Substitution, exclusion: &mut Vec<bool>, cl1: 
 }
 
 /// A clause cannot subsume another clause unless the top function symbols subsume the top function symbols in the other clause.
+// TODO: clean this crap up
 fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
     let mut exclusion = vec![false; cl2.size()];
     for l1 in cl1.iter() {
@@ -130,6 +131,7 @@ mod test {
     
     #[test]
     fn subsumes_clause_1() {
+        // A clause with more literals cannot subsume a clause with less literals
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
         let z = Term::new_variable(-3);
@@ -141,6 +143,7 @@ mod test {
         let cl2 = Clause::new(vec!(l3));
         
         assert!(!subsumes_clause(&cl1, &cl2));
+        assert!(subsumes_clause(&cl2, &cl1));
     }
     
     #[test]
@@ -148,14 +151,15 @@ mod test {
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
         let z = Term::new_variable(-3);
-        let w = Term::new_variable(-4); 
-        let f_x = Term::new(1, false, vec!(x));
+        let f_x = Term::new_function(1, vec!(x));
+        let f_f_x = Term::new_function(1, vec!(f_x.clone()));
         let l1 = Literal::new(false, f_x, y);
-        let l2 = Literal::new(false, z, w);
+        let l2 = Literal::new(false, z, f_f_x);
         let cl1 = Clause::new(vec!(l1));
         let cl2 = Clause::new(vec!(l2));
         
-        assert!(!subsumes_clause(&cl1, &cl2));
+        assert!(subsumes_clause(&cl1, &cl2));
+        assert!(!subsumes_clause(&cl2, &cl1));
     }
     
     #[test]
@@ -164,27 +168,45 @@ mod test {
         let y = Term::new_variable(-2);
         let z = Term::new_variable(-3);
         let w = Term::new_variable(-4); 
-        let f_x = Term::new(1, false, vec!(x));
+        let f_x = Term::new_function(1, vec!(x));
         let l1 = Literal::new(false, z, w);
         let l2 = Literal::new(false, f_x, y);
         let cl1 = Clause::new(vec!(l1));
         let cl2 = Clause::new(vec!(l2));
         
         assert!(subsumes_clause(&cl1, &cl2));
+        assert!(!subsumes_clause(&cl2, &cl1));
     }
     
     #[test]
     fn subsumes_clause_4() {
         let x1 = Term::new_variable(-1);
         let x2 = Term::new_variable(-2);
-        let cl_l1 = Literal::new(false, Term::new(1, true, vec!(x1.clone())), Term::new_truth());
-        let cl1_l2 = Literal::new(true, Term::new(2, true, vec!(x1)), Term::new_truth());
-        let cl2_l2 = Literal::new(true, Term::new(2, true, vec!(x2)), Term::new_truth());
+        let cl_l1 = Literal::new(false, Term::new_function(1, vec!(x1.clone())), Term::new_truth());
+        let cl1_l2 = Literal::new(true, Term::new_special_function(2, vec!(x1)), Term::new_truth());
+        let cl2_l2 = Literal::new(true, Term::new_special_function(2, vec!(x2)), Term::new_truth());
         
         let cl1 = Clause::new(vec!(cl_l1.clone(), cl1_l2));
         let cl2 = Clause::new(vec!(cl_l1, cl2_l2));
         
         assert!(!subsumes_clause(&cl1, &cl2));
+        assert!(subsumes_clause(&cl2, &cl1));
+    }
+    
+    #[test]
+    fn subsumes_clause_5() {
+        // A clause always subsumes itself.
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let c = Term::new_function(1, Vec::new());
+        let f_c_x = Term::new_function(2, vec!(c.clone(), x.clone()));
+        let f_y_c = Term::new_function(2, vec!(y.clone(), c));
+        let l1 = Literal::new(false, f_c_x, f_y_c);
+        let l2 = Literal::new(true, x, y);
+        
+        let cl = Clause::new(vec!(l1, l2));
+        
+        assert!(subsumes_clause(&cl, &cl));
     }
 } 
 
