@@ -1,0 +1,21 @@
+grammar;
+
+pub comment: String = {
+    comment_line,
+    comment_block
+};
+
+comment_line: String = {
+    <s: r"[%][.]*"> => s.to_string()
+};
+
+comment_block: String = {
+    <s: r"[/][*] ([^*]*[*][*]*[^/*])*[^*]* [*][*]*[/]"> => s.to_string()
+};
+
+single_quoted: String = {
+    <s: r"[/][*] ([^*]*[*][*]*[^/*])*[^*]* [*][*]*[/]"> => s.to_string()
+};
+
+
+
