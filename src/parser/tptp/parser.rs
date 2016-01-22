@@ -15,4 +15,19 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#[cfg(test)]
+mod test {
+    use parser::tptp::parser_grammar::*;
 
+    #[test]
+    fn parse_single_quoted_1() {
+        assert_eq!(parse_single_quoted("'This is a single quoted string'").unwrap(), "This is a single quoted string");
+        assert_eq!(parse_single_quoted("'The character \\' is quoted'").unwrap(), "The character \\' is quoted");
+    }
+    
+    #[test]
+    fn dollar_word_1() {
+        assert_eq!(parse_dollar_word("$aWord").unwrap(), "aWord");
+        assert!(parse_dollar_word("$ aWord").is_err());
+    }
+}

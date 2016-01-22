@@ -5,11 +5,11 @@ authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
 build = "build.rs" 
 
-[build-dependencies]
-lalrpop = "0.7.0"
+[build-dependencies.lalrpop]
+git = "https://github.com/nikomatsakis/lalrpop.git"
 
 [dependencies.lalrpop-util]
-lalrpop-util = "0.7.0"
+git = "https://github.com/nikomatsakis/lalrpop.git"
 
 [dependencies.time]
 time = "*"
@@ -19,5 +19,4 @@ clippy = "*"
 optional = true
 
 [features]
-default = []
 dev = ["clippy"]

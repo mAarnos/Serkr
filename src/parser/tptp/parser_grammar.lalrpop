@@ -1,21 +1,173 @@
 grammar;
 
-pub comment: String = {
-    comment_line,
-    comment_block
+term: String = {
+    function_term,
+    variable
 };
 
-comment_line: String = {
-    <s: r"[%][.]*"> => s.to_string()
+function_term: String = {
+    plain_term,
+    defined_term,
+    system_term
 };
 
-comment_block: String = {
-    <s: r"[/][*] ([^*]*[*][*]*[^/*])*[^*]* [*][*]*[/]"> => s.to_string()
+// TODO: add other part
+plain_term: String = {
+    constant,
+    functor
 };
 
-single_quoted: String = {
-    <s: r"[/][*] ([^*]*[*][*]*[^/*])*[^*]* [*][*]*[/]"> => s.to_string()
+constant: String = {
+    functor
 };
 
+functor: String = {
+    atomic_word
+};
+
+defined_term: String = {
+    defined_atom,
+    defined_atomic_term
+};
+
+defined_atom: String = {
+    number,
+    distinct_object
+};
+
+defined_atomic_term: String = {
+    defined_plain_term
+};
+
+// TODO: add other part
+defined_plain_term: String = {
+    defined_constant,
+    defined_functor
+};
+
+defined_constant: String = {
+    defined_functor
+};
+
+defined_functor: String = {
+    atomic_defined_word
+};
+
+// TODO: add other part
+system_term: String = {
+    system_constant,
+    system_functor
+};
+
+system_constant: String = {
+    system_functor
+};
+
+system_functor: String = {
+    atomic_system_word
+};
+
+variable: String = {
+    upper_word
+};
+
+include: (String, Option<Vec<String>>) = {
+    "include" "(" <file_n: file_name> <fs: formula_selection?> ")" => (file_n, fs)
+};
+
+formula_selection: Vec<String> = {
+    "," "[" <nl: name_list> "]" => nl
+};
+
+name_list: Vec<String> = {
+    <n: name> => vec!(n),
+    <n: name> "," <ns: name_list> => { let mut ns = ns; ns.insert(0, n); ns }
+};
+
+name: String = {
+    atomic_word,
+    integer
+};
+
+atomic_word: String = {
+    lower_word,
+    single_quoted
+};
+
+atomic_defined_word: String = {
+    dollar_word
+};
+
+atomic_system_word: String = {
+    dollar_dollar_word
+};
+
+number: String = {
+    integer,
+    rational,
+    real
+};
+
+file_name: String = {
+    single_quoted
+};
+
+// The "lexer".
+
+pub single_quoted: String = {
+    <s: r"[']([^']|[\\]['\\])+[']"> => s[1..(s.len() - 1)].to_string()
+};
+
+pub distinct_object: String = {
+    <s: r#"["]([^"]|[\\]["\\])+["]"#> => s[1..(s.len() - 1)].to_string()
+};
+
+vline: String = {
+    <s: r"[|]"> => s.to_string()
+};
+
+star: String = {
+    <s: r"[*]"> => s.to_string()
+};
+
+plus: String = {
+    <s: r"[+]"> => s.to_string()
+};
+
+arrow: String = {
+    <s: r"[>]"> => s.to_string()
+};
+
+less_sign: String = {
+    <s: r"[<]"> => s.to_string()
+};
+
+pub dollar_word: String = {
+    <s: r"[$][a-z][a-zA-Z0-9_]*"> => s[1..s.len()].to_string()
+};
+
+dollar_dollar_word: String = {
+    <s: r"[$][$][a-z][a-zA-Z0-9_]*"> => s[2..s.len()].to_string()
+};
+
+upper_word: String = {
+    <s: r"[A-Z][a-zA-Z0-9_]*"> => s.to_string()
+};
+
+lower_word: String = {
+    <s: r"[a-z][a-zA-Z0-9_]*"> => s.to_string()
+};
+
+real: String = {
+    <s: r"[+-]?[0-9]+[.][0-9]+"> => s.to_string()
+};
+
+rational: String = {
+    <s: r"[+-]?[0-9]+[/][0-9]+"> => s.to_string()
+};
+
+integer: String = {
+    <s: r"[+-]?[0-9]+"> => s.to_string()
+};
 
 
