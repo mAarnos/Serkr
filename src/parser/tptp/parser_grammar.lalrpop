@@ -15,8 +15,8 @@ annotated_formula: AnnotatedFormula = {
     <c: cnf_annotated> => AnnotatedFormula::Cnf(c)
 };
 
-cnf_annotated: CnfAnnotated = {
-    "cnf" "(" <n: name> "," <fr: formula_role> "," <f: cnf_formula>  => (n, fr, f, None)
+pub cnf_annotated: CnfAnnotated = {
+    "cnf" "(" <n: name> "," <fr: formula_role> "," <f: cnf_formula> ")" "." => (n, fr, f, None)
 };
 
 formula_role: String = {
@@ -49,8 +49,11 @@ atomic_formula: Formula = {
 };
 
 plain_atomic_formula: Formula = {
-    <s: atomic_word> => Formula::Predicate(s, Vec::new()),
-    <s: atomic_word> "(" <arg: arguments> ")" => Formula::Predicate(s, arg)
+    <t: plain_term> => { match t {
+                             Term::Variable(s) => Formula::Predicate(s, Vec::new()),
+                             Term::Function(s, args) => Formula::Predicate(s, args)
+                         }
+                       }  
 };
 
 defined_atomic_formula: Formula = {
@@ -59,8 +62,11 @@ defined_atomic_formula: Formula = {
 };
 
 defined_plain_formula: Formula = {
-    <s: atomic_defined_word> => Formula::Predicate(s, Vec::new()),
-    <s: atomic_defined_word> "(" <arg: arguments> ")" => Formula::Predicate(s, arg)
+    <t: defined_term> => { match t {
+                             Term::Variable(s) => Formula::Predicate(s, Vec::new()),
+                             Term::Function(s, args) => Formula::Predicate(s, args)
+                         }
+                       }  
 };
 
 defined_infix_formula: Formula = {
@@ -182,11 +188,11 @@ pub single_quoted: String = {
 };
 
 pub distinct_object: String = {
-    <s: r#"["]([^"]|[\\]["\\])+["]"#> => s[1..(s.len() - 1)].to_string()
+    <s: r#"[\"]([^"]|[\]["\])+[\"]"#> => s[1..(s.len() - 1)].to_string()
 };
 
 pub dollar_word: String = {
-    <s: r"[$][a-z][a-zA-Z0-9_]*"> => s[1..s.len()].to_string()
+    <s: r"[$][a-z][a-zA-Z0-9_]*"> => s.to_string()
 };
 
 upper_word: String = {
@@ -198,7 +204,7 @@ lower_word: String = {
 };
 
 real: String = {
-    <s: r"[+-]?[0-9]+[.][0-9]+"> => s.to_string()
+    <s: r"[+-]?[0-9]+[.][0-9]+([eE][-+]?[0-9]+)?"> => s.to_string()
 };
 
 rational: String = {
