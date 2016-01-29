@@ -92,7 +92,7 @@ impl Literal {
     }
 }
 
-struct Iter<'a> {
+pub struct Iter<'a> {
     literal: &'a Literal,
     index: u8,
 }

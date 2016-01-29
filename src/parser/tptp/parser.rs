@@ -18,15 +18,21 @@
 #[cfg(test)]
 mod test {
     use parser::tptp::parser_grammar::*;
+    
+    #[test]
+    fn parse_include_test() {
+        assert_eq!(parse_include("include('Axioms/SYN000-0.ax').").unwrap(), ("Axioms/SYN000-0.ax".to_owned(), None));
+        assert_eq!(parse_include("include('Axioms/SYN000+0.ax',[ia1,ia3]).").unwrap(), ("Axioms/SYN000+0.ax".to_owned(), Some(vec!("ia1".to_owned(), "ia3".to_owned()))));
+    }
 
     #[test]
-    fn parse_single_quoted_1() {
+    fn parse_single_quoted_test() {
         assert_eq!(parse_single_quoted("'This is a single quoted string'").unwrap(), "This is a single quoted string");
         assert_eq!(parse_single_quoted("'The character \\' is quoted'").unwrap(), "The character \\' is quoted");
     }
     
     #[test]
-    fn dollar_word_1() {
+    fn dollar_word_test() {
         assert_eq!(parse_dollar_word("$aWord").unwrap(), "aWord");
         assert!(parse_dollar_word("$ aWord").is_err());
     }

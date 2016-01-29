@@ -1,20 +1,97 @@
+use parser::tptp::ast::*;
+
 grammar;
 
-term: String = {
+TPTP_file: Vec<TptpInput> = {
+    TPTP_input*
+};
+
+TPTP_input: TptpInput = {
+    <f: annotated_formula> => TptpInput::AnnForm(f),
+    <i: include> => TptpInput::Incl(i)
+};
+
+annotated_formula: AnnotatedFormula = {
+    <c: cnf_annotated> => AnnotatedFormula::Cnf(c)
+};
+
+cnf_annotated: CnfAnnotated = {
+    "cnf" "(" <n: name> "," <fr: formula_role> "," <f: cnf_formula>  => (n, fr, f, None)
+};
+
+formula_role: String = {
+    lower_word
+};
+
+cnf_formula: Formula = {
+    "(" <d: disjunction> ")" => d,
+    disjunction,
+};
+
+disjunction: Formula = {
+    literal,
+    <d: disjunction> "|" <l: literal> => Formula::Or(Box::new(d), Box::new(l))
+};
+
+literal: Formula = {
+    atomic_formula,
+    "~" <f: atomic_formula> => Formula::Not(Box::new(f)),
+    fol_infix_unary
+};
+
+fol_infix_unary: Formula = {
+    <t1: term> infix_inequality <t2: term> => Formula::Not(Box::new(Formula::Predicate("=".to_string(), vec!(t1, t2))))
+};
+
+atomic_formula: Formula = {
+    plain_atomic_formula,
+    defined_atomic_formula
+};
+
+plain_atomic_formula: Formula = {
+    <s: atomic_word> => Formula::Predicate(s, Vec::new()),
+    <s: atomic_word> "(" <arg: arguments> ")" => Formula::Predicate(s, arg)
+};
+
+defined_atomic_formula: Formula = {
+    defined_plain_formula,
+    defined_infix_formula
+};
+
+defined_plain_formula: Formula = {
+    <s: atomic_defined_word> => Formula::Predicate(s, Vec::new()),
+    <s: atomic_defined_word> "(" <arg: arguments> ")" => Formula::Predicate(s, arg)
+};
+
+defined_infix_formula: Formula = {
+    <t1: term> <s: defined_infix_pred> <t2: term> => Formula::Predicate(s, vec!(t1, t2))
+};
+
+defined_infix_pred: String = {
+    infix_equality
+};
+
+infix_equality: String = {
+    <s: "="> => s.to_string()
+};
+
+infix_inequality: String = {
+    <s: "!="> => s.to_string()
+};
+
+term: Term = {
     function_term,
-    variable
+    <s: variable> => Term::Variable(s)
 };
 
-function_term: String = {
+function_term: Term = {
     plain_term,
-    defined_term,
-    system_term
+    defined_term
 };
 
-// TODO: add other part
-plain_term: String = {
-    constant,
-    functor
+plain_term: Term = {
+    <s: constant> => Term::Function(s, Vec::new()),
+    <s: functor> "(" <arg: arguments> ")" => Term::Function(s, arg)
 };
 
 constant: String = {
@@ -25,24 +102,23 @@ functor: String = {
     atomic_word
 };
 
-defined_term: String = {
+defined_term: Term = {
     defined_atom,
     defined_atomic_term
 };
 
-defined_atom: String = {
-    number,
-    distinct_object
+defined_atom: Term = {
+    <s: number> => Term::Function(s, Vec::new()),
+    <s: distinct_object> => Term::Function(s, Vec::new())
 };
 
-defined_atomic_term: String = {
+defined_atomic_term: Term = {
     defined_plain_term
 };
 
-// TODO: add other part
-defined_plain_term: String = {
-    defined_constant,
-    defined_functor
+defined_plain_term: Term = {
+    <s: defined_constant> => Term::Function(s, Vec::new()),
+    <s: defined_functor> "(" <arg: arguments> ")" => Term::Function(s, arg)
 };
 
 defined_constant: String = {
@@ -53,26 +129,17 @@ defined_functor: String = {
     atomic_defined_word
 };
 
-// TODO: add other part
-system_term: String = {
-    system_constant,
-    system_functor
-};
-
-system_constant: String = {
-    system_functor
-};
-
-system_functor: String = {
-    atomic_system_word
-};
-
 variable: String = {
     upper_word
 };
 
-include: (String, Option<Vec<String>>) = {
-    "include" "(" <file_n: file_name> <fs: formula_selection?> ")" => (file_n, fs)
+arguments: Vec<Term> = {
+    <t: term> => vec!(t),
+    <t: term> "," <ts: arguments> => { let mut ts = ts; ts.insert(0, t); ts }
+};
+
+pub include: Include = {
+    "include" "(" <file_n: file_name> <fs: formula_selection?> ")" "." => (file_n, fs)
 };
 
 formula_selection: Vec<String> = {
@@ -98,10 +165,6 @@ atomic_defined_word: String = {
     dollar_word
 };
 
-atomic_system_word: String = {
-    dollar_dollar_word
-};
-
 number: String = {
     integer,
     rational,
@@ -122,32 +185,8 @@ pub distinct_object: String = {
     <s: r#"["]([^"]|[\\]["\\])+["]"#> => s[1..(s.len() - 1)].to_string()
 };
 
-vline: String = {
-    <s: r"[|]"> => s.to_string()
-};
-
-star: String = {
-    <s: r"[*]"> => s.to_string()
-};
-
-plus: String = {
-    <s: r"[+]"> => s.to_string()
-};
-
-arrow: String = {
-    <s: r"[>]"> => s.to_string()
-};
-
-less_sign: String = {
-    <s: r"[<]"> => s.to_string()
-};
-
 pub dollar_word: String = {
     <s: r"[$][a-z][a-zA-Z0-9_]*"> => s[1..s.len()].to_string()
-};
-
-dollar_dollar_word: String = {
-    <s: r"[$][$][a-z][a-zA-Z0-9_]*"> => s[2..s.len()].to_string()
 };
 
 upper_word: String = {

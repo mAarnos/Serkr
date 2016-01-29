@@ -28,21 +28,21 @@ use prover::inference::maximality::literal_maximal_in;
 pub fn equality_factoring(term_ordering: &TermOrdering, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
     let mut ef_count = 0;
 
-    for (i, l) in cl.iter().enumerate() {
-        if l.is_negative() {
+    for (i, l1) in cl.iter().enumerate() {
+        if l1.is_negative() {
             continue;
         }
         
-        for j in (i + 1)..cl.size() {
-            if cl[j].is_negative() {
+        for l2 in cl.iter().skip(i + 1) {
+            if l2.is_negative() {
                 continue;
             }
             
             // So we have found two equality literals. There are four ways to try to combine them.
-            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_lhs(), l.get_rhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
-            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_lhs(), l.get_rhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
-            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_rhs(), l.get_lhs(), cl[j].get_lhs(), cl[j].get_rhs(), i);
-            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l.get_rhs(), l.get_lhs(), cl[j].get_rhs(), cl[j].get_lhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l1.get_lhs(), l1.get_rhs(), l2.get_lhs(), l2.get_rhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l1.get_lhs(), l1.get_rhs(), l2.get_rhs(), l2.get_lhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l1.get_rhs(), l1.get_lhs(), l2.get_lhs(), l2.get_rhs(), i);
+            ef_count += equality_factoring_create_new(term_ordering, cl, generated, l1.get_rhs(), l1.get_lhs(), l2.get_rhs(), l2.get_lhs(), i);
         }
     }
     

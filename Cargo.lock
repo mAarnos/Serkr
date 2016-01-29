@@ -61,7 +61,7 @@ dependencies = [
 [[package]]
 name = "lalrpop"
 version = "0.8.0"
-source = "git+https://github.com/nikomatsakis/lalrpop.git#636adee6627b72d4882202c4b2aa7a03ad94de8c"
+source = "git+https://github.com/nikomatsakis/lalrpop.git#8fafb028f595a8f4bbf8c0e64e82650d39684205"
 dependencies = [
  "diff 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -69,27 +69,27 @@ dependencies = [
  "lalrpop-snap 0.8.0 (git+https://github.com/nikomatsakis/lalrpop.git)",
  "lalrpop-util 0.8.0 (git+https://github.com/nikomatsakis/lalrpop.git)",
  "petgraph 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.1.47 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.48 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-xid 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "lalrpop-intern"
 version = "0.8.0"
-source = "git+https://github.com/nikomatsakis/lalrpop.git#636adee6627b72d4882202c4b2aa7a03ad94de8c"
+source = "git+https://github.com/nikomatsakis/lalrpop.git#8fafb028f595a8f4bbf8c0e64e82650d39684205"
 
 [[package]]
 name = "lalrpop-snap"
 version = "0.8.0"
-source = "git+https://github.com/nikomatsakis/lalrpop.git#636adee6627b72d4882202c4b2aa7a03ad94de8c"
+source = "git+https://github.com/nikomatsakis/lalrpop.git#8fafb028f595a8f4bbf8c0e64e82650d39684205"
 dependencies = [
  "diff 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-intern 0.8.0 (git+https://github.com/nikomatsakis/lalrpop.git)",
  "lalrpop-util 0.8.0 (git+https://github.com/nikomatsakis/lalrpop.git)",
+ "petgraph 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.13 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.1.47 (registry+https://github.com/rust-lang/crates.io-index)",
- "rusty-peg 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.48 (registry+https://github.com/rust-lang/crates.io-index)",
  "term 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-xid 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -97,7 +97,7 @@ dependencies = [
 [[package]]
 name = "lalrpop-util"
 version = "0.8.0"
-source = "git+https://github.com/nikomatsakis/lalrpop.git#636adee6627b72d4882202c4b2aa7a03ad94de8c"
+source = "git+https://github.com/nikomatsakis/lalrpop.git#8fafb028f595a8f4bbf8c0e64e82650d39684205"
 
 [[package]]
 name = "libc"
@@ -137,7 +137,7 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "0.1.47"
+version = "0.1.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "aho-corasick 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -149,14 +149,6 @@ dependencies = [
 name = "regex-syntax"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "rusty-peg"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "regex 0.1.47 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "semver"
