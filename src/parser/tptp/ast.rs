@@ -17,7 +17,7 @@
 
 /// A TPTP input is either an annotated formula or an include.
 #[derive(Debug)]
-#[allow(variant_size_differences)]
+#[allow(variant_size_differences, missing_docs)]
 pub enum TptpInput {
     AnnForm(AnnotatedFormula),
     Incl(Include)
@@ -25,6 +25,7 @@ pub enum TptpInput {
 
 /// Wrapper for different kinds of annotated formula.
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum AnnotatedFormula {
     Cnf(CnfAnnotated)
 }
