@@ -30,10 +30,11 @@ use parser::tptp::parser_grammar::parse_TPTP_file;
 pub type ParseError<'a> = parser_grammar::__lalrpop_util::ParseError<usize, (usize, &'a str), ()>;
 
 /// Used for removing all comments from the file parsed in.
-// TODO: add block comments
 fn remove_comments(s: &str) -> String {
     let comment_line_regex = Regex::new(r"[%].*[\n]").unwrap();
-    comment_line_regex.replace_all(s, NoExpand(""))
+    let comment_block_regex = Regex::new(r"[/][*]([^*]*[*][*]*[^/*])*[^*]*[*][*]*[/]").unwrap();
+    let s2 = comment_line_regex.replace_all(s, NoExpand(""));
+    comment_block_regex.replace_all(&s2, NoExpand(""))
 }
 
 /// Remove all empty lines (i.e. containing only whitespace) from the file passed in.
@@ -44,6 +45,7 @@ fn remove_empty_lines(s: &str) -> String {
 }
 
 /// Reads the file at the location given into a String.
+/// Panics if the file is not found etc.
 fn read_file(s: &str) -> String {
     let path = Path::new(s);
     let display = path.display();
@@ -73,11 +75,16 @@ fn read_and_preprocess_file(s: &str) -> String {
     remove_empty_lines(&s3)
 }
 
+/// Hacky way to see if an annotated formula has the same name as some string.
+fn annotated_formula_names_match(af: &AnnotatedFormula, s: &str) -> bool {
+    match *af { AnnotatedFormula::Cnf(ref f) => f.0 == s } 
+}
+
 /// Handles an include directive. Includes work pretty much like in C, just paste the file to where the include was.
 fn handle_include(incl: Include) -> Vec<AnnotatedFormula> {
     let include_file = parse_tptp_file(&incl.0);
-    if let Some(_) = incl.1 {
-        unimplemented!();
+    if let Some(formulae) = incl.1 {
+        include_file.into_iter().filter(|input| formulae.iter().any(|s| annotated_formula_names_match(input, s))).collect()
     } else {
         include_file
     }
