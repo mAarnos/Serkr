@@ -1,0 +1,58 @@
+%--------------------------------------------------------------------------
+% File     : RNG005-0 : TPTP v6.2.0. Released v1.0.0.
+% Domain   : Ring Theory
+% Axioms   : Ring theory (equality) axioms
+% Version  : [LW92] (equality) axioms.
+% English  :
+
+% Refs     : [Wos88] Wos (1988), Automated Reasoning - 33 Basic Research Pr
+%          : [LW92]  Lusk & Wos (1992), Benchmark Problems in Which Equalit
+% Source   : [LW92]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    9 (   0 non-Horn;   9 unit;   0 RR)
+%            Number of atoms      :    9 (   9 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    4 (   1 constant; 0-2 arity)
+%            Number of variables  :   18 (   0 singleton)
+%            Maximal term depth   :    3 (   2 average)
+% SPC      : 
+
+% Comments : These axioms are used in [Wos88] p.203.
+%--------------------------------------------------------------------------
+%----There exists an additive identity element
+cnf(left_additive_identity,axiom,
+    ( add(additive_identity,X) = X )).
+
+cnf(right_additive_identity,axiom,
+    ( add(X,additive_identity) = X )).
+
+%----Existence of left additive additive_inverse
+cnf(left_additive_inverse,axiom,
+    ( add(additive_inverse(X),X) = additive_identity )).
+
+cnf(right_additive_inverse,axiom,
+    ( add(X,additive_inverse(X)) = additive_identity )).
+
+%----Associativity for addition
+cnf(associativity_for_addition,axiom,
+    ( add(X,add(Y,Z)) = add(add(X,Y),Z) )).
+
+%----Commutativity for addition
+cnf(commutativity_for_addition,axiom,
+    ( add(X,Y) = add(Y,X) )).
+
+%----Associativity for multiplication
+cnf(associativity_for_multiplication,axiom,
+    ( multiply(X,multiply(Y,Z)) = multiply(multiply(X,Y),Z) )).
+
+%----Distributive property of product over sum
+cnf(distribute1,axiom,
+    ( multiply(X,add(Y,Z)) = add(multiply(X,Y),multiply(X,Z)) )).
+
+cnf(distribute2,axiom,
+    ( multiply(add(X,Y),Z) = add(multiply(X,Z),multiply(Y,Z)) )).
+
+%--------------------------------------------------------------------------

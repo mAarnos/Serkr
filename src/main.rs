@@ -39,52 +39,33 @@
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
 #![cfg_attr(feature="clippy", allow(result_unwrap_used))]
 
+extern crate regex;
+
 #[macro_use]
 pub mod utils;
-
 pub mod parser;
 pub mod cnf;
 pub mod prover;
 
+use std::env;
+use parser::tptp::parser::parse_tptp_file;
+
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
     
+    let args: Vec<String> = env::args().collect();
+    println!("{:?}", args);
+    
+    let parsed_file = parse_tptp_file("examples/RNG009-7.p");
+    for input in &parsed_file {
+        println!("{:?}\n", input);
+    }
+  
+    /*
     let mut sw = utils::stopwatch::Stopwatch::new();
     sw.start();
-    let res = prover::prove::prove_general("forall x. add(e(), x) = x /\\ 
-                                            forall x. add(inv(x), x) = e() /\\
-                                            forall x. forall y. forall z. add(add(x, y), z) = add(x, add(y, z)) /\\
-                                            forall x. forall y. add(x, y) = add(y, x) /\\
-                                            forall x. forall y. forall z. mult(mult(x, y), z) = mult(x, mult(y, z)) /\\
-                                            forall x. forall y. forall z. mult(x, add(y, z)) = add(mult(x, y), mult(x, z)) /\\
-                                            forall x. forall y. forall z. mult(add(x, y), z) = add(mult(x, z), mult(y, z)) /\\
-                                            forall x. mult(mult(x, x), x) = x 
-                                            ==> forall x. forall y. mult(x, y) = mult(y, x)", false, true, 300);
-
-    /*
-    let res = prover::prove::prove_general("forall a. forall b. exists x. exists y. (mult(a, x) = b /\\ mult(y, a) = b /\\ 
-                                                                                     forall x2. forall y2. ((mult(a, x2) = b /\\ mult(y2, a) = b) ==> x = x2 /\\ y = y2)) /\\
-                                            forall x. forall y. forall z. mult(mult(z, x), mult(y, z)) = mult(z, mult(mult(x, y), z))
-                                            ==> exists e. forall a. (mult(e, a) = a /\\ mult(a, e) = a)", false, true, 300);
-    */  
-    /*
-    let res = prover::prove::prove_general("forall a. forall b. forall x. (F(x, intersection(a, b)) <=> F(x, a) /\\ F(x, b)) /\\
-                                            forall a. forall b. (forall x. (F(x, a) <=> F(x, b)) ==> a = b)
-                                            ==> forall a. forall b. intersection(a, b) = intersection(b, a)", false, true, 60); 
-    */   
-    /*
-    let res = prover::prove::prove_general("forall x. add(e(), x) = x /\\ 
-                                            forall x. add(inv(x), x) = e() /\\
-                                            forall x. forall y. forall z. add(add(x, y), z) = add(x, add(y, z)) /\\
-                                            forall x. forall y. add(x, y) = add(y, x) /\\
-                                            forall x. forall y. forall z. mult(mult(x, y), z) = mult(x, mult(y, z)) /\\
-                                            forall x. forall y. forall z. mult(x, add(y, z)) = add(mult(x, y), mult(x, z)) /\\
-                                            forall x. forall y. forall z. mult(add(x, y), z) = add(mult(x, z), mult(y, z)) /\\
-                                            forall x. mult(e2(), x) = x 
-                                            ==> forall x. forall y. mult(x, y) = mult(inv(x), inv(y))", false, true, 30);    
-    */                                        
-   
     sw.stop();
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
+    */
 }

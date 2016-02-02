@@ -2,7 +2,7 @@ use parser::tptp::ast::*;
 
 grammar;
 
-TPTP_file: Vec<TptpInput> = {
+pub TPTP_file: Vec<TptpInput> = {
     TPTP_input*
 };
 
@@ -16,7 +16,7 @@ annotated_formula: AnnotatedFormula = {
 };
 
 pub cnf_annotated: CnfAnnotated = {
-    "cnf" "(" <n: name> "," <fr: formula_role> "," <f: cnf_formula> ")" "." => (n, fr, f, None)
+    "cnf" "(" <n: name> "," <fr: formula_role> "," <f: cnf_formula> ")" "." => (n, fr, f)
 };
 
 formula_role: String = {

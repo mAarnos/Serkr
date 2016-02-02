@@ -15,6 +15,92 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::error::Error;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
+
+use regex::{Regex, NoExpand};
+
+use parser::tptp::ast::*;
+use parser::tptp::parser_grammar;
+use parser::tptp::parser_grammar::parse_TPTP_file;
+
+/// The type of parser errors returned by the parser.
+pub type ParseError<'a> = parser_grammar::__lalrpop_util::ParseError<usize, (usize, &'a str), ()>;
+
+/// Used for removing all comments from the file parsed in.
+// TODO: add block comments
+fn remove_comments(s: &str) -> String {
+    let comment_line_regex = Regex::new(r"[%].*[\n]").unwrap();
+    comment_line_regex.replace_all(s, NoExpand(""))
+}
+
+/// Remove all empty lines (i.e. containing only whitespace) from the file passed in.
+/// Not sure if this is necessary.
+fn remove_empty_lines(s: &str) -> String {
+    let empty_line_regex = Regex::new(r"[ ]*[\n]").unwrap();
+    empty_line_regex.replace_all(s, NoExpand(""))
+}
+
+/// Reads the file at the location given into a String.
+fn read_file(s: &str) -> String {
+    let path = Path::new(s);
+    let display = path.display();
+
+    // Open the path in read-only mode, returns `io::Result<File>`
+    let mut file = match File::open(&path) {
+        // The `description` method of `io::Error` returns a string that
+        // describes the error
+        Err(why) => panic!("couldn't open {}: {}", display,
+                                                   Error::description(&why)),
+        Ok(file) => file,
+    };
+
+    // Read the file contents into a string, returns `io::Result<usize>`
+    let mut f = String::new();
+    match file.read_to_string(&mut f) {
+        Err(why) => panic!("couldn't read {}: {}", display,
+                                                   Error::description(&why)),
+        Ok(_) => f,
+    }
+}
+
+/// Reads the file at the location given into a String, and preprocesses it into a more suitable form for the parser.
+fn read_and_preprocess_file(s: &str) -> String {
+    let s2 = read_file(s);
+    let s3 = remove_comments(&s2);
+    remove_empty_lines(&s3)
+}
+
+/// Handles an include directive. Includes work pretty much like in C, just paste the file to where the include was.
+fn handle_include(incl: Include) -> Vec<AnnotatedFormula> {
+    let include_file = parse_tptp_file(&incl.0);
+    if let Some(_) = incl.1 {
+        unimplemented!();
+    } else {
+        include_file
+    }
+}
+
+/// Parses a file in TPTP format to a vector of annotated formulae.
+/// Panics if no file is found, or if the parsing fails.
+pub fn parse_tptp_file(s: &str) -> Vec<AnnotatedFormula> {
+    let preprocessed_file = read_and_preprocess_file(s);
+    let parsed_file = parse_TPTP_file(&preprocessed_file).unwrap();
+    
+    // Handle all includes.
+    let mut formulas = Vec::<AnnotatedFormula>::new(); 
+    for input in parsed_file.into_iter() {
+        match input {
+            TptpInput::AnnForm(f) => formulas.push(f),
+            TptpInput::Incl(i) => formulas.append(&mut handle_include(i)),
+        }
+    }
+    
+    formulas
+}
+
 #[cfg(test)]
 mod test {
     use parser::tptp::parser_grammar::*;
@@ -30,7 +116,7 @@ mod test {
         let not_s0 = Formula::Not(Box::new(Formula::Predicate("s0".to_owned(), Vec::new())));
         let fm = Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(p0), Box::new(not_q0))), Box::new(r0))), Box::new(not_s0));
         
-        assert_eq!(res.unwrap(), ("propositional".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res.unwrap(), ("propositional".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -53,7 +139,7 @@ mod test {
         
         let fm = Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(p_x), Box::new(not_q_x_a))), Box::new(r_x_f_y_g_x_f_y_z))), Box::new(not_s_f_f_f_b));
         
-        assert_eq!(res.unwrap(), ("first_order".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res.unwrap(), ("first_order".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -75,7 +161,7 @@ mod test {
         
         let fm = Formula::Or(Box::new(Formula::Or(Box::new(first_eq), Box::new(second_eq))), Box::new(third_eq));
         
-        assert_eq!(res.unwrap(), ("equality".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res.unwrap(), ("equality".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -86,7 +172,7 @@ mod test {
         let f = Formula::Predicate("$false".to_owned(), Vec::new());
         let fm = Formula::Or(Box::new(t), Box::new(f));
         
-        assert_eq!(res.unwrap(), ("true_false".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res.unwrap(), ("true_false".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -100,7 +186,7 @@ mod test {
         let fifth = Formula::Predicate("p".to_owned(), vec!(Term::Function("A \\'quoted \\ escape\\'".to_owned(), Vec::new())));
         let fm = Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(first), Box::new(second))), Box::new(third))), Box::new(fourth))), Box::new(fifth));
         
-        assert_eq!(res.unwrap(), ("single_quoted".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res.unwrap(), ("single_quoted".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -111,7 +197,7 @@ mod test {
         let snd_p = Term::Function("A \\\"Microsoft \\ escape\\\"".to_owned(), Vec::new());
         let fm = Formula::Not(Box::new(Formula::Predicate("=".to_owned(), vec!(fst_p, snd_p))));
         
-        assert_eq!(res.unwrap(), ("distinct_object".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res.unwrap(), ("distinct_object".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -122,7 +208,7 @@ mod test {
         let snd_p = Formula::Predicate("p".to_owned(), vec!(Term::Function("-12".to_owned(), Vec::new())));
         let fm = Formula::Or(Box::new(fst_p), Box::new(snd_p));
         
-        assert_eq!(res, ("integers".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res, ("integers".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -134,7 +220,7 @@ mod test {
         let trd_p = Formula::Predicate("p".to_owned(), vec!(Term::Function("+123/456".to_owned(), Vec::new())));
         let fm = Formula::Or(Box::new(Formula::Or(Box::new(fst_p), Box::new(snd_p))), Box::new(trd_p));
         
-        assert_eq!(res, ("rationals".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res, ("rationals".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]
@@ -157,7 +243,7 @@ mod test {
         let p7 = Formula::Predicate("p".to_owned(), vec!(Term::Function("-123.456E-789".to_owned(), Vec::new())));
         let fm = Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(Formula::Or(Box::new(p1), Box::new(p2))), Box::new(p3))), Box::new(p4))), Box::new(p5))), Box::new(p6))), Box::new(p7));
         
-        assert_eq!(res, ("reals".to_owned(), "axiom".to_owned(), fm, None));
+        assert_eq!(res, ("reals".to_owned(), "axiom".to_owned(), fm));
     }
     
     #[test]

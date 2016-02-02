@@ -23,15 +23,16 @@ pub enum TptpInput {
     Incl(Include)
 }
 
-/// Wrapper for different kinds of annotated formula.
+/// Wrapper for different kinds of annotated formulae.
 #[derive(Debug)]
 #[allow(missing_docs)]
 pub enum AnnotatedFormula {
     Cnf(CnfAnnotated)
 }
 
-/// The first part is the name, the second is the formula role, the third is the actual formula and the fourth part is the annotations.
-pub type CnfAnnotated = (String, String, Formula, Option<Annotation>);
+/// The first part is the name, the second is the formula role, the third is the actual formula.
+/// The fourth part is missing because I don't know what to do with it even if it exists.
+pub type CnfAnnotated = (String, String, Formula);
 
 /// Annotation.
 pub type Annotation = (String, String);
