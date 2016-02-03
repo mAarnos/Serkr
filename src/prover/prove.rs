@@ -107,6 +107,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
     let mut ef_count = 0;
     let mut er_count = 0;
     let mut trivial_count = 0;
+    let mut added_to_unused = 0;
     
     println!("Initial clauses: {}", proof_state.get_unused_size());
     
@@ -159,6 +160,9 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
                 // We cannot detect it as a tautology with a pure syntactical check unless we first simplify it with destructive equality resolution.
                 cheap_simplify(&mut cl);
                 if !trivial(&cl) {
+                    // Give a unique ID to the clause.
+                    cl.set_id(added_to_unused);
+                    added_to_unused += 1;
                     proof_state.add_to_unused(cl);
                 } else {
                     trivial_count += 1;

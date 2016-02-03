@@ -86,9 +86,9 @@ fn lexical_ordering(precedence: &Precedence, weight: &Weight, only_unary_func: &
 /// Expands the precedence so that it is suitable for KBO. 
 /// If there is exactly one unary function in the problem, that function is greater than all other functions.
 fn kbo_precedence(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Term, t: &Term) -> bool {
-    if Some(s.get_id()) == *only_unary_func {
+    if Some(s.get_id()) == *only_unary_func && Some(t.get_id()) != *only_unary_func {
         return true;
-    } else if Some(t.get_id()) == *only_unary_func {
+    } else if Some(s.get_id()) != *only_unary_func && Some(t.get_id()) == *only_unary_func {
         return false;
     }
         
@@ -97,5 +97,53 @@ fn kbo_precedence(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Te
 
 #[cfg(test)]
 mod test {
-
+    use super::kbo_gt;    
+    use prover::term::Term;
+    use prover::ordering::precedence::Precedence;
+    use prover::ordering::weight::Weight;
+    
+    #[test]
+    fn kbo_gt_1() {
+        let precedence = Precedence::default();
+        let weight = Weight::SimpleWeight;
+        let only_unary_func = None;
+        
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);       
+        assert!(!kbo_gt(&precedence, &weight, &only_unary_func, &x, &y));
+        assert!(!kbo_gt(&precedence, &weight, &only_unary_func, &y, &x));
+    }
+    
+    #[test]
+    fn kbo_gt_2() {
+        let precedence = Precedence::default();
+        let weight = Weight::SimpleWeight;
+        let only_unary_func = None;
+        
+        let x = Term::new_variable(-1);
+        let f_x = Term::new_function(1, vec!(x.clone()));    
+        let f_f_x = Term::new_function(1, vec!(f_x.clone()));
+        
+        assert!(kbo_gt(&precedence, &weight, &only_unary_func, &f_f_x, &f_x));
+        assert!(kbo_gt(&precedence, &weight, &only_unary_func, &f_x, &x));
+        assert!(kbo_gt(&precedence, &weight, &only_unary_func, &f_f_x, &x));
+        assert!(!kbo_gt(&precedence, &weight, &only_unary_func, &x, &f_f_x));
+        assert!(!kbo_gt(&precedence, &weight, &only_unary_func, &x, &f_x));
+        assert!(!kbo_gt(&precedence, &weight, &only_unary_func, &f_x, &f_f_x));
+    }
+    
+    #[test]
+    fn kbo_gt_3() {
+        let precedence = Precedence::default();
+        let weight = Weight::SimpleWeight;
+        let only_unary_func = Some(1);
+        
+        let x = Term::new_variable(-1);
+        let f_x = Term::new_function(1, vec!(x.clone()));    
+        let f_f_x = Term::new_function(1, vec!(f_x.clone()));
+        let f_f_f_x = Term::new_function(1, vec!(f_f_x));
+        
+        assert!(kbo_gt(&precedence, &weight, &only_unary_func, &f_f_f_x, &f_x));
+        assert!(!kbo_gt(&precedence, &weight, &only_unary_func, &f_x, &f_f_f_x));
+    }
 } 

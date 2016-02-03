@@ -26,13 +26,14 @@ use prover::unification::substitution::Substitution;
 // TODO: Eq and PartialEq are nonsensical at the moment but proper solutions would be expensive. What to do?
 #[derive(Eq, PartialEq, Clone)]
 pub struct Clause {
+    id: Option<u64>,
     literals: Vec<Literal>,
 }
 
 impl Clause {
     /// Creates a new clause.
     pub fn new(literals: Vec<Literal>) -> Clause {
-        Clause { literals: literals }
+        Clause { id: None, literals: literals }
     }
     
     /// Get the amount of literals in the clause.
@@ -91,6 +92,12 @@ impl Clause {
     /// Get the amount of symbols in this clause.
     pub fn symbol_count(&self) -> usize {
         self.literals.iter().fold(0, |acc, l| acc + l.symbol_count())
+    }
+    
+    /// Set the id of the clause. 
+    /// The IDs should be unique so care must be taken.
+    pub fn set_id(&mut self, new_id: u64) {
+        self.id = Some(new_id);
     }
 }
 

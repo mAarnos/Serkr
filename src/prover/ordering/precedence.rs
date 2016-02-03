@@ -22,6 +22,7 @@ use prover::term::Term;
 /// Defines a partial orders on the function symbols.
 /// Different enums represent different partial orders.
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum Precedence {
     ArityId,
     ArityFrequency(HashMap<i64, i64>),

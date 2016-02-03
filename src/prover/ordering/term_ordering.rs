@@ -24,6 +24,7 @@ use prover::ordering::lpo::{lpo_gt, lpo_ge};
 use prover::ordering::kbo::{kbo_gt, kbo_ge};
 
 /// A generic term ordering. Currently we have the option of using either LPO or KBO.
+#[derive(Debug)]
 pub enum TermOrdering {
     LPO(Precedence),
     KBO(Precedence, Weight, Option<i64>)

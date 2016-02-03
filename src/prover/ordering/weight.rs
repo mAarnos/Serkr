@@ -19,6 +19,7 @@ use prover::term::Term;
 
 /// Defines a weighting function on terms.
 /// Different enums represent different types of weightings.
+#[derive(Debug)]
 pub enum Weight {
     SimpleWeight,
 }

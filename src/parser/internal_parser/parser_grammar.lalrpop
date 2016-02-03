@@ -1,6 +1,6 @@
 use parser::internal_parser::ast::{Term, Formula};
 
-grammar;
+grammar["LALR(1)"];
 
 pub Formula: Formula = {
     EquivalentFormula
