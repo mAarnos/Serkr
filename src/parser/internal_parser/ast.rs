@@ -1,5 +1,5 @@
 /*
-    Serkr - An automated theorem prover. Copyright (C) 2015 Mikko Aarnos.
+    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
 
     Serkr is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

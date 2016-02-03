@@ -1,5 +1,5 @@
 /*
-    Serkr - An automated theorem prover. Copyright (C) 2015 Mikko Aarnos.
+    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
 
     Serkr is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ pub mod cnf;
 pub mod prover;
 
 fn main() {
-    println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
+    println!("Serkr 0.1.0, (C) 2015-2016 Mikko Aarnos");
     
     let args = std::env::args().collect::<Vec<String>>();
     if args.len() < 2 {
