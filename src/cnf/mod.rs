@@ -22,8 +22,14 @@
 /// Contains the AST used during the CNF transformation.
 pub mod ast;
 
-/// Contains functions for turning the parser AST into the CNF AST.
-pub mod ast_transformer;
+/// Contains stuff dealing with converting function, predicate, and term names to a more suitable format.
+pub mod renaming_info;
+
+/// Contains functions for turning the internal parser AST into the CNF AST.
+pub mod ast_transformer_internal;
+
+/// Contains functions for turning the internal parser AST into the CNF AST.
+pub mod ast_transformer_tptp;
 
 mod free_variables;
 

@@ -49,12 +49,12 @@ fn and_or_formula(f1: Formula, f2: Formula, and_formula: bool) -> Formula {
 #[cfg(test)]
 mod test {
     use super::pull_out_quantifiers;
-    use cnf::ast_transformer::{parse_to_cnf_ast, parse_to_cnf_ast_general};
+    use cnf::ast_transformer_internal::{internal_to_cnf_ast, internal_to_cnf_ast_general};
     
     #[test]
     fn pull_out_quantifiers_1() {
-        let (f, ri) = parse_to_cnf_ast("forall v0. (R(v0, v0) /\\ (P(sf0()) \\/ forall v2. (R(v2, sf1(v2)) \\/ forall v4. Q(v4))))").unwrap();
-        let (correct_f, _) = parse_to_cnf_ast_general("forall v0. forall v2. forall v4. ((Q(v4) \\/ R(v2, sf1(v2)) \\/ P(sf0())) /\\ R(v0, v0))", ri).unwrap();
+        let (f, ri) = internal_to_cnf_ast("forall v0. (R(v0, v0) /\\ (P(sf0()) \\/ forall v2. (R(v2, sf1(v2)) \\/ forall v4. Q(v4))))").unwrap();
+        let (correct_f, _) = internal_to_cnf_ast_general("forall v0. forall v2. forall v4. ((Q(v4) \\/ R(v2, sf1(v2)) \\/ P(sf0())) /\\ R(v0, v0))", ri).unwrap();
         assert_eq!(pull_out_quantifiers(f), correct_f);
     }
 }    

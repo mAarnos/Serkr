@@ -39,7 +39,8 @@ use prover::inference::equality_factoring::equality_factoring;
 use prover::inference::superposition::superposition;
 
 use cnf::ast::Formula;
-use cnf::ast_transformer::parse_to_cnf_ast;
+use cnf::ast_transformer_internal::internal_to_cnf_ast;
+use cnf::ast_transformer_tptp::tptp_to_cnf_ast;
 use cnf::naive_cnf::cnf;
 use utils::stopwatch::Stopwatch;
 
@@ -257,8 +258,15 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering 
 /// A more general version of prove with many parameters exposed.
 /// First we can decide whether we want to use LPO or KBO.
 /// Then there is the option for not negating the input clause if we are more interested in satisfiability.
-pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_time_in_s: u64) -> ProofAttemptResult {
-    if let Ok((parsed_formula, mut renaming_info)) = parse_to_cnf_ast(s) {
+pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_time_in_s: u64, tptp_format: bool) -> ProofAttemptResult {
+    let (parsed_formula, mut renaming_info) = if tptp_format {
+                                                  tptp_to_cnf_ast(s)
+                                              } else {
+                                                  match internal_to_cnf_ast(s) {
+                                                      Ok(res) => res,
+                                                      Err(_) => { return ProofAttemptResult::Error; },
+                                                  }
+                                              };
         let cnf_f = if negate_input_formula { 
                         cnf(Formula::Not(Box::new(parsed_formula)), &mut renaming_info)
                     } else {
@@ -275,14 +283,16 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_tim
             let proof_state = ProofState::new(preprocessed_problem, term_ordering);
             serkr_loop(proof_state, renaming_info.var_cnt, max_time_in_s * 1000)
         }
-    } else {
-        ProofAttemptResult::Error
-    }
 }
 
-/// Attempts to prove the formula passed in.
+/// Attempts to prove the stuff in the TPTP file at the location given.
+pub fn prove_tptp(s: &str) -> ProofAttemptResult {
+    prove_general(s, false, false, 300, true)
+}
+
+/// Attempts to prove the formula represented as a string in the internal format.
 pub fn prove(s: &str) -> ProofAttemptResult {
-    prove_general(s, false, true, 300)
+    prove_general(s, false, true, 300, false)
 }
 
 #[cfg(test)]
@@ -299,7 +309,7 @@ mod test {
     
     #[test]
     fn pelletier_1_negated() {
-        let result = prove_general("(P ==> Q) <=> (~Q ==> ~P)", true, false, 30);
+        let result = prove_general("(P ==> Q) <=> (~Q ==> ~P)", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -347,7 +357,7 @@ mod test {
     
     #[test]
     fn pelletier_8_negated() {
-        let result = prove_general("((P ==> Q) ==> P) ==> P", true, false, 30);
+        let result = prove_general("((P ==> Q) ==> P) ==> P", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -452,7 +462,7 @@ mod test {
     
     #[test]
     fn pelletier_22_negated() {
-        let result = prove_general("forall x. (P <=> F(x)) ==> (P <=> forall x. F(x))", true, false, 30);
+        let result = prove_general("forall x. (P <=> F(x)) ==> (P <=> forall x. F(x))", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -537,7 +547,7 @@ mod test {
     fn pelletier_30_negated() {
         let result = prove_general("forall x. (F(x) \\/ G(x) ==> ~H(x)) /\\ 
                                     forall x. ((G(x) ==> ~I(x)) ==> F(x) /\\ H(x)) 
-                                    ==> forall x. I(x)", true, false, 30);
+                                    ==> forall x. I(x)", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -735,7 +745,7 @@ mod test {
     
     #[test]
     fn pelletier_50_negated() {
-        let result = prove_general("forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> exists x. forall y. F(x, y)", true, false, 30);
+        let result = prove_general("forall x. (F(a(), x) \\/ forall y. F(x, y)) ==> exists x. forall y. F(x, y)", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -795,7 +805,7 @@ mod test {
     
     #[test]
     fn pelletier_56_negated() {
-        let result = prove_general("forall x. (exists y. (F(y) /\\ x = f(y)) ==> F(x)) <=> forall x. (F(x) ==> F(f(x)))", true, false, 30);
+        let result = prove_general("forall x. (exists y. (F(y) /\\ x = f(y)) ==> F(x)) <=> forall x. (F(x) ==> F(f(x)))", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -889,7 +899,7 @@ mod test {
                                     (~P3 \\/ ~P12) /\\
                                     (~P6 \\/ ~P9) /\\
                                     (~P6 \\/ ~P12) /\\
-                                    (~P9 \\/ ~P12)", true, false, 30);
+                                    (~P9 \\/ ~P12)", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Refutation);
     }
     
@@ -930,7 +940,7 @@ mod test {
     #[test]
     fn djikstra_negated() {
         let result = prove_general("forall x. f(f(x)) = f(x) /\\ forall x. exists y. f(y) = x 
-                                    ==> forall x. f(x) = x", true, false, 30);
+                                    ==> forall x. f(x) = x", true, false, 30, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
     
@@ -981,7 +991,7 @@ mod test {
     #[test]
     fn lists_1() {
         let result = prove_general("forall x. suc(x) <> zero() /\\
-                                    forall x. forall y. (suc(x) = suc(y) ==> x = y)", true, false, 300);
+                                    forall x. forall y. (suc(x) = suc(y) ==> x = y)", true, false, 300, false);
         assert_eq!(result, ProofAttemptResult::Saturation);
     }
 } 

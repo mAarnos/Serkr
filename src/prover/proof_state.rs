@@ -68,6 +68,12 @@ impl ProofState {
     pub fn get_used(&self) -> &Vec<Clause> {
         &self.used_clauses
     }
+    
+    /// Get a reference to the unused clauses.
+    #[allow(dead_code)]
+    pub fn get_unused(&self) -> &BinaryHeap<Clause> {
+        &self.unused_clauses
+    }
    
     /// Get a mutable reference to the used clauses.
     // TODO: can we get rid of this?

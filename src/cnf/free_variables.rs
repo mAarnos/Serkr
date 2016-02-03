@@ -61,7 +61,7 @@ pub fn fvt(t: &Term) -> HashSet<i64> {
 #[cfg(test)]
 mod test {
     use super::fv;
-    use cnf::ast_transformer::parse_to_cnf_ast;
+    use cnf::ast_transformer_internal::internal_to_cnf_ast;
     
     // These tests aren't really that robust.
     // If they fail the most likely reason is some change to the parser.
@@ -69,7 +69,7 @@ mod test {
     
     #[test]
     fn fv_1() {
-        let (f, _) = parse_to_cnf_ast("P(f(g(x, y), g(y, z)))").unwrap();
+        let (f, _) = internal_to_cnf_ast("P(f(g(x, y), g(y, z)))").unwrap();
         let free_variables = fv(&f);
         assert_eq!(free_variables.len(), 3);
         assert!(free_variables.contains(&-1));
@@ -79,7 +79,7 @@ mod test {
     
     #[test]
     fn fv_2() {
-        let (f, _) = parse_to_cnf_ast("exists v. (P(c2) /\\ forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z)))").unwrap();
+        let (f, _) = internal_to_cnf_ast("exists v. (P(c2) /\\ forall x. exists y. ((P(f(x), g(y)) \\/ Q(c, f(y), g(x))) \\/ R(z)))").unwrap();
         let free_variables = fv(&f);
         assert_eq!(free_variables.len(), 3);
         assert!(free_variables.contains(&-2));

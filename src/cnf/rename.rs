@@ -65,14 +65,14 @@ fn rename_variable_in_term(t: Term, from: i64, to: i64) -> Term {
 #[cfg(test)]
 mod test {
     use super::{rename, rename_variable};
-    use cnf::ast_transformer::parse_to_cnf_ast;
+    use cnf::ast_transformer_internal::internal_to_cnf_ast;
     
     // The tests here are very fragile. Never figured out a better way for doing them though.
     
     #[test]
     fn rename_1() {
-        let (f, mut ri) = parse_to_cnf_ast("forall x. exists x. P(x)").unwrap(); 
-        let (almost_correct_f, _) = parse_to_cnf_ast("forall v0. exists v1. P(v1)").unwrap(); 
+        let (f, mut ri) = internal_to_cnf_ast("forall x. exists x. P(x)").unwrap(); 
+        let (almost_correct_f, _) = internal_to_cnf_ast("forall v0. exists v1. P(v1)").unwrap(); 
         let correct_f = rename_variable(rename_variable(almost_correct_f, -2, -3), -1, -2);
         
         assert_eq!(rename(f, &mut ri.var_cnt), correct_f);
@@ -80,8 +80,8 @@ mod test {
     
     #[test]
     fn rename_2() {
-        let (f, mut ri) = parse_to_cnf_ast("forall x. forall y. (P(x, y) /\\ Q(y, z))").unwrap(); 
-        let (almost_correct_f, _) = parse_to_cnf_ast("forall v0. forall v1. (P(v0, v1) /\\ Q(v1, z))").unwrap(); 
+        let (f, mut ri) = internal_to_cnf_ast("forall x. forall y. (P(x, y) /\\ Q(y, z))").unwrap(); 
+        let (almost_correct_f, _) = internal_to_cnf_ast("forall v0. forall v1. (P(v0, v1) /\\ Q(v1, z))").unwrap(); 
         let correct_f = rename_variable(rename_variable(almost_correct_f, -1, -4), -2, -5);
         
         assert_eq!(rename(f, &mut ri.var_cnt), correct_f);
@@ -89,8 +89,8 @@ mod test {
     
     #[test]
     fn rename_3() {
-        let (f, mut ri) = parse_to_cnf_ast("forall x. (R(x, x) /\\ exists y. (P(y) \\/ forall x. exists y. (R(x, y) \\/ forall z. Q(z))))").unwrap(); 
-        let (almost_correct_f, _) = parse_to_cnf_ast("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
+        let (f, mut ri) = internal_to_cnf_ast("forall x. (R(x, x) /\\ exists y. (P(y) \\/ forall x. exists y. (R(x, y) \\/ forall z. Q(z))))").unwrap(); 
+        let (almost_correct_f, _) = internal_to_cnf_ast("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
         let correct_f = rename_variable(rename_variable(rename_variable(rename_variable(rename_variable(almost_correct_f, -4, -7), -5, -8), -1, -4), -2, -5), -3, -6);
         
         assert_eq!(rename(f, &mut ri.var_cnt), correct_f);

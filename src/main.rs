@@ -47,25 +47,22 @@ pub mod parser;
 pub mod cnf;
 pub mod prover;
 
-use std::env;
-use parser::tptp::parser::parse_tptp_file;
-
 fn main() {
     println!("Serkr 0.1.0, (C) 2015 Mikko Aarnos");
     
-    let args: Vec<String> = env::args().collect();
-    println!("{:?}", args);
-    
-    let parsed_file = parse_tptp_file("examples/RNG009-7.p");
-    for input in &parsed_file {
-        println!("{:?}\n", input);
+    let args = std::env::args().collect::<Vec<String>>();
+    if args.len() < 2 {
+        panic!("Missing input file");
+    } else if args.len() > 2 {
+        panic!("Too many input files");
     }
-  
-    /*
+    
     let mut sw = utils::stopwatch::Stopwatch::new();
+    
     sw.start();
+    let res = prover::prove::prove_tptp(&args[1]);
     sw.stop();
+    
     println!("{:?}", res);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
-    */
 }

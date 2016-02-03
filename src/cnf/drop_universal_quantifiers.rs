@@ -47,18 +47,18 @@ fn contains_universal_quantifiers(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::drop_universal_quantifiers;
-    use cnf::ast_transformer::parse_to_cnf_ast;
+    use cnf::ast_transformer_internal::internal_to_cnf_ast;
     
     #[test]
     fn drop_universal_quantifiers_1() {
-        let (f, _) = parse_to_cnf_ast("forall x. forall y. P(x, y)").unwrap();
-        let (correct_f, _) = parse_to_cnf_ast("P(x, y)").unwrap();
+        let (f, _) = internal_to_cnf_ast("forall x. forall y. P(x, y)").unwrap();
+        let (correct_f, _) = internal_to_cnf_ast("P(x, y)").unwrap();
         assert_eq!(drop_universal_quantifiers(f), correct_f);
     }
     
     #[test]
     fn drop_universal_quantifiers_2() {
-        let (f, _) = parse_to_cnf_ast("P(x, f(y))").unwrap();
+        let (f, _) = internal_to_cnf_ast("P(x, f(y))").unwrap();
         assert_eq!(drop_universal_quantifiers(f.clone()), f);
     }
 }    

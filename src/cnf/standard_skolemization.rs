@@ -16,7 +16,7 @@
 */
 
 use cnf::ast::{Term, Formula};
-use cnf::ast_transformer::RenamingInfo;
+use cnf::renaming_info::RenamingInfo;
 use cnf::rename::rename;
 use cnf::free_variables::fv;
 
@@ -78,12 +78,12 @@ fn contains_existential_quantifiers(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::skolemize1;
-    use cnf::ast_transformer::{parse_to_cnf_ast, parse_to_cnf_ast_general};
+    use cnf::ast_transformer_internal::{internal_to_cnf_ast, internal_to_cnf_ast_general};
 
     #[test]
     fn skolemize1_1() {
-        let (f, mut ri) = parse_to_cnf_ast("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
-        let (correct_f, _) = parse_to_cnf_ast_general("forall v0. (R(v0, v0) /\\ (P(sf0()) \\/ forall v2. (R(v2, sf1(v2)) \\/ forall v4. Q(v4))))", ri.clone()).unwrap(); 
+        let (f, mut ri) = internal_to_cnf_ast("forall v0. (R(v0, v0) /\\ exists v1. (P(v1) \\/ forall v2. exists v3. (R(v2, v3) \\/ forall v4. Q(v4))))").unwrap(); 
+        let (correct_f, _) = internal_to_cnf_ast_general("forall v0. (R(v0, v0) /\\ (P(sf0()) \\/ forall v2. (R(v2, sf1(v2)) \\/ forall v4. Q(v4))))", ri.clone()).unwrap(); 
         assert_eq!(skolemize1(f, &mut ri.fun_cnt), correct_f);
     }
 }    
