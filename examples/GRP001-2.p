@@ -29,7 +29,6 @@
 % Comments :
 %------------------------------------------------------------------------------
 %----Include equality group theory axioms
-%----mAarnos: Modified to deal with the new location of the file.
 include('examples/GRP004-0.ax').
 %------------------------------------------------------------------------------
 %----Redundant two axioms

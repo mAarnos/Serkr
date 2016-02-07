@@ -3,6 +3,8 @@ name = "serkr"
 version = "0.1.0"
 authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
+exclude = ["examples/*"]
+
 build = "build.rs" 
 
 [build-dependencies.lalrpop]
@@ -20,3 +22,4 @@ version = "*"
 [dependencies.clippy]
 version = "*"
 optional = true
+
