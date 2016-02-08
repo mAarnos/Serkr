@@ -37,7 +37,7 @@ dependencies = [
 
 [[package]]
 name = "diff"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -64,7 +64,7 @@ name = "lalrpop"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "diff 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "diff 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-intern 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-snap 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -84,7 +84,7 @@ name = "lalrpop-snap"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "diff 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "diff 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-intern 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-util 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",

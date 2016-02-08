@@ -41,17 +41,17 @@ impl Clause {
         self.literals.len()
     }
       
-    /// Used for checking if the clause is empty.
+    /// Checks if the clause is empty.
     pub fn is_empty(&self) -> bool {
         self.literals.is_empty()
     }
     
-    /// Used for checking if the clause is unit.
+    /// Checking if the clause is a unit clause.
     pub fn is_unit(&self) -> bool {
         self.size() == 1
     }
     
-   /// Used for checking if the clause is a positive unit clause.
+   /// Checks if the clause is a positive unit clause.
     pub fn is_positive_unit(&self) -> bool {
         self.is_unit() && self.literals[0].is_positive()
     }
@@ -90,6 +90,7 @@ impl Clause {
     }
     
     /// Get the amount of symbols in this clause.
+    /// TODO: move somewhere else.
     pub fn symbol_count(&self) -> usize {
         self.literals.iter().fold(0, |acc, l| acc + l.symbol_count())
     }

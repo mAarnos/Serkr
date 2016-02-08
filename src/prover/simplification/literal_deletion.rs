@@ -26,7 +26,6 @@ pub fn cheap_simplify(cl: &mut Clause) {
 }
 
 /// Deletes all duplicated literals from a clause.
-/// Time complexity is O(n^2) where n is the amount of literals.
 pub fn delete_duplicates(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
@@ -43,7 +42,6 @@ pub fn delete_duplicates(cl: &mut Clause) {
 }
 
 /// Deletes all resolved literals (s <> s) from a clause.
-/// Time complexity is O(n) where n is the amount of literals.
 pub fn delete_resolved(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {
@@ -57,8 +55,7 @@ pub fn delete_resolved(cl: &mut Clause) {
 
 /// A special case of equality resolution which is applied only to variables.
 /// It is rather easy to see that we can use this for simplifying instead of generation.
-/// Time complexity is probably O(n^2) where n is the amount of literals.
-// TODO: possibly use also with x = f(...) where x does not occur in f(...). Probably complete.
+/// TODO: possibly use also with x = f(...) where x does not occur in f(...). Should be complete.
 pub fn destructive_equality_resolution(cl: &mut Clause) {
     let mut i = 0;
     while i < cl.size() {

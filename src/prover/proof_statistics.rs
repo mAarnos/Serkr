@@ -15,18 +15,33 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains the main proof search. 
+/// Contains statistics for the current proof search.
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub struct ProofStatistics {
+    iterations: usize,
+    fs_count: usize,
+    bs_count: usize,
+    sp_count: usize,
+    ef_count: usize,
+    er_count: usize,
+    trivial_count: usize,
+}
 
-mod flatten_cnf;
+impl ProofStatistics {
+    /// Creates a new statistics container.
+    pub fn new() -> ProofStatistics {
+        ProofStatistics { iterations: 0, 
+                          fs_count: 0, 
+                          bs_count: 0, 
+                          sp_count: 0, 
+                          ef_count: 0, 
+                          er_count: 0, 
+                          trivial_count: 0 }
+    }
+}
 
-mod simplification;
-mod ordering;
-mod inference;
-mod unification;
-mod data_structures;
+#[cfg(test)]
+mod test {
+    
+} 
 
-mod proof_statistics;
-mod proof_state;
-
-///
-pub mod prove;

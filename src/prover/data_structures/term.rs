@@ -35,7 +35,7 @@ pub struct Term {
 }
 
 impl Term {
-    /// Creates a new normal function.
+    /// Creates a new normal function. Note that the ID passed in should be negative.
     pub fn new_function(id: i64, args: Vec<Term>) -> Term {
         assert!(id > 0);
         Term { id: id, sort_predicate: false, args: args }
@@ -83,7 +83,7 @@ impl Term {
         self.id < 0
     }
      
-    /// Checks if a given variable or function occurs in the term.
+    /// Checks if a given term occurs in the term.
     pub fn occurs(&self, term: &Term) -> bool {
         self == term || self.args.iter().any(|t| t.occurs(term))
     }
@@ -93,7 +93,7 @@ impl Term {
         self.args.iter().any(|t| t.occurs(term))
     }
     
-    /// Substitute all instances of the term s with a given term.
+    /// Substitute all instances of the term s with a term t.
     pub fn subst_single(&mut self, s: &Term, t: &Term) {
         if self == s {
             *self = t.clone();
@@ -119,6 +119,7 @@ impl Term {
     pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
         if self.is_variable() {
             if let Some(&t) = sfn.get(&self.id) {
+                assert!(t < 0);
                 self.id = t;
             } else {
                 *var_cnt -= 1;
@@ -133,6 +134,7 @@ impl Term {
     }
     
     /// Get the amount of symbols in this term.
+    // TODO: move somewhere else.
     pub fn symbol_count(&self) -> usize {
         self.args.iter().fold(1, |acc, t| acc + t.symbol_count())
     }

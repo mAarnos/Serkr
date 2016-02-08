@@ -50,7 +50,6 @@ impl Substitution {
     }
     
     /// Checks if the substitution is a variable renaming.
-    /// Time complexity is O(n) instead of O(1), check someday if it matters at all.
     #[allow(dead_code)]
     pub fn is_variable_renaming(&self) -> bool {
         self.subst.iter().all(|(_, v)| v.is_variable())

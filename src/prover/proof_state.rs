@@ -76,7 +76,6 @@ impl ProofState {
     }
    
     /// Get a mutable reference to the used clauses.
-    // TODO: can we get rid of this?
     pub fn get_used_mut(&mut self) -> &mut Vec<Clause> {
         &mut self.used_clauses
     }

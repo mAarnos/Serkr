@@ -1,4 +1,4 @@
 target
 notes.txt
 src/parser/internal_parser/parser_grammar.rs
-src/parser/tptp/parser_grammar.rs
+src/parser/tptp_parser/parser_grammar.rs

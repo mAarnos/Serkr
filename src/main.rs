@@ -58,9 +58,9 @@ fn main() {
     let mut sw = utils::stopwatch::Stopwatch::new();
     
     sw.start();
-    let res = prover::prove::prove_tptp(&args[1]);
+    let (proof_result, _) = prover::prove::prove_tptp(&args[1]);
     sw.stop();
     
-    println!("{:?}", res);
+    println!("{:?}", proof_result);
     println!("Time elapsed (in ms): {}", sw.elapsed_ms());
 }

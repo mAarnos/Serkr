@@ -35,12 +35,12 @@ impl Literal {
         Literal { lhs: lhs, rhs: rhs, negated: negated }
     }
     
-    /// Used for checking if the literal is positive.
+    /// Checks if the literal is positive.
     pub fn is_positive(&self) -> bool {
         !self.negated
     }
     
-    /// Used for checking if the literal is negative.
+    /// Checks if the literal is negative.
     pub fn is_negative(&self) -> bool {
         self.negated
     }
@@ -50,16 +50,16 @@ impl Literal {
         &self.lhs
     }
     
-    /// Get a mutable reference to the left hand side of the literal.
-    pub fn get_lhs_mut(&mut self) -> &mut Term {
-        &mut self.lhs
-    }
-    
     /// Get a reference to the right hand side of the literal.
     pub fn get_rhs(&self) -> &Term {
         &self.rhs
     }
     
+    /// Get a mutable reference to the left hand side of the literal.
+    pub fn get_lhs_mut(&mut self) -> &mut Term {
+        &mut self.lhs
+    }
+       
     /// Get a mutable reference to the right hand side of the literal.
     pub fn get_rhs_mut(&mut self) -> &mut Term {
         &mut self.rhs
@@ -71,7 +71,7 @@ impl Literal {
         self.rhs.subst(substitution);
     }
        
-    /// Checks if the given literal has the same polarity.
+    /// Checks if the given literal has the same polarity as this one.
     pub fn polarity_equal(&self, l: &Literal) -> bool {
         self.is_positive() == l.is_positive()
     }
@@ -82,6 +82,7 @@ impl Literal {
     }
     
     /// Get the amount of symbols in this literal
+    /// TODO: move this somewhere else.
     pub fn symbol_count(&self) -> usize {
         1 + self.lhs.symbol_count() + self.rhs.symbol_count()
     }
