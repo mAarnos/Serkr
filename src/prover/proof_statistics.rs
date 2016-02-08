@@ -18,19 +18,21 @@
 /// Contains statistics for the current proof search.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ProofStatistics {
-    iterations: usize,
-    fs_count: usize,
-    bs_count: usize,
-    sp_count: usize,
-    ef_count: usize,
-    er_count: usize,
-    trivial_count: usize,
+    pub elapsed_ms: u64,
+    pub iterations: u64,
+    pub fs_count: u64,
+    pub bs_count: u64,
+    pub sp_count: u64,
+    pub ef_count: u64,
+    pub er_count: u64,
+    pub trivial_count: u64,
 }
 
 impl ProofStatistics {
     /// Creates a new statistics container.
     pub fn new() -> ProofStatistics {
-        ProofStatistics { iterations: 0, 
+        ProofStatistics { elapsed_ms: 0,
+                          iterations: 0, 
                           fs_count: 0, 
                           bs_count: 0, 
                           sp_count: 0, 

@@ -21,9 +21,8 @@ use prover::ordering::term_ordering::TermOrdering;
 use prover::inference::maximality::literal_maximal_in;
 
 /// Infers new clauses by (ordered) equality resolution.
-/// Time complexity is O(n) where n is the amount of literals in the clause.
 /// Returns the amount of inferred clauses.
-pub fn equality_resolution(term_ordering: &TermOrdering, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
+pub fn equality_resolution(term_ordering: &TermOrdering, cl: &Clause, generated: &mut Vec<Clause>) -> u64 {
     let mut er_count = 0;
     
     for (i, l) in cl.iter().enumerate() {

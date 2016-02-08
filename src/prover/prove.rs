@@ -72,7 +72,7 @@ fn forward_subsumed(cl: &Clause, clauses: &[Clause]) -> bool {
 
 /// Removes all clauses from a given set subsumed by a given clause.
 /// Returns the amount of back subsumed clauses.
-fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> usize {
+fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> u64 {
     let mut i = 0;
     let mut bs_count = 0;
     
@@ -100,15 +100,8 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 /// Note that we use the DISCOUNT version of the given clause algorithm.
 fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64) -> (ProofAttemptResult, ProofStatistics) {
     let mut sw = Stopwatch::new();
-    let stats = ProofStatistics::new();
+    let mut stats = ProofStatistics::new();
     let mut ms_count = 1000;
-    let mut iterations = 0;
-    let mut fs_count = 0;
-    let mut bs_count = 0;
-    let mut sp_count = 0;
-    let mut ef_count = 0;
-    let mut er_count = 0;
-    let mut trivial_count = 0;
     let mut added_to_unused = 0;
     
     println!("Initial clauses: {}", proof_state.get_unused_size());
@@ -116,24 +109,25 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
     sw.start();
     
     while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
-        iterations += 1;
+        stats.iterations += 1;
+        stats.elapsed_ms = sw.elapsed_ms();
         
         // If we have spent too much time already just give up.
-        if sw.elapsed_ms() > max_time_in_ms {
+        if stats.elapsed_ms > max_time_in_ms {
             return (ProofAttemptResult::Timeout, stats);
         }
         
-        if sw.elapsed_ms() > ms_count {
-            println!("info time {} iterations {} used {} unused {} sp {} ef {} er {} trivial {} fs {} bs {}", sw.elapsed_ms(), 
-                                                                                                              iterations, 
+        if stats.elapsed_ms > ms_count {
+            println!("info time {} iterations {} used {} unused {} sp {} ef {} er {} trivial {} fs {} bs {}", stats.elapsed_ms, 
+                                                                                                              stats.iterations, 
                                                                                                               proof_state.get_used_size(), 
                                                                                                               proof_state.get_unused_size(), 
-                                                                                                              sp_count,
-                                                                                                              ef_count,
-                                                                                                              er_count,
-                                                                                                              trivial_count,
-                                                                                                              fs_count,
-                                                                                                              bs_count);
+                                                                                                              stats.sp_count,
+                                                                                                              stats.ef_count,
+                                                                                                              stats.er_count,
+                                                                                                              stats.trivial_count,
+                                                                                                              stats.fs_count,
+                                                                                                              stats.bs_count);
             ms_count += 1000;
         }
         
@@ -147,14 +141,14 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
         
         // Check if the clause is redundant in some way. If it is no need to process it more.
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
-            bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
+            stats.bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
         
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
             let mut inferred_clauses = Vec::new();
-            sp_count += superposition(proof_state.get_term_ordering(), &chosen_clause, proof_state.get_used(), &mut inferred_clauses);
-            er_count += equality_resolution(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
-            ef_count += equality_factoring(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
+            stats.sp_count += superposition(proof_state.get_term_ordering(), &chosen_clause, proof_state.get_used(), &mut inferred_clauses);
+            stats.er_count += equality_resolution(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
+            stats.ef_count += equality_factoring(proof_state.get_term_ordering(), &chosen_clause, &mut inferred_clauses);
 
             for mut cl in inferred_clauses.into_iter() {
                 // Simplification need to be done before triviality checking.
@@ -167,14 +161,14 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
                     added_to_unused += 1;
                     proof_state.add_to_unused(cl);
                 } else {
-                    trivial_count += 1;
+                    stats.trivial_count += 1;
                 }
             }
             
             // Not quite sure if this should be here or before. Doesn't _seem_ incomplete due to this.
             proof_state.add_to_used(chosen_clause); 
         } else {
-            fs_count += 1;
+            stats.fs_count += 1;
         }
     }
     

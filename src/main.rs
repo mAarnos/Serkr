@@ -55,12 +55,8 @@ fn main() {
         panic!("Too many input files");
     }
     
-    let mut sw = utils::stopwatch::Stopwatch::new();
-    
-    sw.start();
-    let (proof_result, _) = prover::prove::prove_tptp(&args[1]);
-    sw.stop();
-    
+    let (proof_result, proof_statistics) = prover::prove::prove_tptp(&args[1]);
+
     println!("{:?}", proof_result);
-    println!("Time elapsed (in ms): {}", sw.elapsed_ms());
+    println!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);
 }

@@ -15,6 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// TODO: clean this crap up.
+
 use prover::data_structures::term::Term;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
@@ -44,7 +46,7 @@ fn overlaps(term_ordering: &TermOrdering,
             cl1: &Clause, cl1_i: usize, 
             cl2: &Clause,  cl2_i: usize, 
             trace: &mut Vec<usize>,
-            generated: &mut Vec<Clause>) -> usize {
+            generated: &mut Vec<Clause>) -> u64 {
     let mut sp_count = 0;
     
     if !u_p.is_variable() {
@@ -98,7 +100,7 @@ fn overlaps(term_ordering: &TermOrdering,
 fn overlaps_literal(term_ordering: &TermOrdering, 
                     cl1: &Clause, cl1_i: usize, 
                     cl2: &Clause, cl2_i: usize, 
-                    generated: &mut Vec<Clause>) -> usize {
+                    generated: &mut Vec<Clause>) -> u64 {
     let mut trace = Vec::new();
     let l_lhs = cl1[cl1_i].get_lhs();
     let l_rhs = cl1[cl1_i].get_rhs();
@@ -121,7 +123,7 @@ fn overlaps_literal(term_ordering: &TermOrdering,
 fn superposition_generate(term_ordering: &TermOrdering, 
                           cl1: &Clause, 
                           cl2: &Clause, 
-                          generated: &mut Vec<Clause>) -> usize {
+                          generated: &mut Vec<Clause>) -> u64 {
     let mut sp_count = 0;
     
     for (i, l1) in cl1.iter().enumerate() {
@@ -142,7 +144,7 @@ fn superposition_generate(term_ordering: &TermOrdering,
 pub fn superposition(term_ordering: &TermOrdering, 
                      cl: &Clause, 
                      clauses: &[Clause], 
-                     generated: &mut Vec<Clause>) -> usize {
+                     generated: &mut Vec<Clause>) -> u64 {
     let mut sp_count = 0;
                                                
     for cl2 in clauses {

@@ -15,6 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// TODO: clean this crap up
+
 use prover::data_structures::term::Term;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
@@ -23,9 +25,8 @@ use prover::ordering::term_ordering::TermOrdering;
 use prover::inference::maximality::literal_maximal_in;
 
 /// Infers new clauses by equality factoring
-/// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 /// Returns the amount of inferred clauses.
-pub fn equality_factoring(term_ordering: &TermOrdering, cl: &Clause, generated: &mut Vec<Clause>) -> usize {
+pub fn equality_factoring(term_ordering: &TermOrdering, cl: &Clause, generated: &mut Vec<Clause>) -> u64 {
     let mut ef_count = 0;
 
     for (i, l1) in cl.iter().enumerate() {
@@ -54,7 +55,7 @@ fn equality_factoring_create_new(term_ordering: &TermOrdering,
                                  generated: &mut Vec<Clause>, 
                                  s: &Term, t: &Term, 
                                  u: &Term, v: &Term, 
-                                 i: usize) -> usize {
+                                 i: usize) -> u64 {
     let mut ef_count = 0;
     
     if let Some(sigma) = mgu(s, u) {
