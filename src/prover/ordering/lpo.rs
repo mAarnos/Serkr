@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
+use prover::data_structures::term::Term;
 use prover::ordering::precedence::Precedence;
 
 /// Checks if s is greater than t according to the ordering.   
@@ -62,7 +62,7 @@ fn lexical_ordering(precedence: &Precedence, s: &Term, t: &Term) -> bool {
 #[cfg(test)]
 mod test {
     use super::{lpo_gt, lpo_ge};    
-    use prover::term::Term;
+    use prover::data_structures::term::Term;
     use prover::ordering::precedence::Precedence;
     
     #[test]

@@ -15,9 +15,9 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term as ProverTerm;
-use prover::literal::Literal;
-use prover::clause::Clause;
+use prover::data_structures::term::Term as ProverTerm;
+use prover::data_structures::literal::Literal;
+use prover::data_structures::clause::Clause;
 use cnf::ast::Term as CnfTerm;
 use cnf::ast::Formula;
 

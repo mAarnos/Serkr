@@ -19,7 +19,7 @@ use std::ops::Index;
 use std::slice::{Iter, IterMut};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Formatter, Error};
-use prover::literal::Literal;
+use prover::data_structures::literal::Literal;
 use prover::unification::substitution::Substitution;
 
 /// A multiset containing literals.

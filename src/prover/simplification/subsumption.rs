@@ -15,8 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::literal::Literal;
-use prover::clause::Clause;
+use prover::data_structures::literal::Literal;
+use prover::data_structures::clause::Clause;
 use prover::unification::matching::term_match_general;
 use prover::unification::substitution::Substitution;
 
@@ -125,9 +125,9 @@ pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
 #[cfg(test)]
 mod test {
     use super::subsumes_clause;
-    use prover::term::Term;
-    use prover::literal::Literal;
-    use prover::clause::Clause;
+    use prover::data_structures::term::Term;
+    use prover::data_structures::literal::Literal;
+    use prover::data_structures::clause::Clause;
     
     #[test]
     fn subsumes_clause_1() {

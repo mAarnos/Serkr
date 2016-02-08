@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
+use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
 
 /// Tries to find a sigma so that s\sigma = t.
@@ -78,7 +78,7 @@ pub fn match_term_pairs(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
 #[cfg(test)]
 mod test {
     use super::term_match;
-    use prover::term::Term;
+    use prover::data_structures::term::Term;
 
     #[test]
     fn term_match_1() {

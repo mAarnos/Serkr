@@ -17,7 +17,7 @@
 
 use std::default::Default;
 use std::collections::HashMap;
-use prover::term::Term;
+use prover::data_structures::term::Term;
 
 /// Defines a partial orders on the function symbols.
 /// Different enums represent different partial orders.
@@ -91,7 +91,7 @@ fn id_gt(s: &Term, t: &Term) -> bool {
 #[cfg(test)]
 mod test {
     use super::Precedence;
-    use prover::term::Term;
+    use prover::data_structures::term::Term;
     
     #[test]
     fn arity_id_1() {

@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
+use prover::data_structures::term::Term;
 
 /// Defines a weighting function on terms.
 /// Different enums represent different types of weightings.

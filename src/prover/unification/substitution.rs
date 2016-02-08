@@ -17,7 +17,7 @@
 
 use std::collections::HashMap;
 use std::collections::hash_map::IterMut;
-use prover::term::Term;
+use prover::data_structures::term::Term;
 
 /// Represents a substitution of from variables to terms.
 #[derive(Eq, PartialEq, Clone, Debug)]

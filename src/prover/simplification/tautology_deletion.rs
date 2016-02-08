@@ -15,21 +15,19 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::clause::Clause;
+use prover::data_structures::clause::Clause;
 
-/// Checks if a clause is a syntactical tautology and as such can be eliminated completely.
+/// Checks if a clause is a syntactical tautology.
 pub fn trivial(cl: &Clause) -> bool {
     td1(cl) || td2(cl)
 }
 
 /// Checks if a clause contains a literal of the form "s = s".
-/// Time complexity is O(n) where n is the amount of literals.
 fn td1(cl: &Clause) -> bool {
     cl.iter().any(|l| l.is_positive() && l.get_lhs() == l.get_rhs())
 }
 
 /// Checks if a clause contains a literal and its negation.
-/// Time complexity is O(n^2) where n is the amount of literals, but usually the clauses are rather short.
 fn td2(cl: &Clause) -> bool {
     for (i, l1) in cl.iter().enumerate() {
         for l2 in cl.iter().skip(i + 1) {
@@ -44,9 +42,9 @@ fn td2(cl: &Clause) -> bool {
 #[cfg(test)]
 mod test {
     use super::{td1, td2};
-    use prover::term::Term;
-    use prover::literal::Literal;
-    use prover::clause::Clause;
+    use prover::data_structures::term::Term;
+    use prover::data_structures::literal::Literal;
+    use prover::data_structures::clause::Clause;
     
     #[test]
     fn td1_1() {

@@ -16,7 +16,7 @@
 */
 
 use std::collections::BinaryHeap;
-use prover::clause::Clause;
+use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
 
 /// Contains the current proof state, that is, the used, the unused clauses and the term ordering used.

@@ -17,16 +17,13 @@
 
 //! Contains the main proof search. 
 
-mod term;
-mod literal;
-mod clause;
-
 mod flatten_cnf;
 
 mod simplification;
 mod ordering;
 mod inference;
 mod unification;
+mod data_structures;
 
 mod proof_state;
 

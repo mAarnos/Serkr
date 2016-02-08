@@ -15,8 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
-use prover::clause::Clause;
+use prover::data_structures::term::Term;
+use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::unification::matching::term_match;
 

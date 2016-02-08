@@ -15,12 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains different parsers.
+/// Contains the data structure for terms.
+pub mod term;
 
-/// Contains the parser for the internal FOL format.
-/// This one is meant only for development.
-pub mod internal_parser;
+/// Contains the data structure for literals.
+pub mod literal;
 
-/// Contains the parser for the TPTP format.
-/// This one is meant for public use.
-pub mod tptp_parser;
+/// Contains the data structure for clauses.
+pub mod clause;

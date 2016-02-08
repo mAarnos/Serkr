@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::clause::Clause;
+use prover::data_structures::clause::Clause;
 use prover::unification::full_unification::mgu;
 
 /// Simplifies a clause with cheap (i.e. fast to run) rules if possible.
@@ -78,9 +78,9 @@ pub fn destructive_equality_resolution(cl: &mut Clause) {
 #[cfg(test)]
 mod test {
     use super::{delete_resolved, delete_duplicates};
-    use prover::term::Term;
-    use prover::literal::Literal;
-    use prover::clause::Clause;
+    use prover::data_structures::term::Term;
+    use prover::data_structures::literal::Literal;
+    use prover::data_structures::clause::Clause;
     
     #[test]
     fn delete_resolved_1() {

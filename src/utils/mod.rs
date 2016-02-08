@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! Contains all kinds of generally useful stuff (data structures, timers etc.).
+//! Contains all kinds of generally useful stuff (macros, timers etc.).
 
 /// Contains some useful macros.
 #[macro_use]

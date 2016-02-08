@@ -15,8 +15,8 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
-use prover::clause::Clause;
+use prover::data_structures::term::Term;
+use prover::data_structures::clause::Clause;
 use prover::unification::matching::match_term_pairs;
 use prover::simplification::equality_subsumption::eqn_subsumes_eqn;
 

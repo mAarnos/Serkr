@@ -16,8 +16,8 @@
 */
 
 use std::cmp::min;
-use prover::term::Term;
-use prover::literal::Literal;
+use prover::data_structures::term::Term;
+use prover::data_structures::literal::Literal;
 use prover::ordering::precedence::Precedence;
 use prover::ordering::weight::Weight;
 use prover::ordering::lpo::{lpo_gt, lpo_ge};

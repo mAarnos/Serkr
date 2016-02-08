@@ -17,10 +17,10 @@
 
 #![allow(dead_code)]
 
-use parser::tptp::parser::parse_tptp_file;
-use parser::tptp::ast::AnnotatedFormula;
-use parser::tptp::ast::Term as ParserTerm;
-use parser::tptp::ast::Formula as ParserFormula;
+use parser::tptp_parser::parser::parse_tptp_file;
+use parser::tptp_parser::ast::AnnotatedFormula;
+use parser::tptp_parser::ast::Term as ParserTerm;
+use parser::tptp_parser::ast::Formula as ParserFormula;
 use cnf::ast::Term as CnfTerm;
 use cnf::ast::Formula as CnfFormula;
 use cnf::renaming_info::RenamingInfo;

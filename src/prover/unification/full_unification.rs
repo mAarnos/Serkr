@@ -15,10 +15,11 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
+use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
 
 /// Tries to find a substitution so that s and t are equal.
+/// Actually finds the MGU instead of just any substitution. 
 fn unify(s: &Term, t: &Term) -> Option<Substitution> {
     let mut env = Substitution::new();
     let mut eqs = vec!((s.clone(), t.clone()));
@@ -79,7 +80,7 @@ pub fn mgu(s: &Term, t: &Term) -> Option<Substitution> {
 #[cfg(test)]
 mod test {
     use super::mgu;
-    use prover::term::Term;
+    use prover::data_structures::term::Term;
     
     #[test]
     fn mgu_1() {

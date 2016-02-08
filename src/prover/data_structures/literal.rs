@@ -17,7 +17,7 @@
 
 use std::fmt::{Debug, Formatter, Error};
 use std::iter::Iterator;
-use prover::term::Term;
+use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
 
 /// A single (possibly negated) equation, or simply, a literal.

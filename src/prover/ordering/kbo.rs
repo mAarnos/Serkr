@@ -16,7 +16,7 @@
 */
 
 use std::collections::hash_map::HashMap;
-use prover::term::Term;
+use prover::data_structures::term::Term;
 use prover::ordering::precedence::Precedence;
 use prover::ordering::weight::Weight;
         
@@ -98,7 +98,7 @@ fn kbo_precedence(precedence: &Precedence, only_unary_func: &Option<i64>, s: &Te
 #[cfg(test)]
 mod test {
     use super::kbo_gt;    
-    use prover::term::Term;
+    use prover::data_structures::term::Term;
     use prover::ordering::precedence::Precedence;
     use prover::ordering::weight::Weight;
     

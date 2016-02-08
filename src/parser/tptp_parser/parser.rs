@@ -15,33 +15,32 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate regex;
+
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-
-use regex::{Regex, NoExpand};
-
-use parser::tptp::ast::*;
-use parser::tptp::parser_grammar;
-use parser::tptp::parser_grammar::parse_TPTP_file;
+use parser::tptp_parser::ast::*;
+use parser::tptp_parser::parser_grammar;
+use parser::tptp_parser::parser_grammar::parse_TPTP_file;
 
 /// The type of parser errors returned by the parser.
 pub type ParseError<'a> = parser_grammar::__lalrpop_util::ParseError<usize, (usize, &'a str), ()>;
 
 /// Used for removing all comments from the file parsed in.
 fn remove_comments(s: &str) -> String {
-    let comment_line_regex = Regex::new(r"[%].*[\n]").unwrap();
-    let comment_block_regex = Regex::new(r"[/][*]([^*]*[*][*]*[^/*])*[^*]*[*][*]*[/]").unwrap();
-    let s2 = comment_line_regex.replace_all(s, NoExpand(""));
-    comment_block_regex.replace_all(&s2, NoExpand(""))
+    let comment_line_regex = regex::Regex::new(r"[%].*[\n]").expect("This should always work");
+    let comment_block_regex = regex::Regex::new(r"[/][*]([^*]*[*][*]*[^/*])*[^*]*[*][*]*[/]").expect("This should always work");
+    let s2 = comment_line_regex.replace_all(s, regex::NoExpand(""));
+    comment_block_regex.replace_all(&s2, regex::NoExpand(""))
 }
 
 /// Remove all empty lines (i.e. containing only whitespace) from the file passed in.
 /// Not sure if this is necessary.
 fn remove_empty_lines(s: &str) -> String {
-    let empty_line_regex = Regex::new(r"[ ]*[\n]").unwrap();
-    empty_line_regex.replace_all(s, NoExpand(""))
+    let empty_line_regex = regex::Regex::new(r"[ ]*[\n]").expect("This should always work");
+    empty_line_regex.replace_all(s, regex::NoExpand(""))
 }
 
 /// Reads the file at the location given into a String.
@@ -94,7 +93,7 @@ fn handle_include(incl: Include) -> Vec<AnnotatedFormula> {
 /// Panics if no file is found, or if the parsing fails.
 pub fn parse_tptp_file(s: &str) -> Vec<AnnotatedFormula> {
     let preprocessed_file = read_and_preprocess_file(s);
-    let parsed_file = parse_TPTP_file(&preprocessed_file).unwrap();
+    let parsed_file = parse_TPTP_file(&preprocessed_file).expect("Parsing failed!");
     
     // Handle all includes.
     let mut formulas = Vec::<AnnotatedFormula>::new(); 
@@ -110,8 +109,8 @@ pub fn parse_tptp_file(s: &str) -> Vec<AnnotatedFormula> {
 
 #[cfg(test)]
 mod test {
-    use parser::tptp::parser_grammar::*;
-    use parser::tptp::ast::*;
+    use parser::tptp_parser::parser_grammar::*;
+    use parser::tptp_parser::ast::*;
     
     #[test]
     fn parse_cnf_annotated_propositional() {

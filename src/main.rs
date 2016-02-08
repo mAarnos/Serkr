@@ -39,8 +39,6 @@
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
 #![cfg_attr(feature="clippy", allow(result_unwrap_used))]
 
-extern crate regex;
-
 #[macro_use]
 pub mod utils;
 pub mod parser;

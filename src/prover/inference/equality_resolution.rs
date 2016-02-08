@@ -15,7 +15,7 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::clause::Clause;
+use prover::data_structures::clause::Clause;
 use prover::unification::full_unification::mgu;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::inference::maximality::literal_maximal_in;

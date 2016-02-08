@@ -18,8 +18,8 @@
 use std::collections::HashMap;
 use prover::flatten_cnf::flatten_cnf;
 
-use prover::term::Term;
-use prover::clause::Clause;
+use prover::data_structures::term::Term;
+use prover::data_structures::clause::Clause;
 
 use prover::proof_state::ProofState;
 

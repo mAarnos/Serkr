@@ -15,9 +15,9 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use prover::term::Term;
-use prover::literal::Literal;
-use prover::clause::Clause;
+use prover::data_structures::term::Term;
+use prover::data_structures::literal::Literal;
+use prover::data_structures::clause::Clause;
 use prover::unification::matching::match_term_pairs;
 
 /// Checks if the equation s = t equality subsumes u = v.
@@ -65,9 +65,9 @@ pub fn equality_subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
 #[cfg(test)]
 mod test {
     use super::equality_subsumes_clause;
-    use prover::term::Term;
-    use prover::literal::Literal;
-    use prover::clause::Clause;
+    use prover::data_structures::term::Term;
+    use prover::data_structures::literal::Literal;
+    use prover::data_structures::clause::Clause;
     
     #[test]
     fn equality_subsumes_clause_1() {
