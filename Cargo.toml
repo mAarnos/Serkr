@@ -19,6 +19,9 @@ version = "*"
 [dependencies.regex]
 version = "*"
 
+[dependencies.clap]
+version = "*"
+
 [dependencies.clippy]
 version = "*"
 optional = true

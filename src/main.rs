@@ -39,6 +39,8 @@
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
 #![cfg_attr(feature="clippy", allow(result_unwrap_used))]
 
+extern crate clap;
+
 #[macro_use]
 pub mod utils;
 pub mod parser;
@@ -46,16 +48,16 @@ pub mod cnf;
 pub mod prover;
 
 fn main() {
+    let matches = clap::App::new("Serkr")
+                                .version("0.1.0")
+                                .author("Mikko Aarnos <mikko.aarnos@gmail.com>")
+                                .args_from_usage("<INPUT> 'The TPTP file the program should analyze'")
+                                .get_matches();
+                                
     println!("Serkr 0.1.0, (C) 2015-2016 Mikko Aarnos");
-    
-    let args = std::env::args().collect::<Vec<String>>();
-    if args.len() < 2 {
-        panic!("Missing input file");
-    } else if args.len() > 2 {
-        panic!("Too many input files");
-    }
-    
-    let (proof_result, proof_statistics) = prover::prove::prove_tptp(&args[1]);
+                                 
+    let input_file = matches.value_of("INPUT").unwrap();
+    let (proof_result, proof_statistics) = prover::prove::prove_tptp(&input_file);
 
     println!("{:?}", proof_result);
     println!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);
