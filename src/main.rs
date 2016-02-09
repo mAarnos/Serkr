@@ -39,6 +39,7 @@
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
 #![cfg_attr(feature="clippy", allow(result_unwrap_used))]
 
+#[macro_use]
 extern crate clap;
 
 #[macro_use]
@@ -51,13 +52,27 @@ fn main() {
     let matches = clap::App::new("Serkr")
                                 .version("0.1.0")
                                 .author("Mikko Aarnos <mikko.aarnos@gmail.com>")
-                                .args_from_usage("<INPUT> 'The TPTP file the program should analyze'")
+                                .about("An automated theorem prover for first order logic with equality")
+                                .args_from_usage("<INPUT> 'The TPTP file the program should analyze'
+                                                  -t, --time_limit=[time_limit] 'The time limit for the prover (default=300s)'")
+                                .arg(clap::Arg::with_name("lpo")
+                                    .help("Use LPO as the term ordering") 
+                                    .short("l") 
+                                    .long("lpo") 
+                                    .conflicts_with("kbo"))
+                                .arg(clap::Arg::with_name("kbo")
+                                    .help("Use KBO as the term ordering (default)") 
+                                    .short("k") 
+                                    .long("kbo") 
+                                    .conflicts_with("lpo"))
                                 .get_matches();
                                 
     println!("Serkr 0.1.0, (C) 2015-2016 Mikko Aarnos");
                                  
     let input_file = matches.value_of("INPUT").unwrap();
-    let (proof_result, proof_statistics) = prover::prove::prove_tptp(&input_file);
+    let use_lpo = matches.is_present("lpo");
+    let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
+    let (proof_result, proof_statistics) = prover::prove::prove_tptp(&input_file, use_lpo, time_limit);
 
     println!("{:?}", proof_result);
     println!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);

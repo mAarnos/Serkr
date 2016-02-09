@@ -289,8 +289,8 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_tim
 }
 
 /// Attempts to prove the stuff in the TPTP file at the location given.
-pub fn prove_tptp(s: &str) -> (ProofAttemptResult, ProofStatistics) {
-    prove_general(s, false, false, 300, true)
+pub fn prove_tptp(s: &str, use_lpo: bool, time_limit: u64) -> (ProofAttemptResult, ProofStatistics) {
+    prove_general(s, use_lpo, false, time_limit, true)
 }
 
 /// Attempts to prove the formula represented as a string in the internal format.
