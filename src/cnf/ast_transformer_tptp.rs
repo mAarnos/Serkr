@@ -15,8 +15,6 @@
     along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![allow(dead_code)]
-
 use parser::tptp_parser::parser::parse_tptp_file;
 use parser::tptp_parser::ast::AnnotatedFormula;
 use parser::tptp_parser::ast::Term as ParserTerm;
@@ -32,15 +30,49 @@ fn tptp_ast_to_cnf_ast(f_list: Vec<ParserFormula>) -> (CnfFormula, RenamingInfo)
     (transformed_f, renaming_info)
 }
 
-/// Strips all annotations.
-/// Probably not a good idea.
-fn annotated_to_normal_formula(f_list: Vec<AnnotatedFormula>) -> Vec<ParserFormula> {
-    f_list.into_iter().map(|f| match f { AnnotatedFormula::Cnf(cnf_f) => cnf_f.2 }).collect()
+/// Strips all annotations from a vector of formulae, if possible.
+/// TODO: is there a cleaner way to do this?
+fn annotated_to_normal_formula(f_list: Vec<AnnotatedFormula>) -> Result<Vec<ParserFormula>, String> {
+    // If let borrow bug again.
+    if let Some(f) = f_list.iter().find(|&f| !formula_role_valid(f)) {
+        return Err(format!("Formula role was expected to be one of 
+                            'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture' instead of {}", 
+                            get_formula_role(f)));
+    } 
+    
+    Ok(f_list.into_iter().map(|f| annotated_to_normal_formula_single(f)).collect())
+}
+
+/// Strips all annotations from a single formula.
+fn annotated_to_normal_formula_single(f: AnnotatedFormula) -> ParserFormula {
+    match f { 
+        AnnotatedFormula::Cnf(cnf_f) => cnf_f.2
+    }
+}
+
+/// Hack to get access to the formula role string.
+fn get_formula_role(f: &AnnotatedFormula) -> String {
+    match *f { 
+        AnnotatedFormula::Cnf(ref cnf_f) => cnf_f.1.clone()
+    }
+}
+
+/// Checks if the formula role the given annotated formula has is valid.
+fn formula_role_valid(f: &AnnotatedFormula) -> bool {
+    match *f {
+        AnnotatedFormula::Cnf(ref cnf_f) => formula_role_valid_cnf(&cnf_f.1)
+    }
+}
+
+/// Returns true if the formula role for a CNF formula is valid.
+fn formula_role_valid_cnf(s: &str) -> bool {
+    s == "axiom" || s == "hypothesis" || s == "definition" || s == "assumption" ||
+    s == "lemma" || s == "theorem" || s == "negated_conjecture"
 }
 
 /// Parses the file at the location given by the string into a CNF AST, if possible.
 pub fn tptp_to_cnf_ast(s: &str) -> Result<(CnfFormula, RenamingInfo), String> { 
-    Ok(tptp_ast_to_cnf_ast(annotated_to_normal_formula(try!(parse_tptp_file(s)))))
+    Ok(tptp_ast_to_cnf_ast(try!(annotated_to_normal_formula(try!(parse_tptp_file(s))))))
 }
 
 fn transform_vec_ast(f_list: Vec<ParserFormula>, ri: &mut RenamingInfo) -> CnfFormula {
