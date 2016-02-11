@@ -22,11 +22,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use parser::tptp_parser::ast::*;
-use parser::tptp_parser::parser_grammar;
 use parser::tptp_parser::parser_grammar::parse_TPTP_file;
-
-/// The type of parser errors returned by the parser.
-pub type ParseError<'a> = parser_grammar::__lalrpop_util::ParseError<usize, (usize, &'a str), ()>;
 
 /// Used for removing all comments from the file parsed in.
 fn remove_comments(s: &str) -> String {
@@ -44,8 +40,7 @@ fn remove_empty_lines(s: &str) -> String {
 }
 
 /// Reads the file at the location given into a String.
-/// Panics if the file is not found etc.
-fn read_file(s: &str) -> String {
+fn read_file(s: &str) -> Result<String, String> {
     let path = Path::new(s);
     let display = path.display();
 
@@ -53,25 +48,23 @@ fn read_file(s: &str) -> String {
     let mut file = match File::open(&path) {
         // The `description` method of `io::Error` returns a string that
         // describes the error
-        Err(why) => panic!("couldn't open {}: {}", display,
-                                                   Error::description(&why)),
+        Err(why) => return Err(format!("couldn't open {}: {}", display, Error::description(&why))),
         Ok(file) => file,
     };
 
     // Read the file contents into a string, returns `io::Result<usize>`
     let mut f = String::new();
     match file.read_to_string(&mut f) {
-        Err(why) => panic!("couldn't read {}: {}", display,
-                                                   Error::description(&why)),
-        Ok(_) => f,
+        Err(why) => return Err(format!("couldn't read {}: {}", display, Error::description(&why))),
+        Ok(_) => Ok(f),
     }
 }
 
 /// Reads the file at the location given into a String, and preprocesses it into a more suitable form for the parser.
-fn read_and_preprocess_file(s: &str) -> String {
-    let s2 = read_file(s);
+fn read_and_preprocess_file(s: &str) -> Result<String, String> {
+    let s2 = try!(read_file(s));
     let s3 = remove_comments(&s2);
-    remove_empty_lines(&s3)
+    Ok(remove_empty_lines(&s3))
 }
 
 /// Hacky way to see if an annotated formula has the same name as some string.
@@ -80,31 +73,30 @@ fn annotated_formula_names_match(af: &AnnotatedFormula, s: &str) -> bool {
 }
 
 /// Handles an include directive. Includes work pretty much like in C, just paste the file to where the include was.
-fn handle_include(incl: Include) -> Vec<AnnotatedFormula> {
-    let include_file = parse_tptp_file(&incl.0);
+fn handle_include(incl: Include) -> Result<Vec<AnnotatedFormula>, String> {
+    let include_file = try!(parse_tptp_file(&incl.0));
     if let Some(formulae) = incl.1 {
-        include_file.into_iter().filter(|input| formulae.iter().any(|s| annotated_formula_names_match(input, s))).collect()
+        Ok(include_file.into_iter().filter(|input| formulae.iter().any(|s| annotated_formula_names_match(input, s))).collect())
     } else {
-        include_file
+        Ok(include_file)
     }
 }
 
 /// Parses a file in TPTP format to a vector of annotated formulae.
-/// Panics if no file is found, or if the parsing fails.
-pub fn parse_tptp_file(s: &str) -> Vec<AnnotatedFormula> {
-    let preprocessed_file = read_and_preprocess_file(s);
-    let parsed_file = parse_TPTP_file(&preprocessed_file).expect("Parsing failed!");
+pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
+    let preprocessed_file = try!(read_and_preprocess_file(s));
+    let parsed_file = try!(parse_TPTP_file(&preprocessed_file).map_err(|x| format!("{:?}", x)));
     
     // Handle all includes.
     let mut formulas = Vec::<AnnotatedFormula>::new(); 
     for input in parsed_file.into_iter() {
         match input {
             TptpInput::AnnForm(f) => formulas.push(f),
-            TptpInput::Incl(i) => formulas.append(&mut handle_include(i)),
+            TptpInput::Incl(i) => formulas.append(&mut try!(handle_include(i))),
         }
     }
     
-    formulas
+    Ok(formulas)
 }
 
 #[cfg(test)]

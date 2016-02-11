@@ -39,8 +39,8 @@ fn annotated_to_normal_formula(f_list: Vec<AnnotatedFormula>) -> Vec<ParserFormu
 }
 
 /// Parses the file at the location given by the string into a CNF AST, if possible.
-pub fn tptp_to_cnf_ast(s: &str) -> (CnfFormula, RenamingInfo) { 
-    tptp_ast_to_cnf_ast(annotated_to_normal_formula(parse_tptp_file(s)))
+pub fn tptp_to_cnf_ast(s: &str) -> Result<(CnfFormula, RenamingInfo), String> { 
+    Ok(tptp_ast_to_cnf_ast(annotated_to_normal_formula(try!(parse_tptp_file(s)))))
 }
 
 fn transform_vec_ast(f_list: Vec<ParserFormula>, ri: &mut RenamingInfo) -> CnfFormula {

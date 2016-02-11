@@ -263,7 +263,10 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering 
 /// Then there is the option for not negating the input clause if we are more interested in satisfiability.
 pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_time_in_s: u64, tptp_format: bool) -> (ProofAttemptResult, ProofStatistics) {
     let (parsed_formula, mut renaming_info) = if tptp_format {
-                                                  tptp_to_cnf_ast(s)
+                                                  match tptp_to_cnf_ast(s) {
+                                                      Ok(res) => res,
+                                                      Err(_) => { return (ProofAttemptResult::Error, ProofStatistics::new()); },
+                                                  }
                                               } else {
                                                   match internal_to_cnf_ast(s) {
                                                       Ok(res) => res,
