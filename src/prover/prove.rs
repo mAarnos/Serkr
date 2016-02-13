@@ -142,7 +142,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
         // Check if the clause is redundant in some way. If it is no need to process it more.
         if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
             stats.bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
-        
+            proof_state.add_to_used(chosen_clause.clone()); 
             rename_clause(&mut chosen_clause, &mut var_cnt);
             
             let mut inferred_clauses = Vec::new();
@@ -164,9 +164,6 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
                     stats.trivial_count += 1;
                 }
             }
-            
-            // Not quite sure if this should be here or before. Doesn't _seem_ incomplete due to this.
-            proof_state.add_to_used(chosen_clause); 
         } else {
             stats.fs_count += 1;
         }
@@ -277,7 +274,8 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_tim
                     cnf(Formula::Not(Box::new(parsed_formula)), &mut renaming_info)
                 } else {
                     cnf(parsed_formula, &mut renaming_info)
-                };                    
+                };
+                
     if cnf_f == Formula::False {
         (ProofAttemptResult::Refutation, ProofStatistics::new())
     } else if cnf_f == Formula::True {

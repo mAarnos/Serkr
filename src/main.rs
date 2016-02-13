@@ -50,7 +50,7 @@ pub mod prover;
 
 fn main() {
     let matches = clap::App::new("Serkr")
-                                .version("0.1.0")
+                                .version(crate_version!())
                                 .author("Mikko Aarnos <mikko.aarnos@gmail.com>")
                                 .about("An automated theorem prover for first order logic with equality")
                                 .args_from_usage("<INPUT> 'The TPTP file the program should analyze'
@@ -67,7 +67,7 @@ fn main() {
                                     .conflicts_with("lpo"))
                                 .get_matches();
                                 
-    println!("Serkr 0.1.0, (C) 2015-2016 Mikko Aarnos");
+    println!("Serkr {}, (C) 2015-2016 Mikko Aarnos", crate_version!());
                                  
     let input_file = matches.value_of("INPUT").unwrap();
     let use_lpo = matches.is_present("lpo");
