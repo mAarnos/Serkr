@@ -55,7 +55,7 @@ fn read_file(s: &str) -> Result<String, String> {
     // Read the file contents into a string, returns `io::Result<usize>`
     let mut f = String::new();
     match file.read_to_string(&mut f) {
-        Err(why) => return Err(format!("couldn't read {}: {}", display, Error::description(&why))),
+        Err(why) => Err(format!("couldn't read {}: {}", display, Error::description(&why))),
         Ok(_) => Ok(f),
     }
 }

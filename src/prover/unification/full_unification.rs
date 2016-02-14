@@ -41,31 +41,29 @@ fn unify(s: &Term, t: &Term) -> Option<Substitution> {
         } else if eq1.is_function() {
             // swap
             eqs.push((eq2, eq1));
+        } else if eq2.occurs(&eq1) {
+            return None; // check
         } else {
-            if eq2.occurs(&eq1) {
-                return None; // check
-            } else {
-                // Can't unify between two different sorts.
-                if eq2.is_special_function() {
-                    return None;
-                }
-                
-                // eliminate
-                // We soon add a mapping of the form eq1 |-> eq2.
-                // We might have mappings of the form x |-> eq1 which need to be fixed to x |-> eq2.
-                for (_, v) in env.iter_mut() {
-                    v.subst_single(&eq1, &eq2);
-                }
-                
-                // Then eliminate all occurences of eq1.
-                for eq in &mut eqs {
-                    eq.0.subst_single(&eq1, &eq2);
-                    eq.1.subst_single(&eq1, &eq2);
-                }
-                
-                // And finally add the new mapping.
-                env.insert(eq1, eq2);
+            // Can't unify between two different sorts.
+            if eq2.is_special_function() {
+                return None;
             }
+                
+            // eliminate
+            // We soon add a mapping of the form eq1 |-> eq2.
+            // We might have mappings of the form x |-> eq1 which need to be fixed to x |-> eq2.
+            for (_, v) in env.iter_mut() {
+                v.subst_single(&eq1, &eq2);
+            }
+                
+            // Then eliminate all occurences of eq1.
+            for eq in &mut eqs {
+                eq.0.subst_single(&eq1, &eq2);
+                eq.1.subst_single(&eq1, &eq2);
+            }
+                
+            // And finally add the new mapping.
+            env.insert(eq1, eq2);
         }
     }
     

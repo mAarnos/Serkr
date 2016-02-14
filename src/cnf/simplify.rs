@@ -87,10 +87,9 @@ fn simplify_or(f1: Formula, f2: Formula) -> Formula {
 fn simplify_implies(f1: Formula, f2: Formula) -> Formula {
     let simplified_f = (simplify(f1), simplify(f2));
     match simplified_f {
-        (_, Formula::True) => Formula::True,
+        (_, Formula::True) | (Formula::False, _) => Formula::True,
         (Formula::True, p) => p,
         (p, Formula::False) => simplify(Formula::Not(Box::new(p))),
-        (Formula::False, _) => Formula::True,
         (p, q) => if p == q { Formula::True } else { Formula::Implies(Box::new(p), Box::new(q)) },
     }
 }
@@ -133,16 +132,13 @@ fn is_simplified(f: &Formula) -> bool {
 /// Used for checking if a formula contains "true" or "false".
 fn contains_true_or_false(f: &Formula) -> bool {
     match *f {
-        Formula::True => true,
-        Formula::False => true,
+        Formula::True | Formula::False => true,
         Formula::Predicate(_, _) => false,
-        Formula::Not(ref p) => contains_true_or_false(p),
         Formula::And(ref p, ref q) | 
         Formula::Or(ref p, ref q) |
         Formula::Implies(ref p, ref q) | 
         Formula::Equivalent(ref p, ref q) => contains_true_or_false(p) || contains_true_or_false(q), 
-        Formula::Forall(_, ref p) | 
-        Formula::Exists(_, ref p) => contains_true_or_false(p),
+        Formula::Not(ref p) | Formula::Forall(_, ref p) | Formula::Exists(_, ref p) => contains_true_or_false(p),
     }
 }
 

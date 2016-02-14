@@ -32,9 +32,10 @@ pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
 fn collect(f: Formula) -> Vec<Clause> {
     match f {
         Formula::Predicate(s, args) => vec!(Clause::new(vec!(create_literal(false, s, args)))),
-        Formula::Not(p) => match *p {
-                               Formula::Predicate(ref s, ref args) =>  vec!(Clause::new(vec!(create_literal(true, s.clone(), args.clone())))),
-                               _ => panic!("The CNF transformation failed due to some kind of a bug")
+        Formula::Not(p) => if let Formula::Predicate(ref s, ref args) = *p {
+                               vec!(Clause::new(vec!(create_literal(true, s.clone(), args.clone()))))
+                           } else {
+                               panic!("The CNF transformation failed due to some kind of a bug")
                            },
         Formula::Or(_, _) => vec!(collect_or(f)),
         Formula::And(p, q) => { let mut left = collect(*p); left.append(&mut collect(*q)); left }
@@ -46,9 +47,10 @@ fn collect(f: Formula) -> Vec<Clause> {
 fn collect_or(f: Formula) -> Clause {
     match f {
         Formula::Predicate(s, args) => Clause::new(vec!(create_literal(false, s, args))),
-        Formula::Not(p) => match *p {
-                               Formula::Predicate(ref s, ref args) =>  Clause::new(vec!(create_literal(true, s.clone(), args.clone()))),
-                               _ => panic!("The CNF transformation failed due to some kind of a bug")
+        Formula::Not(p) => if let Formula::Predicate(ref s, ref args) = *p {
+                               Clause::new(vec!(create_literal(true, s.clone(), args.clone())))
+                           } else {
+                               panic!("The CNF transformation failed due to some kind of a bug")
                            },
         Formula::Or(p, q) => { let mut left = collect_or(*p); left.add_literals(collect_or(*q)); left }
         _ => panic!("The CNF transformation failed due to some kind of a bug")

@@ -37,7 +37,7 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
-#![cfg_attr(feature="clippy", allow(result_unwrap_used))]
+#![cfg_attr(feature="clippy", allow(result_unwrap_used, print_stdout, use_debug))]
 
 #[macro_use]
 extern crate clap;
@@ -66,10 +66,10 @@ fn main() {
                                     .long("kbo") 
                                     .conflicts_with("lpo"))
                                 .get_matches();
-                                
+    
     println!("Serkr {}, (C) 2015-2016 Mikko Aarnos", crate_version!());
                                  
-    let input_file = matches.value_of("INPUT").unwrap();
+    let input_file = matches.value_of("INPUT").expect("This should always be OK");
     let use_lpo = matches.is_present("lpo");
     let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
     let (proof_result, proof_statistics) = prover::prove::prove_tptp(&input_file, use_lpo, time_limit);

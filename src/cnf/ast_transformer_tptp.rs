@@ -40,7 +40,7 @@ fn annotated_to_normal_formula(f_list: Vec<AnnotatedFormula>) -> Result<Vec<Pars
                             get_formula_role(f)));
     } 
     
-    Ok(f_list.into_iter().map(|f| annotated_to_normal_formula_single(f)).collect())
+    Ok(f_list.into_iter().map(annotated_to_normal_formula_single).collect())
 }
 
 /// Strips all annotations from a single formula.

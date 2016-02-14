@@ -178,23 +178,21 @@ impl Debug for Term {
     fn fmt(&self, formatter: &mut Formatter) -> Result<(), Error> {
         if self.get_id() == 0 {
             write!(formatter, "T")
-        } else {
-            if self.is_function() {
-                if self.get_arity() == 0 {
-                    write!(formatter, "c_{}", self.get_id())
-                } else {
-                    try!(write!(formatter, "f_{}(", self.get_id()));
-                    for (i, st) in self.iter().enumerate() {
-                        try!(write!(formatter, "{:?}", st));
-                        if i != self.get_arity() - 1 {
-                            try!(write!(formatter, ", "));
-                        }    
-                    }
-                    write!(formatter, ")")
-                }
+        } else if self.is_function() {
+            if self.get_arity() == 0 {
+                write!(formatter, "c_{}", self.get_id())
             } else {
-                write!(formatter, "x_{}", -self.get_id())
+                try!(write!(formatter, "f_{}(", self.get_id()));
+                for (i, st) in self.iter().enumerate() {
+                    try!(write!(formatter, "{:?}", st));
+                    if i != self.get_arity() - 1 {
+                        try!(write!(formatter, ", "));
+                    }    
+                }
+                write!(formatter, ")")
             }
+        } else {
+            write!(formatter, "x_{}", -self.get_id())
         }
     }
 }

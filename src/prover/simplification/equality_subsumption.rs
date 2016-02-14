@@ -23,24 +23,20 @@ use prover::unification::matching::match_term_pairs;
 /// Checks if the equation s = t equality subsumes u = v.
 // TODO: remove pub, rename into something more suited.
 pub fn eqn_subsumes_eqn(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
-    if u == v {
+    if u == v || match_term_pairs(s, t, u, v) {
         true
-    } else if match_term_pairs(s, t, u, v) {
+    } else if u.is_function() && u.get_id() == v.get_id() {
+        assert_eq!(u.get_arity(), v.get_arity());
+            
+        for i in 0..u.get_arity() {
+            if !eqn_subsumes_eqn(s, t, &u[i], &v[i]) {
+                return false;
+            }
+        }
+            
         true
     } else {
-        if u.is_function() && u.get_id() == v.get_id() {
-            assert_eq!(u.get_arity(), v.get_arity());
-            
-            for i in 0..u.get_arity() {
-                if !eqn_subsumes_eqn(s, t, &u[i], &v[i]) {
-                    return false;
-                }
-            }
-            
-            true
-        } else {
-            false
-        }
+        false
     }
 }
 
