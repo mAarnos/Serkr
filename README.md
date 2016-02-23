@@ -8,7 +8,7 @@ Note that the development of Serkr is still in its early stages. As such, it has
 
 ## Usage
 
-Serkr analyzes problems files in the TPTP format. Some (mostly easy, and only CNF) example problems can be found, unsurprisingly, in the folder 'examples'. More information on TPTP can be found at http://www.cs.miami.edu/~tptp/.
+Serkr analyzes problems files in the TPTP format. Some (mostly easy and CNF) example problems can be found, unsurprisingly, in the folder 'examples'. More information on TPTP can be found at http://www.cs.miami.edu/~tptp/.
 
 Typical usage might be something like this:
 
