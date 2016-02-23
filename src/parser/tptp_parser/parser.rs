@@ -69,7 +69,10 @@ fn read_and_preprocess_file(s: &str) -> Result<String, String> {
 
 /// Hacky way to see if an annotated formula has the same name as some string.
 fn annotated_formula_names_match(af: &AnnotatedFormula, s: &str) -> bool {
-    match *af { AnnotatedFormula::Cnf(ref f) => f.0 == s } 
+    match *af { 
+        AnnotatedFormula::Cnf(ref f) | 
+        AnnotatedFormula::Fof(ref f) => f.0 == s,
+    } 
 }
 
 /// Handles an include directive. Includes work pretty much like in C, just paste the file to where the include was.

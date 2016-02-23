@@ -12,15 +12,87 @@ TPTP_input: TptpInput = {
 };
 
 annotated_formula: AnnotatedFormula = {
-    <c: cnf_annotated> => AnnotatedFormula::Cnf(c)
+    <c: cnf_annotated> => AnnotatedFormula::Cnf(c),
+    <f: fof_annotated> => AnnotatedFormula::Fof(f)
 };
 
 pub cnf_annotated: CnfAnnotated = {
     "cnf" "(" <n: name> "," <fr: formula_role> "," <f: cnf_formula> ")" "." => (n, fr, f)
 };
 
+pub fof_annotated: FofAnnotated = {
+    "fof" "(" <n: name> "," <fr: formula_role> "," <f: fof_formula> ")" "." => (n, fr, f)
+};
+
 formula_role: String = {
     lower_word
+};
+
+fof_formula: Formula = {
+    fof_logic_formula
+};
+
+fof_logic_formula: Formula = {
+    fof_binary_formula,
+    fof_unitary_formula
+};
+
+fof_binary_formula: Formula = {
+    fof_binary_nonassoc,
+    fof_binary_assoc
+};
+
+fof_binary_nonassoc: Formula = {
+    <f1: fof_unitary_formula> <s: binary_connective> <f2: fof_unitary_formula> => match &*s {
+                                                                                      "<=>" => Formula::Equivalent(Box::new(f1), Box::new(f2)),
+                                                                                      "=>" => Formula::Implies(Box::new(f1), Box::new(f2)),
+                                                                                      "<=" => Formula::Equivalent(Box::new(f2), Box::new(f1)),
+                                                                                      "<~>" => Formula::Not(Box::new(Formula::Equivalent(Box::new(f1), Box::new(f2)))),
+                                                                                      "~|" => Formula::Not(Box::new(Formula::Or(Box::new(f1), Box::new(f2)))),
+                                                                                      "~&" => Formula::Not(Box::new(Formula::Or(Box::new(f1), Box::new(f2)))),
+                                                                                      _ => panic!("Should not be possible")
+                                                                                  }
+};
+
+fof_binary_assoc: Formula = {
+    fof_or_formula,
+    fof_and_formula
+};
+
+fof_or_formula: Formula = {
+    <f1: fof_unitary_formula> "|" <f2: fof_unitary_formula> => Formula::Or(Box::new(f1), Box::new(f2)),
+    <f1: fof_or_formula> "|" <f2: fof_unitary_formula> => Formula::Or(Box::new(f1), Box::new(f2)),
+};
+
+fof_and_formula: Formula = {
+    <f1: fof_unitary_formula> "&" <f2: fof_unitary_formula> => Formula::And(Box::new(f1), Box::new(f2)),
+    <f1: fof_and_formula> "&" <f2: fof_unitary_formula> => Formula::And(Box::new(f1), Box::new(f2)),
+};
+
+fof_unitary_formula: Formula = {
+    fof_quantified_formula,
+    fof_unary_formula,
+    atomic_formula,
+    "(" <f: fof_logic_formula> ")" => f
+};
+
+fof_quantified_formula: Formula = {
+    <s: fol_quantifier> "[" <l: fof_variable_list> "]" ":" <f: fof_unitary_formula> => l.into_iter()
+                                                                                        .fold(f, |acc, x| match &*s {
+                                                                                                              "!" => Formula::Forall(x, Box::new(acc)),
+                                                                                                              "?" => Formula::Exists(x, Box::new(acc)),
+                                                                                                              _ => panic!("Should not be possible")
+                                                                                                          })
+};
+
+fof_variable_list: Vec<String> = {
+    <v: variable> => vec!(v),
+    <v: variable> "," <vs: fof_variable_list> => { let mut vs = vs; vs.insert(0, v); vs }
+};
+
+fof_unary_formula: Formula = {
+    unary_connective <f: fof_unitary_formula> => Formula::Not(Box::new(f)),
+    fol_infix_unary
 };
 
 cnf_formula: Formula = {
@@ -41,6 +113,29 @@ literal: Formula = {
 
 fol_infix_unary: Formula = {
     <t1: term> infix_inequality <t2: term> => Formula::Not(Box::new(Formula::Predicate("=".to_string(), vec!(t1, t2))))
+};
+
+fol_quantifier: String = {
+    <s: "!"> => s.to_string(),
+    <s: "?"> => s.to_string(),
+};
+
+binary_connective: String = {
+    <s: "<=>"> => s.to_string(),
+    <s: "=>"> => s.to_string(),
+    <s: "<="> => s.to_string(),
+    <s: "<~>"> => s.to_string(),
+    <s: "~|"> => s.to_string(),
+    <s: "~&"> => s.to_string(),
+};
+
+assoc_connective: String = {
+    <s: "|"> => s.to_string(),
+    <s: "&"> => s.to_string(),
+};
+
+unary_connective: String = {
+    <s: "~"> => s.to_string(),
 };
 
 atomic_formula: Formula = {

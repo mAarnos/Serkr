@@ -49,10 +49,32 @@ use utils::stopwatch::Stopwatch;
 #[derive(Eq, PartialEq, Clone, Debug)]
 #[allow(missing_docs)]
 pub enum ProofAttemptResult {
+    Theorem,
+    CounterSatisfiable,
     Unsatisfiable,
     Satisfiable,
     Timeout,
     Error(String),
+}
+
+impl ProofAttemptResult {
+    /// If the formula to prove contains conjectures, we should report Theorem instead of Unsatisfiable.
+    fn new_refutation(contains_conjectures: bool) -> ProofAttemptResult {
+        if contains_conjectures {
+            ProofAttemptResult::Theorem
+        } else {
+            ProofAttemptResult::Unsatisfiable
+        }
+    }
+    
+    /// If the formula to prove contains conjectures, we should report Countersatisfiable instead of Satisfiable.
+    fn new_saturation(contains_conjectures: bool) -> ProofAttemptResult {
+        if contains_conjectures {
+            ProofAttemptResult::CounterSatisfiable
+        } else {
+            ProofAttemptResult::Satisfiable
+        }
+    }
 }
 
 /// Rename a clause so that it contains no variables in common with any other clause we currently have.
@@ -97,7 +119,7 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 
 /// The main proof search loop.
 /// Note that we use the DISCOUNT version of the given clause algorithm.
-fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64) -> (ProofAttemptResult, ProofStatistics) {
+fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64, contains_conjectures: bool) -> (ProofAttemptResult, ProofStatistics) {
     let mut sw = Stopwatch::new();
     let mut stats = ProofStatistics::new();
     let mut ms_count = 1000;
@@ -135,7 +157,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
         
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
-            return (ProofAttemptResult::Unsatisfiable, stats);
+            return (ProofAttemptResult::new_refutation(contains_conjectures), stats);
         }
         
         // Check if the clause is redundant in some way. If it is no need to process it more.
@@ -168,7 +190,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
         }
     }
     
-    (ProofAttemptResult::Satisfiable, stats)
+    (ProofAttemptResult::new_saturation(contains_conjectures), stats)
 }
 
 /// Try to simplify, delete tautologies and remove subsumed clauses from those clauses passed in.
@@ -258,33 +280,33 @@ fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering 
 /// First we can decide whether we want to use LPO or KBO.
 /// Then there is the option for not negating the input clause if we are more interested in satisfiability.
 pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_time_in_s: u64, tptp_format: bool) -> (ProofAttemptResult, ProofStatistics) {
-    let (parsed_formula, mut renaming_info) = if tptp_format {
-                                                  match tptp_to_cnf_ast(s) {
-                                                      Ok(res) => res,
-                                                      Err(s) => { return (ProofAttemptResult::Error(s), ProofStatistics::new()); },
-                                                  }
-                                              } else {
-                                                  match internal_to_cnf_ast(s) {
-                                                      Ok(res) => res,
-                                                      Err(s) => { return (ProofAttemptResult::Error(format!("{:?}", s)), ProofStatistics::new()); },
-                                                  }
-                                              };
-    let cnf_f = if negate_input_formula { 
+    let (parsed_formula, mut renaming_info, contains_conjectures) = if tptp_format {
+                                                                          match tptp_to_cnf_ast(s) {
+                                                                              Ok(res) => res,
+                                                                              Err(s) => { return (ProofAttemptResult::Error(s), ProofStatistics::new()); },
+                                                                          }
+                                                                    } else {
+                                                                        match internal_to_cnf_ast(s) {
+                                                                            Ok(res) => (res.0, res.1, false),
+                                                                            Err(s) => { return (ProofAttemptResult::Error(format!("{:?}", s)), ProofStatistics::new()); },
+                                                                        }
+                                                                    };
+    let cnf_f = if negate_input_formula || contains_conjectures { 
                     cnf(Formula::Not(Box::new(parsed_formula)), &mut renaming_info)
                 } else {
                     cnf(parsed_formula, &mut renaming_info)
                 };
                 
     if cnf_f == Formula::False {
-        (ProofAttemptResult::Unsatisfiable, ProofStatistics::new())
+        (ProofAttemptResult::new_refutation(contains_conjectures), ProofStatistics::new())
     } else if cnf_f == Formula::True {
-        (ProofAttemptResult::Satisfiable, ProofStatistics::new())
+        (ProofAttemptResult::new_saturation(contains_conjectures), ProofStatistics::new())
     } else {
         let flattened_cnf_f = flatten_cnf(cnf_f);
         let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
         let term_ordering = create_term_ordering(use_lpo, &preprocessed_problem);
         let proof_state = ProofState::new(preprocessed_problem, term_ordering);
-        serkr_loop(proof_state, renaming_info.var_cnt, max_time_in_s * 1000)
+        serkr_loop(proof_state, renaming_info.var_cnt, max_time_in_s * 1000, contains_conjectures)
     }
 }
 

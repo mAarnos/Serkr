@@ -27,20 +27,21 @@ pub enum TptpInput {
 #[derive(Debug)]
 #[allow(missing_docs)]
 pub enum AnnotatedFormula {
-    Cnf(CnfAnnotated)
+    Cnf(CnfAnnotated),
+    Fof(FofAnnotated)
 }
 
 /// The first part is the name, the second is the formula role, the third is the actual formula.
 /// The fourth part is missing because I don't know what to do with it even if it exists.
 pub type CnfAnnotated = (String, String, Formula);
 
-/// Annotation.
-pub type Annotation = (String, String);
+/// Similar to the above.
+pub type FofAnnotated = (String, String, Formula);
 
 /// The first part is the path, the second optional part is a vector of the names of formulas to take from that file.
 pub type Include = (String, Option<Vec<String>>);
 
-/// Data type for CNF terms. 
+/// Data type for FOL terms. 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 #[allow(missing_docs)]
 pub enum Term {
@@ -48,11 +49,16 @@ pub enum Term {
     Function(String, Vec<Term>)
 }
 
-/// Data type for CNF formulas. 
+/// Data type for FOL formulas. 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 #[allow(missing_docs)]
 pub enum Formula {
     Predicate(String, Vec<Term>),
     Not(Box<Formula>),
+    And(Box<Formula>, Box<Formula>),
     Or(Box<Formula>, Box<Formula>),
+    Implies(Box<Formula>, Box<Formula>),
+    Equivalent(Box<Formula>, Box<Formula>),
+    Forall(String, Box<Formula>),
+    Exists(String, Box<Formula>),
 }
