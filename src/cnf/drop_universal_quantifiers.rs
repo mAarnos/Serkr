@@ -35,12 +35,10 @@ pub fn drop_universal_quantifiers0(f: Formula) -> Formula {
 /// Checks if the formula contains universal quantifiers.
 fn contains_universal_quantifiers(f: &Formula) -> bool {
     match *f {
-        Formula::And(ref p, ref q) | 
-        Formula::Or(ref p, ref q) => contains_universal_quantifiers(p) && 
-                                     contains_universal_quantifiers(q),
+        Formula::And(ref l) | 
+        Formula::Or(ref l) => l.into_iter().any(contains_universal_quantifiers),
         Formula::Forall(_, _) => true,
-        _ => false,
-        
+        _ => false,    
     }
 }
 

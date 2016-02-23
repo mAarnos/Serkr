@@ -68,11 +68,16 @@ fn main() {
                                 .get_matches();
     
     println!("Serkr {}, (C) 2015-2016 Mikko Aarnos", crate_version!());
-                                 
-    let input_file = matches.value_of("INPUT").expect("This should always be OK");
-    let use_lpo = matches.is_present("lpo");
-    let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
-    let (proof_result, proof_statistics) = prover::prove::prove_tptp(&input_file, use_lpo, time_limit);
+                 
+    // Hack to get around the parser/CNF transformer from crashing due to stack overflow when analyzing very large files.            
+    let child = std::thread::Builder::new().stack_size(32 * 1024 * 1024).spawn(move || {
+        let input_file = matches.value_of("INPUT").expect("This should always be OK");
+        let use_lpo = matches.is_present("lpo");
+        let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
+        return prover::prove::prove_tptp(&input_file, use_lpo, time_limit);
+    }).unwrap();
+
+    let (proof_result, proof_statistics) = child.join().unwrap();
 
     println!("{:?}", proof_result);
     println!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);

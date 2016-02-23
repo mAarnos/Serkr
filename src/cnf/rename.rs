@@ -21,8 +21,8 @@ use cnf::ast::{Term, Formula};
 pub fn rename(f: Formula, n: &mut i64) -> Formula {
     match f {
         Formula::Not(p) => Formula::Not(Box::new(rename(*p, n))),
-        Formula::And(p, q) => Formula::And(Box::new(rename(*p, n)), Box::new(rename(*q, n))),
-        Formula::Or(p, q) => Formula::Or(Box::new(rename(*p, n)), Box::new(rename(*q, n))),
+        Formula::And(l) => Formula::And(l.into_iter().map(|x| rename(x, n)).collect()),
+        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| rename(x, n)).collect()),
         Formula::Forall(id, p) => rename_quantifier(id, *p, n, true),
         Formula::Exists(id, p) => rename_quantifier(id, *p, n, false),
         _ => f
@@ -46,8 +46,8 @@ fn rename_variable(f: Formula, from: i64, to: i64) -> Formula {
     match f {
         Formula::Predicate(id, terms) => Formula::Predicate(id, terms.into_iter().map(|t| rename_variable_in_term(t, from, to)).collect()),
         Formula::Not(p) => Formula::Not(Box::new(rename_variable(*p, from, to))),
-        Formula::And(p, q) => Formula::And(Box::new(rename_variable(*p, from, to)), Box::new(rename_variable(*q, from, to))),
-        Formula::Or(p, q) => Formula::Or(Box::new(rename_variable(*p, from, to)), Box::new(rename_variable(*q, from, to))),
+        Formula::And(l) => Formula::And(l.into_iter().map(|x| rename_variable(x, from, to)).collect()),
+        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| rename_variable(x, from, to)).collect()),
         Formula::Forall(id, p) => Formula::Forall(if id == from { to } else { id }, Box::new(rename_variable(*p, from, to))),
         Formula::Exists(id, p) => Formula::Exists(if id == from { to } else { id }, Box::new(rename_variable(*p, from, to))),
         _ => f

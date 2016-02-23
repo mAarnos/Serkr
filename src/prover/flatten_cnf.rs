@@ -25,11 +25,10 @@ use cnf::ast::Formula;
 /// Also converts the formula into pure equational logic.
 /// We assume that the trivial cases of a formula being just True and False have been handled already.
 pub fn flatten_cnf(f: Formula) -> Vec<Clause> {
-    collect(f)
+    transform(f)
 }
 
-// TODO: clean this crap up.
-fn collect(f: Formula) -> Vec<Clause> {
+fn transform(f: Formula) -> Vec<Clause> {
     match f {
         Formula::Predicate(s, args) => vec!(Clause::new(vec!(create_literal(false, s, args)))),
         Formula::Not(p) => if let Formula::Predicate(ref s, ref args) = *p {
@@ -37,22 +36,27 @@ fn collect(f: Formula) -> Vec<Clause> {
                            } else {
                                panic!("The CNF transformation failed due to some kind of a bug")
                            },
-        Formula::Or(_, _) => vec!(collect_or(f)),
-        Formula::And(p, q) => { let mut left = collect(*p); left.append(&mut collect(*q)); left }
+        Formula::Or(l) => vec!(Clause::new(l.into_iter()
+                                            .flat_map(transform_or)
+                                            .collect())),
+        Formula::And(l) => l.into_iter()
+                            .flat_map(transform)
+                            .collect(),
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }
 
-// TODO: clean this crap up.
-fn collect_or(f: Formula) -> Clause {
+fn transform_or(f: Formula) -> Vec<Literal> {
     match f {
-        Formula::Predicate(s, args) => Clause::new(vec!(create_literal(false, s, args))),
+        Formula::Predicate(s, args) => vec!(create_literal(false, s, args)),
         Formula::Not(p) => if let Formula::Predicate(ref s, ref args) = *p {
-                               Clause::new(vec!(create_literal(true, s.clone(), args.clone())))
+                               vec!(create_literal(true, s.clone(), args.clone()))
                            } else {
                                panic!("The CNF transformation failed due to some kind of a bug")
                            },
-        Formula::Or(p, q) => { let mut left = collect_or(*p); left.add_literals(collect_or(*q)); left }
+        Formula::Or(l) => l.into_iter()
+                           .flat_map(transform_or)
+                           .collect(),
         _ => panic!("The CNF transformation failed due to some kind of a bug")
     }
 }

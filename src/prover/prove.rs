@@ -190,7 +190,7 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
             newer_clauses.push(cl);
         }
     }
-    
+
     newer_clauses
 }
 

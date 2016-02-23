@@ -28,7 +28,7 @@ pub mod renaming_info;
 /// Contains functions for turning the internal parser AST into the CNF AST.
 pub mod ast_transformer_internal;
 
-/// Contains functions for turning the internal parser AST into the CNF AST.
+/// Contains functions for turning the TPTP parser AST into the CNF AST.
 pub mod ast_transformer_tptp;
 
 mod free_variables;
@@ -40,8 +40,6 @@ mod standard_skolemization;
 mod pull_out_quantifiers;
 mod drop_universal_quantifiers;
 mod distribute_ors_over_ands;
-
-mod miniscoping;
 
 /// Contains a naive version of the CNF transformation algorithm. 
 pub mod naive_cnf;

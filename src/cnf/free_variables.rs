@@ -24,13 +24,13 @@ pub fn free_in(f: &Formula, t: &Term) -> bool {
         Formula::True | Formula::False => false,
         Formula::Predicate(_, ref args) => args.iter().any(|x| occurs_in(x, t)),
         Formula::Not(ref p) => free_in(p, t),
-        Formula::And(ref p, ref q) | Formula::Or(ref p, ref q) | 
+        Formula::And(ref l) | Formula::Or(ref l) => l.iter().any(|x| free_in(x, t)),
         Formula::Implies(ref p, ref q) | Formula::Equivalent(ref p, ref q) => free_in(p, t) || free_in(q, t),
         Formula::Forall(id, ref p) | Formula::Exists(id, ref p) => !occurs_in(&Term::Variable(id), t) && free_in(p, t),
     }
 }
 
-/// Used for checking if a term s occurs as a subterm in a term t.
+/// Used for checking if a term s occurs in a term t.
 pub fn occurs_in(t: &Term, s: &Term) -> bool {
     t == s || match *t {
         Term::Variable(_) => false,
@@ -44,7 +44,7 @@ pub fn fv(f: &Formula) -> HashSet<i64> {
         Formula::True | Formula::False => HashSet::new(),
         Formula::Predicate(_, ref params) => params.iter().flat_map(fvt).collect(),
         Formula::Not(ref p) => fv(p),
-        Formula::And(ref p, ref q) | Formula::Or(ref p, ref q) | 
+        Formula::And(ref l) | Formula::Or(ref l) => l.iter().flat_map(|x| fv(x)).collect(),
         Formula::Implies(ref p, ref q) | Formula::Equivalent (ref p, ref q) => fv(p).union(&fv(q)).cloned().collect(),
         Formula::Forall(id, ref p) | Formula::Exists(id, ref p) => { let mut lhs = fv(p); lhs.remove(&id); lhs },
     }
@@ -53,19 +53,41 @@ pub fn fv(f: &Formula) -> HashSet<i64> {
 /// Get the free variables of a term.
 pub fn fvt(t: &Term) -> HashSet<i64> {
     match *t {
-        Term::Variable(id) => { let mut set = HashSet::new(); set.insert(id); set },
+        Term::Variable(id) => { assert!(id < 0); let mut set = HashSet::new(); set.insert(id); set },
         Term::Function(_, ref params) => params.iter().flat_map(fvt).collect(),
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::fv;
+    use super::{fv, free_in};
     use cnf::ast_transformer_internal::internal_to_cnf_ast;
+    use cnf::ast::Term;
     
     // These tests aren't really that robust.
     // If they fail the most likely reason is some change to the parser.
-    // TODO: add tests for free_in
+    
+    #[test]
+    fn free_in_1() {
+        let (f, _) = internal_to_cnf_ast("forall x. P(f(x, y))").unwrap();
+        let x = Term::Variable(-1);
+        let y = Term::Variable(-2);
+        assert!(!free_in(&f, &x));
+        assert!(free_in(&f, &y));
+    }
+    
+    #[test]
+    fn free_in_2() {
+        let (f, _) = internal_to_cnf_ast("forall x. forall y. ((P(x) ==> Q(y, z)) /\\ R(f(f(t))))").unwrap();
+        let x = Term::Variable(-1);
+        let y = Term::Variable(-2);
+        let z = Term::Variable(-3);
+        let t = Term::Variable(-4);
+        assert!(!free_in(&f, &x));
+        assert!(!free_in(&f, &y));
+        assert!(free_in(&f, &z));
+        assert!(free_in(&f, &t));
+    }
     
     #[test]
     fn fv_1() {
