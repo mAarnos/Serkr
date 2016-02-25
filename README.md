@@ -1,6 +1,6 @@
 # Serkr
 
-[![Build Status](https://magnum.travis-ci.com/mAarnos/Serkr.svg?token=HMFpRrzM3KdB6xUib4rx&branch=master)](https://magnum.travis-ci.com/mAarnos/Serkr)
+[![Build Status](https://travis-ci.org/mAarnos/Serkr.svg?branch=master)](https://travis-ci.org/mAarnos/Serkr)
 
 Serkr is an experimental automated theorem prover for first order logic with equality. Internally, the proof search uses pure equational logic and performs inferences with a version of the superposition calculus. It also contains a number of fairly standard simplification techniques, e.g. rewriting, subsumption, tautology deletion and deletion of useless literals.
 
