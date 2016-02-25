@@ -195,6 +195,7 @@ fn serkr_loop(mut proof_state: ProofState, mut var_cnt: i64, max_time_in_ms: u64
 
 /// Try to simplify, delete tautologies and remove subsumed clauses from those clauses passed in.
 /// Possibly very costly due to subsumption checks.
+#[allow(dead_code)]
 fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     // Simplify the clauses as much as possible.
     for cl in &mut clauses {
@@ -303,9 +304,10 @@ pub fn prove_general(s: &str, use_lpo: bool, negate_input_formula: bool, max_tim
         (ProofAttemptResult::new_saturation(contains_conjectures), ProofStatistics::new())
     } else {
         let flattened_cnf_f = flatten_cnf(cnf_f);
-        let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
-        let term_ordering = create_term_ordering(use_lpo, &preprocessed_problem);
-        let proof_state = ProofState::new(preprocessed_problem, term_ordering);
+        // Large problems get stuck in preprocessing, so it is not used currently.
+        // let preprocessed_problem = preprocess_clauses(flattened_cnf_f);                
+        let term_ordering = create_term_ordering(use_lpo, &flattened_cnf_f);
+        let proof_state = ProofState::new(flattened_cnf_f, term_ordering);
         serkr_loop(proof_state, renaming_info.var_cnt, max_time_in_s * 1000, contains_conjectures)
     }
 }

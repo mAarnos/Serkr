@@ -25,10 +25,50 @@ use cnf::distribute_ors_over_ands::distribute_ors_over_ands;
 
 /// Turns a formula into CNF.
 pub fn cnf(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
-    let nnf_f = nnf(f);
-    let skolemized_f = skolemize(nnf_f, renaming_info);
-    let quantifier_free_f = drop_universal_quantifiers(pull_out_quantifiers(skolemized_f));
-    distribute_ors_over_ands(quantifier_free_f)
+    if f == Formula::True || f == Formula::False || is_cnf(&f) {
+        f
+    } else {
+        let nnf_f = nnf(f);
+        let skolemized_f = skolemize(nnf_f, renaming_info);
+        let quantifier_free_f = drop_universal_quantifiers(pull_out_quantifiers(skolemized_f));
+        let cnf_f = distribute_ors_over_ands(quantifier_free_f);
+        assert!(cnf_f == Formula::True || cnf_f == Formula::False || is_cnf(&cnf_f));
+        cnf_f
+    }    
+}
+
+/// Tests whether a formula is in CNF.
+fn is_cnf(f: &Formula) -> bool {
+    match *f {
+        Formula::Or(ref l) => l.iter().all(is_disjunction),
+        Formula::And(ref l) => l.iter().all(is_cnf),
+        _ => is_literal(f)
+    }
+}
+
+/// Checks whether a formula is disjunction of literals.
+fn is_disjunction(f: &Formula) -> bool {
+    match *f {
+        Formula::Or(ref l) => l.iter().all(is_disjunction),
+        _ => is_literal(f)
+    }    
+}
+
+/// Checks whether a formula is a literal.
+fn is_literal(f: &Formula) -> bool {
+    match *f {
+        Formula::Predicate(_, _) => true,
+        Formula::Not(ref p) => is_atomic(&p),
+        _ => false
+    }
+}
+
+/// Checks whether a formula is a literal.
+fn is_atomic(f: &Formula) -> bool {
+    match *f {
+        Formula::Predicate(_, _) => true,
+        _ => false
+    }
 }
 
 #[cfg(test)]
