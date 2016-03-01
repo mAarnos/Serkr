@@ -34,8 +34,10 @@ pub mod ast_transformer_tptp;
 mod free_variables;
 
 mod simplify;
+#[allow(dead_code)]
+mod formula_renaming;
 mod nnf;
-mod rename;
+mod variable_renaming;
 mod standard_skolemization;
 mod pull_out_quantifiers;
 mod drop_universal_quantifiers;

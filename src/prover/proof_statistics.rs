@@ -16,7 +16,7 @@
 */
 
 /// Contains statistics for the current proof search.
-#[derive(Eq, PartialEq, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy)]
 pub struct ProofStatistics {
     pub elapsed_ms: u64,
     pub iterations: u64,

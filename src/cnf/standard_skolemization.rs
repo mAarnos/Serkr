@@ -17,7 +17,7 @@
 
 use cnf::ast::{Term, Formula};
 use cnf::renaming_info::RenamingInfo;
-use cnf::rename::rename;
+use cnf::variable_renaming::rename;
 use cnf::free_variables::fv;
 
 /// Eliminates existential quantifiers by replacing them with new skolem functions.

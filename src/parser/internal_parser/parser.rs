@@ -18,12 +18,9 @@
 use parser::internal_parser::parser_grammar;
 use parser::internal_parser::ast::Formula;
 
-/// The type of parser errors returned by the parser.
-pub type ParseError<'a> = parser_grammar::__lalrpop_util::ParseError<usize, (usize, &'a str), ()>;
-
 /// Parses a string into a FOL formula, if possible.
-pub fn parse(s: &str) -> Result<Formula, ParseError> {
-    parser_grammar::parse_Formula(s)
+pub fn parse(s: &str) -> Result<Formula, String> {
+    parser_grammar::parse_Formula(s).map_err(|x| format!("{:?}", x))
 }
 
 #[cfg(test)]

@@ -33,7 +33,7 @@ fn distribute_or(l: Vec<Formula>) -> Formula {
                              .map(distribute_ors_over_ands)
                              .collect::<Vec<_>>();
                          
-    if let Some(i) = distributed_l.iter().position(|x| match x { &Formula::And(_) => true, _ => false }) {
+    if let Some(i) = distributed_l.iter().position(|x| match *x { Formula::And(_) => true, _ => false }) {
         let and_f = distributed_l.swap_remove(i);
         if let Formula::And(and_l) = and_f {
             Formula::And(and_l.into_iter()

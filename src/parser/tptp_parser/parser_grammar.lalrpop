@@ -283,7 +283,7 @@ pub single_quoted: String = {
 };
 
 pub distinct_object: String = {
-    <s: r#"[\"]([^"]|[\]["\])+[\"]"#> => s[1..(s.len() - 1)].to_string()
+    <s: r#"["]([^"]|[\]["\])+["]"#> => s[1..(s.len() - 1)].to_string()
 };
 
 pub dollar_word: String = {

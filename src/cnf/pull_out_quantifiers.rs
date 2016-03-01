@@ -29,7 +29,7 @@ pub fn pull_out_quantifiers(f: Formula) -> Formula {
 
 fn pull_out_quantifiers_and_or(l: Vec<Formula>, and_formula: bool) -> Formula {
     let pulled_out_l = l.into_iter().map(pull_out_quantifiers).collect::<Vec<_>>();
-    let (quantifiers, mut normal): (Vec<_>, Vec<_>) = pulled_out_l.into_iter().partition(|x| match x { &Formula::Forall(_, _) => true, _ => false });
+    let (quantifiers, mut normal): (Vec<_>, Vec<_>) = pulled_out_l.into_iter().partition(|x| match *x { Formula::Forall(_, _) => true, _ => false });
     
     let mut quantifier_list = Vec::new();
     for x in quantifiers.into_iter() {
@@ -45,9 +45,11 @@ fn pull_out_quantifiers_and_or(l: Vec<Formula>, and_formula: bool) -> Formula {
 }
 
 fn handle_quantifier(f: Formula, l: &mut Vec<Formula>, ql: &mut Vec<i64>) {
-    match f {
-        Formula::Forall(id, p) => { ql.push(id); handle_quantifier(*p, l, ql); }
-        _ => { l.push(f); }
+    if let Formula::Forall(id, p) = f {
+        ql.push(id); 
+        handle_quantifier(*p, l, ql);
+    } else {
+        l.push(f);
     }
 }
 

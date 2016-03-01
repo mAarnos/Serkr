@@ -29,12 +29,12 @@ fn tptp_ast_to_cnf_ast(f_list: Vec<AnnotatedFormula>) -> Result<(CnfFormula, Ren
     // Check if any of the formula roles is incorrect.
     // Also, we hit the if let borrow bug again.
     if let Some(f) = f_list.iter().find(|&f| !formula_role_valid(f)) {
-        match f {
-            &AnnotatedFormula::Cnf(_) => return Err(format!("Formula role was expected to be one of 
-                                                            'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture' instead of {}", 
+        match *f {
+            AnnotatedFormula::Cnf(_) => return Err(format!("Formula role was expected to be one of 
+                                                           'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture' instead of {}", 
                                                             get_formula_role(f))),
-            &AnnotatedFormula::Fof(_) => return Err(format!("Formula role was expected to be one of 
-                                                            'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture|conjecture' instead of {}", 
+            AnnotatedFormula::Fof(_) => return Err(format!("Formula role was expected to be one of 
+                                                           'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture|conjecture' instead of {}", 
                                                             get_formula_role(f))),                                               
         }
     }

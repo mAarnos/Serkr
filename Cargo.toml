@@ -8,10 +8,10 @@ exclude = ["examples/*"]
 build = "build.rs" 
 
 [build-dependencies.lalrpop]
-version = "*"
+version = "0.10.0"
 
 [dependencies.lalrpop-util]
-version = "*"
+version = "0.10.0"
 
 [dependencies.time]
 version = "*"
@@ -20,6 +20,9 @@ version = "*"
 version = "*"
 
 [dependencies.clap]
+version = "*"
+
+[dependencies.num]
 version = "*"
 
 [dependencies.clippy]

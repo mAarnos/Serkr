@@ -18,7 +18,7 @@
 use cnf::renaming_info::RenamingInfo;
 use cnf::ast::Term as CnfTerm;
 use cnf::ast::Formula as CnfFormula;
-use parser::internal_parser::parser::{parse, ParseError};
+use parser::internal_parser::parser::parse;
 use parser::internal_parser::ast::Term as ParserTerm;
 use parser::internal_parser::ast::Formula as ParserFormula;
 
@@ -29,13 +29,13 @@ fn internal_ast_to_cnf_ast(f: ParserFormula, mut renaming_info: RenamingInfo) ->
 }
 
 /// Parses the given string into the CNF AST, if possible.
-pub fn internal_to_cnf_ast(s: &str) -> Result<(CnfFormula, RenamingInfo), ParseError> { 
+pub fn internal_to_cnf_ast(s: &str) -> Result<(CnfFormula, RenamingInfo), String> { 
     internal_to_cnf_ast_general(s, RenamingInfo::new())
 }
 
 /// Parses the given string into the CNF AST, if possible.
 /// Uses the given renaming info as a starting point for the IDs.
-pub fn internal_to_cnf_ast_general(s: &str, renaming_info: RenamingInfo) -> Result<(CnfFormula, RenamingInfo), ParseError> { 
+pub fn internal_to_cnf_ast_general(s: &str, renaming_info: RenamingInfo) -> Result<(CnfFormula, RenamingInfo), String> { 
     let f_result = parse(s);
     if let Ok(f) = f_result {
         Ok(internal_ast_to_cnf_ast(f, renaming_info))
