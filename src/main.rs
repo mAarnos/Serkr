@@ -75,7 +75,7 @@ fn main() {
         let input_file = matches.value_of("INPUT").expect("This should always be OK");
         let use_lpo = matches.is_present("lpo");
         let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
-        prover::proof_search::prove(&input_file, use_lpo, time_limit)
+        prover::prove::prove_tptp(&input_file, use_lpo, time_limit)
     }).unwrap();
 
     let (proof_result, proof_statistics) = child.join().unwrap();

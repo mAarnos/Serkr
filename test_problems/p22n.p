@@ -1,1 +1,0 @@
-fof(pelletier_22_negated, conjecture, ( ~ ( ( ! [X] : ( p <=> f(x) ) ) => ( p <=> ! [X] : f(x) ) ) )).

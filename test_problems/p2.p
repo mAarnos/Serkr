@@ -1,1 +1,0 @@
-fof(pelletier_2, conjecture, (~ ~ p <=> p )).

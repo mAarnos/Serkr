@@ -17,30 +17,16 @@
 
 //! Contains the main proof search. 
 
-// TODO: figure out a new name for this, flatten is just not descriptive and is also means something else on top of that.
 mod flatten_cnf;
 
-/// Contains all the simplification rules used by the proof search.
 mod simplification;
-
-/// Contains different term orderings.
 mod ordering;
-
-/// Contains all the inference rules used by the proof search.
 mod inference;
-
-/// Contains stuff for performing both unification and matching.
 mod unification;
-
-/// Contains different (non-generic) data structures used by the proof search.
-/// Generic data structures should go to utils.
 mod data_structures;
 
-/// Contains stuff on statistics collected during a proof search.
 mod proof_statistics;
-
-/// Contains stuff for keeping track of the current proof state during a proof search.
 mod proof_state;
 
-/// Contains the core of the program, the proof search.
-pub mod proof_search;
+///
+pub mod prove;

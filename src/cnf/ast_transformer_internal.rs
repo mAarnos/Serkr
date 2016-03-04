@@ -92,7 +92,7 @@ fn transform_literal(s: String, args: Vec<ParserTerm>, ri: &mut RenamingInfo) ->
         assert_eq!(args.len(), 2);
         CnfFormula::Predicate(0, args.into_iter().map(|t| transform_term(t, ri)).collect())
     } else {
-        let id = ri.get_function_id(s, args.len(), true);
+        let id = ri.get_function_id(s, args.len());
         CnfFormula::Predicate(id, args.into_iter().map(|t| transform_term(t, ri)).collect())
     }
 }
@@ -101,7 +101,7 @@ fn transform_term(t: ParserTerm, ri: &mut RenamingInfo) -> CnfTerm {
     match t {
         ParserTerm::Variable(s) => CnfTerm::Variable(ri.get_variable_id(s)),
         ParserTerm::Function(s, args) => {
-            let id = ri.get_function_id(s, args.len(), false);
+            let id = ri.get_function_id(s, args.len());
             CnfTerm::Function(id, args.into_iter().map(|t| transform_term(t, ri)).collect())
         }
     }

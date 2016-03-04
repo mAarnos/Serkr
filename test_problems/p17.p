@@ -1,1 +1,0 @@
-fof(pelletier_17, conjecture, ( ( ( p & ( q => r ) ) => s ) <=> ( ( ~ p | q | s ) & ( ~ p | ~ r  | s ) ) )).

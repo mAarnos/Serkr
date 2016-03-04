@@ -1,1 +1,0 @@
-fof(pelletier_35, conjecture, ( ? [X, Y] : ( p(X, Y) => ! [X, Y] : p(X, Y) ) )).

@@ -22,7 +22,7 @@ use std::collections::HashMap;
 #[allow(missing_docs)]
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct RenamingInfo {
-    pub fun_map: HashMap<(String, usize, bool), i64>,
+    pub fun_map: HashMap<(String, usize), i64>,
     pub var_map: HashMap<String, i64>,
     pub fun_cnt: i64,
     pub var_cnt: i64,
@@ -47,11 +47,11 @@ impl RenamingInfo {
     
     /// If there already is an ID for the given function name and arity, return that.
     /// Otherwise create a new ID for it.
-    pub fn get_function_id(&mut self, s: String, arity: usize, predicate: bool) -> i64 {
-        if let Some(&id) = self.fun_map.get(&(s.clone(), arity, predicate)) {
+    pub fn get_function_id(&mut self, s: String, arity: usize) -> i64 {
+        if let Some(&id) = self.fun_map.get(&(s.clone(), arity)) {
             id
         } else {
-            self.create_new_function_id(s, arity, predicate)
+            self.create_new_function_id(s, arity)
         }
     }
     
@@ -63,9 +63,9 @@ impl RenamingInfo {
     }
     
     /// Creates a new function ID matching the given string and arity.
-    pub fn create_new_function_id(&mut self, s: String, arity: usize, predicate: bool) -> i64 {
+    pub fn create_new_function_id(&mut self, s: String, arity: usize) -> i64 {
         self.fun_cnt += 1;
-        self.fun_map.insert((s, arity, predicate), self.fun_cnt);
+        self.fun_map.insert((s, arity), self.fun_cnt);
         self.fun_cnt
     }
 }

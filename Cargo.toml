@@ -3,7 +3,7 @@ name = "serkr"
 version = "0.1.0"
 authors = ["Mikko Aarnos <mikko.aarnos@gmail.com>"]
 
-exclude = ["examples/*", "test_problems/*"]
+exclude = ["examples/*"]
 
 build = "build.rs" 
 

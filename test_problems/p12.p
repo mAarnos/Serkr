@@ -1,1 +1,0 @@
-fof(pelletier_12, conjecture, ( ( ( p <=> q ) <=> r ) <=> ( p <=> ( q <=> r ) ) )).

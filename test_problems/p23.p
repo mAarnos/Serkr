@@ -1,1 +1,0 @@
-fof(pelletier_23, conjecture, ( ( ! [X] : ( p | f(x) ) ) => ( p | ! [X] : f(x) ) )).

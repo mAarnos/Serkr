@@ -1,1 +1,0 @@
-fof(pelletier_15_errata, conjecture, ( ( p => q ) <=> ( ~ p | q ))).

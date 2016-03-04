@@ -1,1 +1,0 @@
-fof(pelletier_1_negated, conjecture, ~ (( p => q ) <=> ( ~ q => ~ p ) )).
