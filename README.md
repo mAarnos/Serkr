@@ -13,10 +13,10 @@ Serkr analyzes problems files in the TPTP format. Some (mostly easy and CNF) exa
 Typical usage might be something like this:
 
     cargo build --release
-    target\release\serkr --help
-    target\release\serkr examples\RNG009-5.p
-    target\release\serkr examples\CAT002-3.p
-    target\release\serkr --time_limit=30 examples\ANA002-2.p
+    cargo run --release -- --help
+    cargo run --release -- examples/RNG009-5.p
+    cargo run --release -- examples/CAT002-3.p
+    cargo run --release -- --time_limit=30 examples/ANA002-2.p
     
 ## License
 
