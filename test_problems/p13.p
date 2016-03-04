@@ -1,0 +1,1 @@
+fof(pelletier_13, conjecture, ( ( p | ( q & r ) ) <=> ( ( p | q ) & ( p | r ) ))).

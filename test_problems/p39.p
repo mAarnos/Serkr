@@ -1,0 +1,1 @@
+fof(prove_this, conjecture, ( ~ ( ? [X] : ! [Y] : ( f(Y, X) <=> ~ f(Y, Y) ) ))).
