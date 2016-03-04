@@ -1,0 +1,1 @@
+fof(pelletier_18, conjecture, ( ? [Y] : ! [X] : f(Y) => f(X) )).

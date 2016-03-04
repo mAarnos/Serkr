@@ -1,0 +1,1 @@
+fof(pelletier_7, conjecture, ( p | ~ ~ ~ p)).

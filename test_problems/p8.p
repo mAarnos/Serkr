@@ -1,0 +1,1 @@
+fof(pelletier_8, conjecture, ( ( ( p => q ) => p ) => p )).
