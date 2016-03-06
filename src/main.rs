@@ -45,7 +45,6 @@ extern crate num;
 #[macro_use]
 pub mod utils;
 pub mod parser;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 pub mod cnf;
 pub mod prover;
 
