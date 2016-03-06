@@ -18,7 +18,6 @@
 use std::collections::HashMap;
 use prover::flatten_cnf::flatten_cnf;
 
-use prover::data_structures::term::Term;
 use prover::data_structures::clause::Clause;
 
 use prover::proof_statistics::ProofStatistics;
@@ -31,13 +30,13 @@ use prover::simplification::equality_subsumption::equality_subsumes_clause;
 use prover::simplification::simplify_reflect::simplify_reflect;
 use prover::simplification::rewriting::rewrite_literals;
 
-use prover::ordering::precedence::Precedence;
-use prover::ordering::weight::Weight;
 use prover::ordering::term_ordering::TermOrdering;
 
 use prover::inference::equality_resolution::equality_resolution;
 use prover::inference::equality_factoring::equality_factoring;
 use prover::inference::superposition::superposition;
+
+use prover::problem_analysis::determine_term_ordering::create_term_ordering;
 
 use cnf::ast::Formula;
 use cnf::ast_transformer_tptp::tptp_to_cnf_ast;
@@ -214,66 +213,6 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     }
 
     newer_clauses
-}
-
-/// If the problem contains one unary function, this function finds it.
-fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
-    let mut found_unary = None;
-    
-    for cl in clauses {
-        for l in cl.iter() {
-            for t in l.iter() {
-                if t.get_arity() == 1 {
-                    assert!(t.is_function());
-                    if found_unary.is_some() {
-                        if found_unary != Some(t.get_id()) {
-                            return None;
-                        }    
-                    } else {
-                        found_unary = Some(t.get_id());
-                    }
-                }
-            }
-        }
-    }
-    
-    found_unary
-}
-
-fn update_function_symbol_count(counts: &mut HashMap<i64, i64>, t: &Term) {
-    if t.is_function() {
-        // Get around lifetime stuff.
-        {
-            let v = counts.entry(t.get_id()).or_insert(0);
-            *v += 1;
-        }    
-        for sub_t in t.iter() {
-            update_function_symbol_count(counts, sub_t)
-        }
-    }
-}
-
-fn create_function_symbol_count(clauses: &[Clause]) -> HashMap<i64, i64> {
-    let mut counts = HashMap::new();
-    
-    for cl in clauses {
-        for l in cl.iter() {
-            for t in l.iter() {
-                update_function_symbol_count(&mut counts, t)
-            }
-        }
-    }
-    
-    counts
-}
-
-fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrdering {
-    if lpo_over_kbo {
-        TermOrdering::LPO(Precedence::default())
-    } else {
-        let counts = create_function_symbol_count(clauses);
-        TermOrdering::KBO(Precedence::ArityFrequency(counts), Weight::SimpleWeight, single_unary_function(clauses)) 
-    }
 }
 
 /// Attempts to prove the stuff in the TPTP file at the location given.

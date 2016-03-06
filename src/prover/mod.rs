@@ -17,9 +17,6 @@
 
 //! Contains the main proof search. 
 
-// TODO: figure out a new name for this, flatten is just not descriptive and is also means something else on top of that.
-mod flatten_cnf;
-
 /// Contains all the simplification rules used by the proof search.
 mod simplification;
 
@@ -35,6 +32,12 @@ mod unification;
 /// Contains different (non-generic) data structures used by the proof search.
 /// Generic data structures should go to utils.
 mod data_structures;
+
+/// Contains functions for automatically determining good prover settings for a given problem.
+mod problem_analysis;
+
+// TODO: figure out a new name for this, flatten is just not descriptive and is also means something else on top of that.
+mod flatten_cnf;
 
 /// Contains stuff on statistics collected during a proof search.
 mod proof_statistics;

@@ -25,7 +25,7 @@ pub fn drop_universal_quantifiers(f: Formula) -> Formula {
 }
 
 /// Drops all universal quantifiers from the start of a formula. 
-pub fn drop_universal_quantifiers0(f: Formula) -> Formula {
+fn drop_universal_quantifiers0(f: Formula) -> Formula {
     match f {
         Formula::Forall(_, p) => drop_universal_quantifiers0(*p),
         _ => f,
