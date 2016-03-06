@@ -1,19 +1,18 @@
-/*
-    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
-
-    Serkr is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Serkr is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Serkr. If not, see <http://www.gnu.org/licenses/>.
-*/
+// Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
+//
+// Serkr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Serkr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Serkr. If not, see <http://www.gnu.org/licenses/>.
+//
 
 use std::collections::HashMap;
 use prover::data_structures::clause::Clause;
@@ -25,7 +24,7 @@ use prover::ordering::weight::Weight;
 /// If the problem contains one unary function, this function finds it.
 fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     let mut found_unary = None;
-    
+
     for cl in clauses {
         for l in cl.iter() {
             for t in l.iter() {
@@ -34,7 +33,7 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
                     if found_unary.is_some() {
                         if found_unary != Some(t.get_id()) {
                             return None;
-                        }    
+                        }
                     } else {
                         found_unary = Some(t.get_id());
                     }
@@ -42,7 +41,7 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
             }
         }
     }
-    
+
     found_unary
 }
 
@@ -53,7 +52,7 @@ fn update_function_symbol_count(counts: &mut HashMap<i64, i64>, t: &Term) {
         {
             let v = counts.entry(t.get_id()).or_insert(0);
             *v += 1;
-        }    
+        }
         for sub_t in t.iter() {
             update_function_symbol_count(counts, sub_t)
         }
@@ -63,7 +62,7 @@ fn update_function_symbol_count(counts: &mut HashMap<i64, i64>, t: &Term) {
 /// Runs through all terms in a problem, and counts how many times each function symbol appears.
 fn create_function_symbol_count(clauses: &[Clause]) -> HashMap<i64, i64> {
     let mut counts = HashMap::new();
-    
+
     for cl in clauses {
         for l in cl.iter() {
             for t in l.iter() {
@@ -71,7 +70,7 @@ fn create_function_symbol_count(clauses: &[Clause]) -> HashMap<i64, i64> {
             }
         }
     }
-    
+
     counts
 }
 
@@ -83,6 +82,8 @@ pub fn create_term_ordering(lpo_over_kbo: bool, clauses: &[Clause]) -> TermOrder
         TermOrdering::LPO(Precedence::default())
     } else {
         let counts = create_function_symbol_count(clauses);
-        TermOrdering::KBO(Precedence::ArityFrequency(counts), Weight::SimpleWeight, single_unary_function(clauses)) 
+        TermOrdering::KBO(Precedence::ArityFrequency(counts),
+                          Weight::SimpleWeight,
+                          single_unary_function(clauses))
     }
 }
