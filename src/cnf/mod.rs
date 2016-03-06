@@ -19,10 +19,9 @@
 //! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
 /// Contains the AST used during the CNF transformation.
-#[cfg_attr(rustfmt, rustfmt_skip)]
 pub mod ast;
 
-/// Contains stuff dealing with converting function, predicate, and term names to a more suitable format.
+/// Contains stuff dealing with converting predicate and term names to a more suitable format.
 pub mod renaming_info;
 
 /// Contains functions for turning the internal parser AST into the CNF AST.
@@ -36,7 +35,6 @@ pub mod ast_transformer_tptp;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod free_variables;
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod simplify;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 #[allow(dead_code)]
