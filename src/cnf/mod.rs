@@ -36,7 +36,6 @@ pub mod ast_transformer_tptp;
 mod free_variables;
 
 mod simplify;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 #[allow(dead_code)]
 mod formula_renaming;
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -47,7 +46,6 @@ mod variable_renaming;
 mod standard_skolemization;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod pull_out_quantifiers;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod drop_universal_quantifiers;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod distribute_ors_over_ands;
