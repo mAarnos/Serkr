@@ -54,8 +54,8 @@ fn main() {
                       .author("Mikko Aarnos <mikko.aarnos@gmail.com>")
                       .about("An automated theorem prover for first order logic with equality")
                       .args_from_usage("<INPUT> 'The TPTP file the program should analyze'
-                                        -t, --time_limit=[time_limit] 'Time limit for the prover
-                                        (default=300s)'")
+                                        -t, --time_limit=[time_limit] 'Time limit for the prover \
+                                                                       (default=300s)'")
                       .arg(clap::Arg::with_name("lpo")
                                .help("Use LPO as the term ordering")
                                .short("l")
