@@ -44,7 +44,6 @@ mod nnf;
 mod variable_renaming;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod standard_skolemization;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod pull_out_quantifiers;
 mod drop_universal_quantifiers;
 mod distribute_ors_over_ands;
