@@ -1,19 +1,18 @@
-/*
-    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
-
-    Serkr is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Serkr is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Serkr. If not, see <http://www.gnu.org/licenses/>.
-*/
+// Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
+//
+// Serkr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Serkr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Serkr. If not, see <http://www.gnu.org/licenses/>.
+//
 
 use cnf::ast::Formula;
 use cnf::simplify::simplify_formula;
@@ -34,10 +33,16 @@ pub fn nnf(f: Formula) -> Formula {
 fn elim_imp_and_eq(f: Formula, polarity: bool) -> Formula {
     match f {
         Formula::Not(p) => Formula::Not(Box::new(elim_imp_and_eq(*p, !polarity))),
-        Formula::And(l) => Formula::And(l.into_iter().map(|x| elim_imp_and_eq(x, polarity)).collect()),
-        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| elim_imp_and_eq(x, polarity)).collect()),
-        Formula::Implies(p, q) => Formula::Or(vec!(Formula::Not(Box::new(elim_imp_and_eq(*p, !polarity))), 
-                                                   elim_imp_and_eq(*q, polarity))),
+        Formula::And(l) => {
+            Formula::And(l.into_iter().map(|x| elim_imp_and_eq(x, polarity)).collect())
+        }
+        Formula::Or(l) => {
+            Formula::Or(l.into_iter().map(|x| elim_imp_and_eq(x, polarity)).collect())
+        }
+        Formula::Implies(p, q) => {
+            Formula::Or(vec![Formula::Not(Box::new(elim_imp_and_eq(*p, !polarity))),
+                             elim_imp_and_eq(*q, polarity)])
+        }
         Formula::Equivalent(p, q) => eliminate_equivalence(*p, *q, polarity),
         Formula::Forall(s, p) => Formula::Forall(s, Box::new(elim_imp_and_eq(*p, polarity))),
         Formula::Exists(s, p) => Formula::Exists(s, Box::new(elim_imp_and_eq(*p, polarity))),
@@ -45,18 +50,20 @@ fn elim_imp_and_eq(f: Formula, polarity: bool) -> Formula {
     }
 }
 
-/// Eliminates an equivalence. Returns different results depending on polarity to avoid unnecessary clauses.
+/// Eliminates an equivalence.
+/// Returns different results depending on polarity to avoid unnecessary clauses.
 fn eliminate_equivalence(p: Formula, q: Formula, polarity: bool) -> Formula {
     if polarity {
-        Formula::And(vec!(Formula::Or(vec!(elim_imp_and_eq(p.clone(), polarity), 
-                                           Formula::Not(Box::new(elim_imp_and_eq(q.clone(), !polarity))))), 
-                          Formula::Or(vec!(Formula::Not(Box::new(elim_imp_and_eq(p, !polarity))), 
-                                           elim_imp_and_eq(q, polarity)))))
+        Formula::And(vec![Formula::Or(vec![elim_imp_and_eq(p.clone(), polarity),
+                                           Formula::Not(Box::new(elim_imp_and_eq(q.clone(),
+                                                                                 !polarity)))]),
+                          Formula::Or(vec![Formula::Not(Box::new(elim_imp_and_eq(p, !polarity))),
+                                           elim_imp_and_eq(q, polarity)])])
     } else {
-        Formula::Or(vec!(Formula::And(vec!(elim_imp_and_eq(p.clone(), polarity), 
-                                           elim_imp_and_eq(q.clone(), polarity))), 
-                         Formula::And(vec!(Formula::Not(Box::new(elim_imp_and_eq(p, !polarity))), 
-                                           Formula::Not(Box::new(elim_imp_and_eq(q, !polarity)))))))
+        Formula::Or(vec![Formula::And(vec![elim_imp_and_eq(p.clone(), polarity),
+                                           elim_imp_and_eq(q.clone(), polarity)]),
+                         Formula::And(vec![Formula::Not(Box::new(elim_imp_and_eq(p, !polarity))),
+                                           Formula::Not(Box::new(elim_imp_and_eq(q, !polarity)))])])
     }
 }
 
@@ -68,7 +75,7 @@ fn move_nots_inward(f: Formula) -> Formula {
         Formula::Or(l) => Formula::Or(l.into_iter().map(move_nots_inward).collect()),
         Formula::Forall(s, p) => Formula::Forall(s, Box::new(move_nots_inward(*p))),
         Formula::Exists(s, p) => Formula::Exists(s, Box::new(move_nots_inward(*p))),
-        _ => f
+        _ => f,
     }
 }
 
@@ -80,8 +87,16 @@ fn move_nots_inward(f: Formula) -> Formula {
 fn move_nots_inward_not(f: Formula) -> Formula {
     match f {
         Formula::Not(p) => move_nots_inward(*p),
-        Formula::And(l) => Formula::Or(l.into_iter().map(|x| move_nots_inward(Formula::Not(Box::new(x)))).collect()),
-        Formula::Or(l) => Formula::And(l.into_iter().map(|x| move_nots_inward(Formula::Not(Box::new(x)))).collect()),
+        Formula::And(l) => {
+            Formula::Or(l.into_iter()
+                         .map(|x| move_nots_inward(Formula::Not(Box::new(x))))
+                         .collect())
+        }
+        Formula::Or(l) => {
+            Formula::And(l.into_iter()
+                          .map(|x| move_nots_inward(Formula::Not(Box::new(x))))
+                          .collect())
+        }
         Formula::Forall(s, p) => Formula::Exists(s, Box::new(move_nots_inward(Formula::Not(p)))),
         Formula::Exists(s, p) => Formula::Forall(s, Box::new(move_nots_inward(Formula::Not(p)))),
         _ => Formula::Not(Box::new(move_nots_inward(f))),
@@ -92,13 +107,15 @@ fn move_nots_inward_not(f: Formula) -> Formula {
 fn is_in_nnf(f: &Formula) -> bool {
     match *f {
         Formula::Predicate(_, _) => true,
-        Formula::Not(ref p) => match **p {
-                                   Formula::Predicate(_, _) => true,
-                                   _ => false,
-                               },
+        Formula::Not(ref p) => {
+            match **p {
+                Formula::Predicate(_, _) => true,
+                _ => false,
+            }
+        }
         Formula::And(ref l) |
         Formula::Or(ref l) => l.iter().all(is_in_nnf),
-        Formula::Forall(_, ref p) | 
+        Formula::Forall(_, ref p) |
         Formula::Exists(_, ref p) => is_in_nnf(p),
         _ => false,
     }
@@ -106,95 +123,69 @@ fn is_in_nnf(f: &Formula) -> bool {
 
 #[cfg(test)]
 mod test {
-    #[allow(unused_imports)]
-    use super::{nnf, elim_imp_and_eq, move_nots_inward, move_nots_inward_not};
+    use super::{nnf, elim_imp_and_eq, move_nots_inward_not};
     use cnf::ast_transformer_internal::internal_to_cnf_ast;
-    
-    /*
+
     #[test]
     fn nnf_1() {
-        let (f, _) = internal_to_cnf_ast("(P ==> Q) <=> (~Q ==> ~P)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("(~P \\/ Q \\/ (~Q /\\ P)) /\\ ((P /\\ ~Q) \\/ (Q \\/ ~P))").unwrap();
-        assert_eq!(nnf(f), correct_f);                             
-    }
-    */
-          
-    #[test]
-    fn nnf_2() {
         let (f, _) = internal_to_cnf_ast("~(P <=> Q)").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("(~P \\/ ~Q) /\\ (P \\/ Q)").unwrap();
         assert_eq!(nnf(f), correct_f);
     }
-    
+
     #[test]
     fn elim_imp_and_eq_1() {
         let (f, _) = internal_to_cnf_ast("P ==> Q").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("~P \\/ Q").unwrap();
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
-    
+
     #[test]
     fn elim_imp_and_eq_2() {
         let (f, _) = internal_to_cnf_ast("P <=> Q").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("(P \\/ ~Q) /\\ (~P \\/ Q)").unwrap();
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
-    
+
     #[test]
     fn elim_imp_and_eq_3() {
         let (f, _) = internal_to_cnf_ast("P <=> Q").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("(P /\\ Q) \\/ (~P /\\ ~Q)").unwrap();
         assert_eq!(elim_imp_and_eq(f, false), correct_f);
     }
-          
-    #[test]
-    fn elim_imp_and_eq_4() {
-        let (f, _) = internal_to_cnf_ast("((P ==> Q) /\\ P) <=> Q").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("(((~P \\/ Q) /\\ P) \\/ ~Q) /\\ (~((~P \\/ Q) /\\ P) \\/ Q)").unwrap();
-        assert_eq!(elim_imp_and_eq(f, true), correct_f);
-    }
-        
+
     #[test]
     fn move_nots_inward_not_1() {
         let (f, _) = internal_to_cnf_ast("~P").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("P").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
-    
+
     #[test]
     fn move_nots_inward_not_2() {
         let (f, _) = internal_to_cnf_ast("P /\\ Q").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("~P \\/ ~Q").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
-    
+
     #[test]
     fn move_nots_inward_not_3() {
         let (f, _) = internal_to_cnf_ast("P \\/ Q").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("~P /\\ ~Q").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
-    
+
     #[test]
     fn move_nots_inward_not_4() {
         let (f, _) = internal_to_cnf_ast("exists x. ~P(x)").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("forall x. P(x)").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
-    
+
     #[test]
     fn move_nots_inward_not_5() {
         let (f, _) = internal_to_cnf_ast("forall x. ~P(x)").unwrap();
         let (correct_f, _) = internal_to_cnf_ast("exists x. P(x)").unwrap();
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
-    
-    /*
-    #[test]
-    fn move_nots_inward_1() {
-        let (f, _) = internal_to_cnf_ast("~((P \\/ Q) /\\ ~~(~P /\\ Q))").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P /\\ ~Q \\/ (P \\/ ~Q)").unwrap();
-        assert_eq!(move_nots_inward(f), correct_f);
-    }
-    */
 }

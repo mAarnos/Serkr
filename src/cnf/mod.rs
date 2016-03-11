@@ -30,13 +30,11 @@ pub mod ast_transformer_internal;
 /// Contains functions for turning the TPTP parser AST into the CNF AST.
 pub mod ast_transformer_tptp;
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod free_variables;
 
 mod simplify;
 #[allow(dead_code)]
 mod formula_renaming;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod nnf;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod variable_renaming;
