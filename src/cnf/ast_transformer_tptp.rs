@@ -85,14 +85,14 @@ fn tptp_ast_to_cnf_ast(f_list: Vec<AnnotatedFormula>)
     }
 }
 
-fn cnf_formula_role_error(f: &Formula) -> String {
+fn cnf_formula_role_error(f: &AnnotatedFormula) -> String {
     format!("Formula role was expected to be one of \
              'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture' instead of \
              {}",
             get_formula_role(f))
 }
 
-fn fof_formula_role_error(f: &Formula) -> String {
+fn fof_formula_role_error(f: &AnnotatedFormula) -> String {
     format!("Formula role was expected to be one of \
              'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture|conjecture' \
              instead of {}",
