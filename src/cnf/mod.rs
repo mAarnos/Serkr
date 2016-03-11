@@ -25,7 +25,6 @@ pub mod ast;
 pub mod renaming_info;
 
 /// Contains functions for turning the internal parser AST into the CNF AST.
-#[cfg_attr(rustfmt, rustfmt_skip)]
 pub mod ast_transformer_internal;
 
 /// Contains functions for turning the TPTP parser AST into the CNF AST.
