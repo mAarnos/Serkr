@@ -21,8 +21,8 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use parser::tptp_parser::ast::*;
-use parser::tptp_parser::parser_grammar::parse_TPTP_file;
+use tptp_parser::ast::*;
+use tptp_parser::parser_grammar::parse_TPTP_file;
 
 /// Used for removing all comments from the file parsed in.
 fn remove_comments(s: &str) -> String {
@@ -104,8 +104,8 @@ pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
 
 #[cfg(test)]
 mod test {
-    use parser::tptp_parser::parser_grammar::*;
-    use parser::tptp_parser::ast::*;
+    use tptp_parser::parser_grammar::*;
+    use tptp_parser::ast::*;
     
     #[test]
     fn parse_cnf_annotated_propositional() {

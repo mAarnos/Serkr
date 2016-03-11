@@ -60,32 +60,4 @@ fn distribute_or(l: Vec<Formula>) -> Formula {
 
 #[cfg(test)]
 mod test {
-    use super::distribute_ors_over_ands;
-    use cnf::ast_transformer_internal::{internal_to_cnf_ast, internal_to_cnf_ast_general};
-
-    #[test]
-    fn distribute_1() {
-        let (f, ri) = internal_to_cnf_ast("(Animal(f(x)) /\\ ~Loves(x, f(x))) \\/ Loves(g(x), x)")
-                          .unwrap();
-        let (correct_f, _) = internal_to_cnf_ast_general("(Loves(g(x), x) \\/ Animal(f(x))) /\\
-                                                          (Loves(g(x), x) \\/ ~Loves(x, f(x)))",
-                                                         ri)
-                                 .unwrap();
-        assert_eq!(distribute_ors_over_ands(f), correct_f);
-    }
-
-    #[test]
-    fn distribute_2() {
-        let (f, _) = internal_to_cnf_ast("(Stays(x) /\\ (~HeavyItem(x) \\/ ~ExpensiveItem(x)))")
-                         .unwrap();
-        assert_eq!(distribute_ors_over_ands(f.clone()), f);
-    }
-
-    #[test]
-    fn distribute_4() {
-        let (f, _) = internal_to_cnf_ast("(~Q \\/ (~P \\/ (P /\\ ~Q)))").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("((~Q \\/ (~P \\/ P)) /\\ (~Q \\/ (~P \\/ ~Q)))")
-                                 .unwrap();
-        assert_eq!(distribute_ors_over_ands(f), correct_f);
-    }
 }

@@ -44,7 +44,7 @@ extern crate num;
 
 #[macro_use]
 pub mod utils;
-pub mod parser;
+pub mod tptp_parser;
 pub mod cnf;
 pub mod prover;
 
