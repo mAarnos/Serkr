@@ -1,19 +1,18 @@
-﻿/*
-    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
-
-    Serkr is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Serkr is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Serkr. If not, see <http://www.gnu.org/licenses/>.
-*/
+// Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
+//
+// Serkr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Serkr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Serkr. If not, see <http://www.gnu.org/licenses/>.
+//
 
 use cnf::ast::Formula;
 use cnf::renaming_info::RenamingInfo;
@@ -34,7 +33,7 @@ pub fn cnf(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
         let cnf_f = distribute_ors_over_ands(quantifier_free_f);
         assert!(cnf_f == Formula::True || cnf_f == Formula::False || is_cnf(&cnf_f));
         cnf_f
-    }    
+    }
 }
 
 /// Tests whether a formula is in CNF.
@@ -42,7 +41,7 @@ fn is_cnf(f: &Formula) -> bool {
     match *f {
         Formula::Or(ref l) => l.iter().all(is_disjunction),
         Formula::And(ref l) => l.iter().all(is_cnf),
-        _ => is_literal(f)
+        _ => is_literal(f),
     }
 }
 
@@ -50,8 +49,8 @@ fn is_cnf(f: &Formula) -> bool {
 fn is_disjunction(f: &Formula) -> bool {
     match *f {
         Formula::Or(ref l) => l.iter().all(is_disjunction),
-        _ => is_literal(f)
-    }    
+        _ => is_literal(f),
+    }
 }
 
 /// Checks whether a formula is a literal.
@@ -59,7 +58,7 @@ fn is_literal(f: &Formula) -> bool {
     match *f {
         Formula::Predicate(_, _) => true,
         Formula::Not(ref p) => is_atomic(&p),
-        _ => false
+        _ => false,
     }
 }
 
@@ -67,7 +66,7 @@ fn is_literal(f: &Formula) -> bool {
 fn is_atomic(f: &Formula) -> bool {
     match *f {
         Formula::Predicate(_, _) => true,
-        _ => false
+        _ => false,
     }
 }
 
@@ -75,13 +74,20 @@ fn is_atomic(f: &Formula) -> bool {
 mod test {
     use super::cnf;
     use cnf::ast_transformer_internal::{internal_to_cnf_ast, internal_to_cnf_ast_general};
-    
+
     #[test]
     fn cnf_1() {
-        let (f, mut ri) = internal_to_cnf_ast("forall x. (forall y. (Animal(y) ==> Loves(x, y)) ==> exists y. Loves(y, x))").unwrap();
+        let (f, mut ri) = internal_to_cnf_ast("forall x. (forall y. (Animal(y) ==> Loves(x, y))
+                                                          ==> exists y. Loves(y, x))")
+                              .unwrap();
         // Hack to get 'correct' IDs for the skolem functions.
-        let (_, ri2) = internal_to_cnf_ast_general("Animal(sf0(v0)) \\/ Loves(sf1(v0), v0)", ri.clone()).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast_general("(Loves(sf1(v0), v0) \\/ Animal(sf0(v0))) /\\ (Loves(sf1(v0), v0) \\/ ~Loves(v0, sf0(v0)))", ri2).unwrap();
-        assert_eq!(cnf(f, &mut ri), correct_f);
+        let (_, ri2) = internal_to_cnf_ast_general("Animal(sf0(v0)) \\/ Loves(sf1(v0), v0)",
+                                                   ri.clone())
+                           .unwrap();
+        let (c_f, _) = internal_to_cnf_ast_general("(Loves(sf1(v0), v0) \\/ Animal(sf0(v0))) /\\
+                                                    (Loves(sf1(v0), v0) \\/ ~Loves(v0, sf0(v0)))",
+                                                   ri2)
+                           .unwrap();
+        assert_eq!(cnf(f, &mut ri), c_f);
     }
-}    
+}

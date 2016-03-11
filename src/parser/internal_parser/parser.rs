@@ -1,19 +1,18 @@
-/*
-    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
-
-    Serkr is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Serkr is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Serkr. If not, see <http://www.gnu.org/licenses/>.
-*/
+// Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
+//
+// Serkr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Serkr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Serkr. If not, see <http://www.gnu.org/licenses/>.
+//
 
 use parser::internal_parser::parser_grammar;
 use parser::internal_parser::ast::Formula;
@@ -68,8 +67,10 @@ mod test {
     #[test]
     fn true_and_false_2() {
         // Make sure that predicates starting with a T or F won't get parsed as True or False.
-        assert_eq!(parse_Formula("Taken").unwrap(), Formula::Predicate("Taken".to_owned(), Vec::new()));
-        assert_eq!(parse_Formula("Free").unwrap(), Formula::Predicate("Free".to_owned(), Vec::new()));
+        assert_eq!(parse_Formula("Taken").unwrap(),
+                   Formula::Predicate("Taken".to_owned(), Vec::new()));
+        assert_eq!(parse_Formula("Free").unwrap(),
+                   Formula::Predicate("Free".to_owned(), Vec::new()));
     }
 
     #[test]
@@ -135,7 +136,7 @@ mod test {
     fn parser_not_and_precedence() {
         let f1 = parse_Formula("~ P /\\ Q");
         let f2 = parse_Formula("(~P) /\\ Q");
-        
+
         assert!(f1.is_ok());
         assert!(f2.is_ok());
         assert_eq!(f1.unwrap(), f2.unwrap());
@@ -145,7 +146,7 @@ mod test {
     fn parser_and_or_precedence() {
         let f1 = parse_Formula("P /\\ Q \\/ R");
         let f2 = parse_Formula("((P /\\ Q) \\/ R)");
-        
+
         assert!(f1.is_ok());
         assert!(f2.is_ok());
         assert_eq!(f1.unwrap(), f2.unwrap());
@@ -155,7 +156,7 @@ mod test {
     fn parser_or_implies_precedence() {
         let f1 = parse_Formula("P(x) \\/ Q(x) ==> R(x)");
         let f2 = parse_Formula("((P(x) \\/ Q(x)) ==> R(x))");
-        
+
         assert!(f1.is_ok());
         assert!(f2.is_ok());
         assert_eq!(f1.unwrap(), f2.unwrap());
@@ -165,7 +166,7 @@ mod test {
     fn parser_implies_equivalent_precedence() {
         let f1 = parse_Formula("P ==> Q <=> ~Q ==> ~P");
         let f2 = parse_Formula("((P ==> Q) <=> (~Q ==> ~P))");
-        
+
         assert!(f1.is_ok());
         assert!(f2.is_ok());
         assert_eq!(f1.unwrap(), f2.unwrap());
@@ -175,9 +176,9 @@ mod test {
     fn parser_equivalent_quantifier_precedence() {
         let f1 = parse_Formula("forall x. P(x) <=> Q(x)");
         let f2 = parse_Formula("((forall x. P(x)) <=> Q(x))");
-        
+
         assert!(f1.is_ok());
         assert!(f2.is_ok());
         assert_eq!(f1.unwrap(), f2.unwrap());
     }
-}    
+}

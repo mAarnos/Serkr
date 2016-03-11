@@ -1,19 +1,18 @@
-/*
-    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
-
-    Serkr is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Serkr is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Serkr. If not, see <http://www.gnu.org/licenses/>.
-*/
+// Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
+//
+// Serkr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Serkr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Serkr. If not, see <http://www.gnu.org/licenses/>.
+//
 
 use prover::data_structures::term::Term;
 use prover::data_structures::clause::Clause;
@@ -32,7 +31,7 @@ fn normal_form_step(term_ordering: &TermOrdering, active: &[Clause], u: &mut Ter
             }
         }
     }
-        
+
     u.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
 }
 
@@ -44,10 +43,10 @@ fn try_rewrite_at_position(term_ordering: &TermOrdering, s: &Term, t: &Term, u: 
         new_t.subst(&sigma);
         if term_ordering.gt(&new_s, &new_t) {
             *u = new_t;
-             return true;
+            return true;
         }
     }
-    
+
     false
 }
 
@@ -66,7 +65,4 @@ pub fn rewrite_literals(term_ordering: &TermOrdering, active: &[Clause], cl: &mu
 }
 
 #[cfg(test)]
-mod test {
-
-} 
-
+mod test {}

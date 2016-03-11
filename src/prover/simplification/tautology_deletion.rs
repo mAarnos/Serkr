@@ -1,19 +1,18 @@
-/*
-    Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
-
-    Serkr is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Serkr is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Serkr. If not, see <http://www.gnu.org/licenses/>.
-*/
+// Serkr - An automated theorem prover. Copyright (C) 2015-2016 Mikko Aarnos.
+//
+// Serkr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Serkr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Serkr. If not, see <http://www.gnu.org/licenses/>.
+//
 
 use prover::data_structures::clause::Clause;
 
@@ -35,7 +34,7 @@ fn td2(cl: &Clause) -> bool {
                 return true;
             }
         }
-    }  
+    }
     false
 }
 
@@ -45,7 +44,7 @@ mod test {
     use prover::data_structures::term::Term;
     use prover::data_structures::literal::Literal;
     use prover::data_structures::clause::Clause;
-    
+
     #[test]
     fn td1_1() {
         let x = Term::new_variable(-1);
@@ -55,11 +54,11 @@ mod test {
         let l2 = Literal::new(true, z.clone(), x.clone());
         let l3 = Literal::new(false, y.clone(), y.clone());
         let l4 = Literal::new(true, y, z);
-        let cl = Clause::new(vec!(l1, l2, l3, l4));
-        
+        let cl = Clause::new(vec![l1, l2, l3, l4]);
+
         assert!(td1(&cl));
     }
-    
+
     #[test]
     fn td1_2() {
         let x = Term::new_variable(-1);
@@ -68,17 +67,17 @@ mod test {
         let l1 = Literal::new(true, x.clone(), z.clone());
         let l2 = Literal::new(true, z.clone(), x.clone());
         let l3 = Literal::new(false, y, z);
-        let cl = Clause::new(vec!(l1, l2, l3));
-        
+        let cl = Clause::new(vec![l1, l2, l3]);
+
         assert!(!td1(&cl));
     }
-    
+
     #[test]
     fn td1_3() {
-        let cl = Clause::new(Vec::new());       
+        let cl = Clause::new(Vec::new());
         assert!(!td1(&cl));
     }
-    
+
     #[test]
     fn td2_1() {
         let x = Term::new_variable(-1);
@@ -87,26 +86,25 @@ mod test {
         let l1 = Literal::new(true, x.clone(), y.clone());
         let l2 = Literal::new(false, z, x.clone());
         let l3 = Literal::new(false, y, x);
-        let cl = Clause::new(vec!(l1, l2, l3));
-        
+        let cl = Clause::new(vec![l1, l2, l3]);
+
         assert!(td2(&cl));
     }
-    
+
     #[test]
     fn td2_2() {
         let x = Term::new_variable(-1);
         let y = Term::new_variable(-2);
         let l1 = Literal::new(true, x.clone(), y.clone());
         let l2 = Literal::new(true, x, y);
-        let cl = Clause::new(vec!(l1, l2));
-        
+        let cl = Clause::new(vec![l1, l2]);
+
         assert!(!td2(&cl));
     }
-    
+
     #[test]
     fn td2_3() {
-        let cl = Clause::new(Vec::new());       
+        let cl = Clause::new(Vec::new());
         assert!(!td2(&cl));
     }
-} 
-
+}
