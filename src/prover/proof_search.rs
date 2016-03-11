@@ -167,7 +167,9 @@ fn serkr_loop(mut proof_state: ProofState,
         }
 
         // Check if the clause is redundant in some way. If it is no need to process it more.
-        if !forward_subsumed(&chosen_clause, proof_state.get_used()) {
+        if forward_subsumed(&chosen_clause, proof_state.get_used()) {
+            stats.fs_count += 1;
+        } else {
             stats.bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
             proof_state.add_to_used(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
@@ -190,18 +192,16 @@ fn serkr_loop(mut proof_state: ProofState,
                 // We cannot detect it as a tautology with a pure syntactical check,
                 // unless we first simplify it with destructive equality resolution.
                 cheap_simplify(&mut cl);
-                if !trivial(&cl) {
+                if trivial(&cl) {
+                    stats.trivial_count += 1;
+                } else {
                     // Give a unique ID to the clause.
                     cl.set_id(added_to_unused);
                     added_to_unused += 1;
                     proof_state.add_to_unused(cl);
-                } else {
-                    stats.trivial_count += 1;
                 }
             }
-        } else {
-            stats.fs_count += 1;
-        }
+        } 
     }
 
     (ProofAttemptResult::new_saturation(contains_conjectures),
