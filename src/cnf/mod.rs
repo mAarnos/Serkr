@@ -36,7 +36,6 @@ mod simplify;
 #[allow(dead_code)]
 mod formula_renaming;
 mod nnf;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod variable_renaming;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod standard_skolemization;
