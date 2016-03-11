@@ -51,5 +51,4 @@ mod drop_universal_quantifiers;
 mod distribute_ors_over_ands;
 
 /// Contains a naive version of the CNF transformation algorithm.
-#[cfg_attr(rustfmt, rustfmt_skip)]
 pub mod naive_cnf;
