@@ -37,7 +37,6 @@ mod simplify;
 mod formula_renaming;
 mod nnf;
 mod variable_renaming;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod standard_skolemization;
 mod pull_out_quantifiers;
 mod drop_universal_quantifiers;
