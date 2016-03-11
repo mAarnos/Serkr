@@ -47,7 +47,6 @@ mod standard_skolemization;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod pull_out_quantifiers;
 mod drop_universal_quantifiers;
-#[cfg_attr(rustfmt, rustfmt_skip)]
 mod distribute_ors_over_ands;
 
 /// Contains a naive version of the CNF transformation algorithm.
