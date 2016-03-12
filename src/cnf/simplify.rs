@@ -232,5 +232,4 @@ fn contains_true_or_false(f: &Formula) -> bool {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

@@ -42,5 +42,4 @@ fn contains_universal_quantifiers(f: &Formula) -> bool {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

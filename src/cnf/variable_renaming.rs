@@ -96,5 +96,4 @@ fn rename_variable_in_term(t: Term, from: i64, to: i64) -> Term {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

@@ -74,5 +74,4 @@ pub fn fvt(t: &Term) -> HashSet<i64> {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

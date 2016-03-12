@@ -122,5 +122,4 @@ fn is_in_nnf(f: &Formula) -> bool {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

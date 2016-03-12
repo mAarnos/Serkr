@@ -201,7 +201,7 @@ fn serkr_loop(mut proof_state: ProofState,
                     proof_state.add_to_unused(cl);
                 }
             }
-        } 
+        }
     }
 
     (ProofAttemptResult::new_saturation(contains_conjectures),

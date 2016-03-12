@@ -59,5 +59,4 @@ fn distribute_or(l: Vec<Formula>) -> Formula {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

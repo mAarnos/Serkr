@@ -71,5 +71,4 @@ fn is_atomic(f: &Formula) -> bool {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

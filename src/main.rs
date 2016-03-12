@@ -36,7 +36,8 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
-#![cfg_attr(feature="clippy", allow(new_without_default, result_unwrap_used, print_stdout, use_debug))]
+#![cfg_attr(feature="clippy", allow(new_without_default, result_unwrap_used))]
+#![cfg_attr(feature="clippy", allow(print_stdout, use_debug))]
 
 #[macro_use]
 extern crate clap;

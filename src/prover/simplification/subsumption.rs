@@ -25,7 +25,7 @@ fn match_literals(substitution: Substitution,
                   mixed: bool)
                   -> Option<Substitution> {
     let eqs = if mixed {
-        vec![(p.get_rhs().clone(), q.get_lhs().clone()), (p.get_lhs().clone(), q.get_rhs().clone())]    
+        vec![(p.get_rhs().clone(), q.get_lhs().clone()), (p.get_lhs().clone(), q.get_rhs().clone())]
     } else {
         vec![(p.get_lhs().clone(), q.get_lhs().clone()), (p.get_rhs().clone(), q.get_rhs().clone())]
     };
