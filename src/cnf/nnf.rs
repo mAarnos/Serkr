@@ -123,69 +123,80 @@ fn is_in_nnf(f: &Formula) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::{nnf, elim_imp_and_eq, move_nots_inward_not};
-    use cnf::ast_transformer_internal::internal_to_cnf_ast;
-
-    #[test]
-    fn nnf_1() {
-        let (f, _) = internal_to_cnf_ast("~(P <=> Q)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("(~P \\/ ~Q) /\\ (P \\/ Q)").unwrap();
-        assert_eq!(nnf(f), correct_f);
-    }
+    use super::{elim_imp_and_eq, move_nots_inward_not};
+    use cnf::ast::Formula;
 
     #[test]
     fn elim_imp_and_eq_1() {
-        let (f, _) = internal_to_cnf_ast("P ==> Q").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P \\/ Q").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let q = Formula::Predicate(2, vec![]);
+        let f = Formula::Implies(Box::new(p.clone()), Box::new(q.clone()));
+        let correct_f = Formula::Or(vec![Formula::Not(Box::new(p)), q]);
+        assert_eq!(elim_imp_and_eq(f.clone(), false), correct_f);
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
 
     #[test]
     fn elim_imp_and_eq_2() {
-        let (f, _) = internal_to_cnf_ast("P <=> Q").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("(P \\/ ~Q) /\\ (~P \\/ Q)").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let q = Formula::Predicate(2, vec![]);
+        let f = Formula::Equivalent(Box::new(p.clone()), Box::new(q.clone()));
+        let correct_f = Formula::And(vec![Formula::Or(vec![p.clone(),
+                                                           Formula::Not(Box::new(q.clone()))]),
+                                          Formula::Or(vec![Formula::Not(Box::new(p)), q])]);
         assert_eq!(elim_imp_and_eq(f, true), correct_f);
     }
 
     #[test]
     fn elim_imp_and_eq_3() {
-        let (f, _) = internal_to_cnf_ast("P <=> Q").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("(P /\\ Q) \\/ (~P /\\ ~Q)").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let q = Formula::Predicate(2, vec![]);
+        let f = Formula::Equivalent(Box::new(p.clone()), Box::new(q.clone()));
+        let correct_f = Formula::Or(vec![Formula::And(vec![p.clone(), q.clone()]),
+                                         Formula::And(vec![Formula::Not(Box::new(p)),
+                                                           Formula::Not(Box::new(q))])]);
         assert_eq!(elim_imp_and_eq(f, false), correct_f);
     }
 
     #[test]
     fn move_nots_inward_not_1() {
-        let (f, _) = internal_to_cnf_ast("~P").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P").unwrap();
-        assert_eq!(move_nots_inward_not(f), correct_f);
+        let p = Formula::Predicate(1, vec![]);
+        let f = Formula::Not(Box::new(p.clone()));
+        assert_eq!(move_nots_inward_not(f), p);
     }
 
     #[test]
     fn move_nots_inward_not_2() {
-        let (f, _) = internal_to_cnf_ast("P /\\ Q").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P \\/ ~Q").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let q = Formula::Predicate(2, vec![]);
+        let f = Formula::And(vec![p.clone(), q.clone()]);
+        let correct_f = Formula::Or(vec![Formula::Not(Box::new(p)), Formula::Not(Box::new(q))]);
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
 
     #[test]
     fn move_nots_inward_not_3() {
-        let (f, _) = internal_to_cnf_ast("P \\/ Q").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P /\\ ~Q").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let q = Formula::Predicate(2, vec![]);
+        let f = Formula::Or(vec![Formula::Not(Box::new(p.clone())),
+                                 Formula::Not(Box::new(q.clone()))]);
+        let correct_f = Formula::And(vec![p, q]);
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
 
     #[test]
     fn move_nots_inward_not_4() {
-        let (f, _) = internal_to_cnf_ast("exists x. ~P(x)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("forall x. P(x)").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let f = Formula::Exists(-1, Box::new(Formula::Not(Box::new(p.clone()))));
+        let correct_f = Formula::Forall(-1, Box::new(p));
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
 
     #[test]
     fn move_nots_inward_not_5() {
-        let (f, _) = internal_to_cnf_ast("forall x. ~P(x)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("exists x. P(x)").unwrap();
+        let p = Formula::Predicate(1, vec![]);
+        let f = Formula::Forall(-1, Box::new(p.clone()));
+        let correct_f = Formula::Exists(-1, Box::new(Formula::Not(Box::new(p))));
         assert_eq!(move_nots_inward_not(f), correct_f);
     }
 }

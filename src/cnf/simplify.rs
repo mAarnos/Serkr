@@ -25,13 +25,6 @@ pub fn simplify_formula(f: Formula) -> Formula {
     simplified_formula
 }
 
-fn negate(f: Formula) -> Formula {
-    match f {
-        Formula::Not(p) => *p,
-        _ => Formula::Not(Box::new(f)),
-    }
-}
-
 /// The main function for simplifying the formula from bottom up.
 fn simplify(f: Formula) -> Formula {
     match f {
@@ -54,6 +47,14 @@ fn simplify_not(f: Formula) -> Formula {
         Formula::True => Formula::False,
         Formula::False => Formula::True,
         _ => Formula::Not(Box::new(simplified_f)),
+    }
+}
+
+/// Negates a formula. Applies double negation elimination.
+fn negate(f: Formula) -> Formula {
+    match f {
+        Formula::Not(p) => *p,
+        _ => Formula::Not(Box::new(f)),
     }
 }
 
@@ -233,16 +234,9 @@ fn contains_true_or_false(f: &Formula) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::{simplify_formula, simplify_quantifier, simplify_not, simplify_and, simplify_or,
-                simplify_implies, simplify_equivalent};
-    use cnf::ast::Formula;
-    use cnf::ast_transformer_internal::{internal_to_cnf_ast, internal_to_cnf_ast_general};
-
-    #[test]
-    fn simplify_1() {
-        let (f, _) = internal_to_cnf_ast("((P <=> P) \\/ Q(x, y))").unwrap();
-        assert_eq!(simplify_formula(f), Formula::True);
-    }
+    use cnf::ast::{Term, Formula};
+    use super::{simplify_not, simplify_and, simplify_or, simplify_implies, simplify_equivalent,
+                simplify_quantifier};
 
     #[test]
     fn simplify_not_1() {
@@ -256,197 +250,186 @@ mod test {
 
     #[test]
     fn simplify_not_3() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P(x)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
+        let correct_f = Formula::Not(Box::new(f.clone()));
         assert_eq!(simplify_not(f), correct_f);
     }
 
     #[test]
     fn simplify_and_1() {
-        let (f1, ri) = internal_to_cnf_ast("P(x)").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("Q(x)", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P(x) /\\ Q(x)").unwrap();
-        assert_eq!(simplify_and(vec![f1, Formula::True, f2]), correct_f);
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        let correct_f = Formula::And(vec![f1.clone(), f2.clone()]);
+        assert_eq!(simplify_and(vec![f1.clone(), f2.clone(), Formula::True]),
+                   correct_f);
+        assert_eq!(simplify_and(vec![f1.clone(), Formula::True, f2.clone()]),
+                   correct_f);
+        assert_eq!(simplify_and(vec![Formula::True, f1, f2]), correct_f);
     }
 
     #[test]
     fn simplify_and_2() {
-        let (f1, ri) = internal_to_cnf_ast("P(x)").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("Q(x)", ri).unwrap();
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        assert_eq!(simplify_and(vec![f1.clone(), f2.clone(), Formula::False]),
+                   Formula::False);
         assert_eq!(simplify_and(vec![f1.clone(), Formula::False, f2.clone()]),
                    Formula::False);
-        assert_eq!(simplify_and(vec![f1, f2, Formula::False]), Formula::False);
+        assert_eq!(simplify_and(vec![Formula::False, f1, f2]), Formula::False);
     }
 
     #[test]
     fn simplify_and_3() {
-        let (f1, _) = internal_to_cnf_ast("P(x, y)").unwrap();
-        let (f2, _) = internal_to_cnf_ast("~P(x, y)").unwrap();
-        assert_eq!(simplify_and(vec![f1.clone(), f2.clone()]), Formula::False);
-        assert_eq!(simplify_and(vec![f2, f1]), Formula::False);
+        let f = Formula::Predicate(1, vec![]);
+        let not_f = Formula::Not(Box::new(f.clone()));
+        assert_eq!(simplify_and(vec![f.clone(), not_f.clone()]), Formula::False);
+        assert_eq!(simplify_and(vec![not_f, f]), Formula::False);
     }
 
     #[test]
     fn simplify_and_4() {
-        let (f1, ri) = internal_to_cnf_ast("P(x)").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("~Q(x)", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P(x) /\\ ~Q(x)").unwrap();
-        assert_eq!(simplify_and(vec![f1.clone(), f2.clone()]), correct_f);
-        assert_eq!(simplify_and(vec![f2, f1]), correct_f);
-    }
-
-    #[test]
-    fn simplify_and_5() {
-        let (f, _) = internal_to_cnf_ast("P(x, y)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
         assert_eq!(simplify_and(vec![f.clone(), f.clone(), f.clone()]), f);
     }
 
     #[test]
-    fn simplify_and_6() {
-        let (f1, ri) = internal_to_cnf_ast("P(y)").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("Q(x)", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P(y) /\\ Q(x)").unwrap();
+    fn simplify_and_5() {
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        let correct_f = Formula::And(vec![f1.clone(), f2.clone()]);
         assert_eq!(simplify_and(vec![f1, f2]), correct_f);
     }
 
-
     #[test]
     fn simplify_or_1() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
-        assert_eq!(simplify_or(vec![f.clone(), Formula::True, f.clone()]),
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        assert_eq!(simplify_or(vec![f1.clone(), f2.clone(), Formula::True]),
                    Formula::True);
-        assert_eq!(simplify_or(vec![Formula::True, f]), Formula::True);
+        assert_eq!(simplify_or(vec![f1.clone(), Formula::True, f2.clone()]),
+                   Formula::True);
+        assert_eq!(simplify_or(vec![Formula::True, f1, f2]), Formula::True);
     }
 
     #[test]
     fn simplify_or_2() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
-        assert_eq!(simplify_or(vec![Formula::False, f.clone(), Formula::False]),
-                   f.clone());
-        assert_eq!(simplify_or(vec![f.clone(), Formula::False, Formula::False]),
-                   f);
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        let correct_f = Formula::Or(vec![f1.clone(), f2.clone()]);
+        assert_eq!(simplify_or(vec![f1.clone(), f2.clone(), Formula::False]),
+                   correct_f);
+        assert_eq!(simplify_or(vec![f1.clone(), Formula::False, f2.clone()]),
+                   correct_f);
+        assert_eq!(simplify_or(vec![Formula::False, f1, f2]), correct_f);
     }
 
     #[test]
     fn simplify_or_3() {
-        let (f1, _) = internal_to_cnf_ast("P(x)").unwrap();
-        let (f2, _) = internal_to_cnf_ast("~P(x)").unwrap();
-        assert_eq!(simplify_or(vec![f1.clone(), f2.clone()]), Formula::True);
-        assert_eq!(simplify_or(vec![f2, f1]), Formula::True);
+        let f = Formula::Predicate(1, vec![]);
+        let not_f = Formula::Not(Box::new(f.clone()));
+        assert_eq!(simplify_or(vec![f.clone(), not_f.clone()]), Formula::True);
+        assert_eq!(simplify_or(vec![not_f, f]), Formula::True);
     }
 
     #[test]
     fn simplify_or_4() {
-        let (f1, ri) = internal_to_cnf_ast("P").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("~Q", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P \\/ ~Q").unwrap();
-        assert_eq!(simplify_or(vec![f1.clone(), f2.clone(), f1.clone()]),
-                   correct_f);
-        assert_eq!(simplify_or(vec![f1.clone(), f2, f1]), correct_f);
+        let f = Formula::Predicate(1, vec![]);
+        assert_eq!(simplify_or(vec![f.clone(), f.clone(), f.clone()]), f);
     }
 
     #[test]
     fn simplify_or_5() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
-        assert_eq!(simplify_or(vec![f.clone(), f.clone(), f.clone(), f.clone()]),
-                   f);
-    }
-
-    #[test]
-    fn simplify_or_6() {
-        let (f1, ri) = internal_to_cnf_ast("P").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("Q", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P \\/ Q").unwrap();
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        let correct_f = Formula::Or(vec![f1.clone(), f2.clone()]);
         assert_eq!(simplify_or(vec![f1, f2]), correct_f);
     }
 
     #[test]
     fn simplify_implies_1() {
-        let (f, _) = internal_to_cnf_ast("P(x, y, z, w)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
         assert_eq!(simplify_implies(f.clone(), f), Formula::True);
     }
 
     #[test]
     fn simplify_implies_2() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
         assert_eq!(simplify_implies(f, Formula::True), Formula::True);
     }
 
     #[test]
     fn simplify_implies_3() {
-        let (f, _) = internal_to_cnf_ast("P(c())").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P(c())").unwrap();
-        assert_eq!(simplify_implies(f.clone(), Formula::False), correct_f);
-    }
-
-    #[test]
-    fn simplify_implies_4() {
-        let (f, _) = internal_to_cnf_ast("P(c(), f(x))").unwrap();
-        assert_eq!(simplify_implies(Formula::True, f.clone()), f);
-    }
-
-    #[test]
-    fn simplify_implies_5() {
-        let (f, _) = internal_to_cnf_ast("P").unwrap();
+        let f = Formula::Predicate(1, vec![]);
         assert_eq!(simplify_implies(Formula::False, f), Formula::True);
     }
 
     #[test]
+    fn simplify_implies_4() {
+        let f = Formula::Predicate(1, vec![]);
+        let correct_f = Formula::Not(Box::new(f.clone()));
+        assert_eq!(simplify_implies(f, Formula::False), correct_f);
+    }
+
+    #[test]
+    fn simplify_implies_5() {
+        let f = Formula::Predicate(1, vec![]);
+        assert_eq!(simplify_implies(Formula::True, f.clone()), f);
+    }
+
+    #[test]
     fn simplify_implies_6() {
-        let (f1, ri) = internal_to_cnf_ast("P").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("Q", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P ==> Q").unwrap();
-        assert_eq!(simplify_implies(f1.clone(), f2.clone()), correct_f);
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        let correct_f = Formula::Implies(Box::new(f1.clone()), Box::new(f2.clone()));
+        assert_eq!(simplify_implies(f1, f2), correct_f);
     }
 
     #[test]
     fn simplify_equivalent_1() {
-        let (f, _) = internal_to_cnf_ast("P(x, y)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
         assert_eq!(simplify_equivalent(f.clone(), f), Formula::True);
     }
 
     #[test]
     fn simplify_equivalent_2() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
         assert_eq!(simplify_equivalent(f.clone(), Formula::True), f);
         assert_eq!(simplify_equivalent(Formula::True, f.clone()), f);
     }
 
     #[test]
     fn simplify_equivalent_3() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("~P(x)").unwrap();
+        let f = Formula::Predicate(1, vec![]);
+        let correct_f = Formula::Not(Box::new(f.clone()));
         assert_eq!(simplify_equivalent(f.clone(), Formula::False), correct_f);
         assert_eq!(simplify_equivalent(Formula::False, f), correct_f);
     }
 
     #[test]
     fn simplify_equivalent_4() {
-        let (f1, ri) = internal_to_cnf_ast("P(x)").unwrap();
-        let (f2, _) = internal_to_cnf_ast_general("Q(x, y)", ri).unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P(x) <=> Q(x, y)").unwrap();
+        let f1 = Formula::Predicate(1, vec![]);
+        let f2 = Formula::Predicate(2, vec![]);
+        let correct_f = Formula::Equivalent(Box::new(f1.clone()), Box::new(f2.clone()));
         assert_eq!(simplify_equivalent(f1, f2), correct_f);
     }
 
     #[test]
     fn simplify_quantifier_1() {
-        let (f, ri) = internal_to_cnf_ast("exists y. (Odd(n) \\/ Even(n))").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast_general("Odd(n) \\/ Even(n)", ri).unwrap();
-        assert_eq!(simplify_quantifier(-1, f, true), correct_f);
+        let n = Term::Variable(-1);
+        let odd = Formula::Predicate(1, vec![n.clone()]);
+        let even = Formula::Predicate(2, vec![n.clone()]);
+        let odd_or_even = Formula::Or(vec![odd, even]);
+        let f = Formula::Exists(-1, Box::new(odd_or_even.clone()));
+        assert_eq!(simplify_quantifier(-2, odd_or_even.clone(), true),
+                   odd_or_even);
+        assert_eq!(simplify_quantifier(-1, odd_or_even, false), f);
     }
 
     #[test]
     fn simplify_quantifier_2() {
-        let (f, ri) = internal_to_cnf_ast("exists y. (Odd(n) \\/ Even(n))").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast_general("forall n. (Odd(n) \\/ Even(n))", ri)
-                                 .unwrap();
-        assert_eq!(simplify_quantifier(-2, f, true), correct_f);
-    }
-
-    #[test]
-    fn simplify_quantifier_3() {
-        let (f, _) = internal_to_cnf_ast("P(x)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("exists x. P(x)").unwrap();
-        assert_eq!(simplify_quantifier(-1, f, false), correct_f);
+        let x = Term::Variable(-1);
+        let f = Formula::Predicate(1, vec![x]);
+        let correct_f = Formula::Forall(-1, Box::new(f.clone()));
+        assert_eq!(simplify_quantifier(-1, f, true), correct_f);
     }
 }

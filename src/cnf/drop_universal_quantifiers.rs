@@ -23,7 +23,7 @@ pub fn drop_universal_quantifiers(f: Formula) -> Formula {
     new_f
 }
 
-/// Drops all universal quantifiers from the start of a formula.
+/// The real meat of the above function.
 fn drop_universal_quantifiers0(f: Formula) -> Formula {
     match f {
         Formula::Forall(_, p) => drop_universal_quantifiers0(*p),
@@ -44,18 +44,15 @@ fn contains_universal_quantifiers(f: &Formula) -> bool {
 #[cfg(test)]
 mod test {
     use super::drop_universal_quantifiers;
-    use cnf::ast_transformer_internal::internal_to_cnf_ast;
+    use cnf::ast::{Term, Formula};
 
     #[test]
     fn drop_universal_quantifiers_1() {
-        let (f, _) = internal_to_cnf_ast("forall x. forall y. P(x, y)").unwrap();
-        let (correct_f, _) = internal_to_cnf_ast("P(x, y)").unwrap();
-        assert_eq!(drop_universal_quantifiers(f), correct_f);
-    }
-
-    #[test]
-    fn drop_universal_quantifiers_2() {
-        let (f, _) = internal_to_cnf_ast("P(x, f(y))").unwrap();
-        assert_eq!(drop_universal_quantifiers(f.clone()), f);
+        let x = Term::Variable(-1);
+        let y = Term::Variable(-2);
+        let p = Formula::Predicate(1, vec![x, y]);
+        let f = Formula::Forall(-1, Box::new(Formula::Forall(-2, Box::new(p.clone()))));
+        assert_eq!(drop_universal_quantifiers(f), p);
+        assert_eq!(drop_universal_quantifiers(p.clone()), p);
     }
 }

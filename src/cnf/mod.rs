@@ -24,11 +24,8 @@ pub mod ast;
 /// Contains stuff dealing with converting predicate and term names to a more suitable format.
 pub mod renaming_info;
 
-/// Contains functions for turning the internal parser AST into the CNF AST.
-pub mod ast_transformer_internal;
-
 /// Contains functions for turning the TPTP parser AST into the CNF AST.
-pub mod ast_transformer_tptp;
+pub mod ast_transformer;
 
 mod free_variables;
 

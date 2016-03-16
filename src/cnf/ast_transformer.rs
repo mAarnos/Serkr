@@ -14,10 +14,10 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use parser::tptp_parser::parser::parse_tptp_file;
-use parser::tptp_parser::ast::AnnotatedFormula;
-use parser::tptp_parser::ast::Term as ParserTerm;
-use parser::tptp_parser::ast::Formula as ParserFormula;
+use tptp_parser::parser::parse_tptp_file;
+use tptp_parser::ast::AnnotatedFormula;
+use tptp_parser::ast::Term as ParserTerm;
+use tptp_parser::ast::Formula as ParserFormula;
 use cnf::ast::Term as CnfTerm;
 use cnf::ast::Formula as CnfFormula;
 use cnf::renaming_info::RenamingInfo;

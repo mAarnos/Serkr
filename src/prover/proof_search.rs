@@ -38,7 +38,7 @@ use prover::inference::superposition::superposition;
 use prover::problem_analysis::determine_term_ordering::create_term_ordering;
 
 use cnf::ast::Formula;
-use cnf::ast_transformer_tptp::tptp_to_cnf_ast;
+use cnf::ast_transformer::tptp_to_cnf_ast;
 use cnf::naive_cnf::cnf;
 use utils::stopwatch::Stopwatch;
 
@@ -201,7 +201,7 @@ fn serkr_loop(mut proof_state: ProofState,
                     proof_state.add_to_unused(cl);
                 }
             }
-        } 
+        }
     }
 
     (ProofAttemptResult::new_saturation(contains_conjectures),

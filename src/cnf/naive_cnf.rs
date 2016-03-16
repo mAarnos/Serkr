@@ -71,23 +71,4 @@ fn is_atomic(f: &Formula) -> bool {
 }
 
 #[cfg(test)]
-mod test {
-    use super::cnf;
-    use cnf::ast_transformer_internal::{internal_to_cnf_ast, internal_to_cnf_ast_general};
-
-    #[test]
-    fn cnf_1() {
-        let (f, mut ri) = internal_to_cnf_ast("forall x. (forall y. (Animal(y) ==> Loves(x, y))
-                                                          ==> exists y. Loves(y, x))")
-                              .unwrap();
-        // Hack to get 'correct' IDs for the skolem functions.
-        let (_, ri2) = internal_to_cnf_ast_general("Animal(sf0(v0)) \\/ Loves(sf1(v0), v0)",
-                                                   ri.clone())
-                           .unwrap();
-        let (c_f, _) = internal_to_cnf_ast_general("(Loves(sf1(v0), v0) \\/ Animal(sf0(v0))) /\\
-                                                    (Loves(sf1(v0), v0) \\/ ~Loves(v0, sf0(v0)))",
-                                                   ri2)
-                           .unwrap();
-        assert_eq!(cnf(f, &mut ri), c_f);
-    }
-}
+mod test {}

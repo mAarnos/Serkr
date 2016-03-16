@@ -59,16 +59,49 @@ impl RenamingInfo {
     }
 
     /// Creates a new variable ID matching the given string.
-    pub fn create_new_variable_id(&mut self, s: String) -> i64 {
+    fn create_new_variable_id(&mut self, s: String) -> i64 {
         self.var_cnt -= 1;
         self.var_map.insert(s, self.var_cnt);
         self.var_cnt
     }
 
     /// Creates a new function ID matching the given string and arity.
-    pub fn create_new_function_id(&mut self, s: String, arity: usize, predicate: bool) -> i64 {
+    fn create_new_function_id(&mut self, s: String, arity: usize, predicate: bool) -> i64 {
         self.fun_cnt += 1;
         self.fun_map.insert((s, arity, predicate), self.fun_cnt);
         self.fun_cnt
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::RenamingInfo;
+    
+    #[test]
+    fn get_variable_id_1() {
+        let mut ri = RenamingInfo::new();
+        let id1 = ri.get_variable_id("X".to_string());
+        let id2 = ri.get_variable_id("X".to_string());
+        let id3 = ri.get_variable_id("Y".to_string());
+        
+        assert_eq!(id1, -1);
+        assert_eq!(id1, id2);
+        assert_eq!(id3, -2);
+    }
+    
+    #[test]
+    fn get_function_id_1() {
+        let mut ri = RenamingInfo::new();
+        let id1 = ri.get_function_id("f".to_string(), 2, true);
+        let id2 = ri.get_function_id("f".to_string(), 2, true);
+        let id3 = ri.get_function_id("f".to_string(), 2, false);
+        let id4 = ri.get_function_id("f".to_string(), 3, true);
+        let id5 = ri.get_function_id("g".to_string(), 2, true);
+        
+        assert_eq!(id1, 1);
+        assert_eq!(id1, id2);
+        assert_eq!(id3, 2);
+        assert_eq!(id4, 3);
+        assert_eq!(id5, 4);
     }
 }
