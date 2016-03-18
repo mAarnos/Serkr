@@ -82,19 +82,19 @@ impl Default for RenamingInfo {
 #[cfg(test)]
 mod test {
     use super::RenamingInfo;
-    
+
     #[test]
     fn get_variable_id_1() {
         let mut ri = RenamingInfo::new();
         let id1 = ri.get_variable_id("X".to_owned());
         let id2 = ri.get_variable_id("X".to_owned());
         let id3 = ri.get_variable_id("Y".to_owned());
-        
+
         assert_eq!(id1, -1);
         assert_eq!(id1, id2);
         assert_eq!(id3, -2);
     }
-    
+
     #[test]
     fn get_function_id_1() {
         let mut ri = RenamingInfo::new();
@@ -103,7 +103,7 @@ mod test {
         let id3 = ri.get_function_id("f".to_owned(), 2, false);
         let id4 = ri.get_function_id("f".to_owned(), 3, true);
         let id5 = ri.get_function_id("g".to_owned(), 2, true);
-        
+
         assert_eq!(id1, 1);
         assert_eq!(id1, id2);
         assert_eq!(id3, 2);
