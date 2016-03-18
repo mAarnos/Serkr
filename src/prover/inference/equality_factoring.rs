@@ -80,6 +80,7 @@ pub fn equality_factoring(term_ordering: &TermOrdering,
     ef_count
 }
 
+#[cfg_attr(feature="clippy", allow(too_many_arguments))]
 fn equality_factoring_create_new(term_ordering: &TermOrdering,
                                  cl: &Clause,
                                  generated: &mut Vec<Clause>,

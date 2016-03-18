@@ -86,6 +86,7 @@ fn handle_include(incl: Include) -> Result<Vec<AnnotatedFormula>, String> {
 }
 
 /// Parses a file in TPTP format to a vector of annotated formulae.
+#[cfg_attr(feature="clippy", allow(use_debug))]
 pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
     let preprocessed_file = try!(read_and_preprocess_file(s));
     let parsed_file = try!(parse_TPTP_file(&preprocessed_file).map_err(|x| format!("{:?}", x)));

@@ -116,6 +116,7 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 
 /// The main proof search loop.
 /// Note that we use the DISCOUNT version of the given clause algorithm.
+#[cfg_attr(feature="clippy", allow(print_stdout))]
 fn serkr_loop(mut proof_state: ProofState,
               mut var_cnt: i64,
               max_time_in_ms: u64,

@@ -60,5 +60,11 @@ impl Substitution {
     }
 }
 
+impl Default for Substitution {
+    fn default() -> Substitution {
+        Substitution::new()
+    }
+}
+
 #[cfg(test)]
 mod test {}

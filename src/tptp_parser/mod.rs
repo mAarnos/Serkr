@@ -26,6 +26,7 @@ mod parser_grammar;
 
 /// Contains a function for parsing a formula in the TPTP format to the abstract syntax tree.
 #[cfg_attr(rustfmt, rustfmt_skip)]
+#[cfg_attr(feature="clippy", allow(result_unwrap_used))]
 pub mod parser;
 
 /// The abstract syntax tree the parser constructs.

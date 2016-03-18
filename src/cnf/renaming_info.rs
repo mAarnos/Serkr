@@ -73,6 +73,12 @@ impl RenamingInfo {
     }
 }
 
+impl Default for RenamingInfo {
+    fn default() -> RenamingInfo {
+        RenamingInfo::new()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::RenamingInfo;
@@ -80,9 +86,9 @@ mod test {
     #[test]
     fn get_variable_id_1() {
         let mut ri = RenamingInfo::new();
-        let id1 = ri.get_variable_id("X".to_string());
-        let id2 = ri.get_variable_id("X".to_string());
-        let id3 = ri.get_variable_id("Y".to_string());
+        let id1 = ri.get_variable_id("X".to_owned());
+        let id2 = ri.get_variable_id("X".to_owned());
+        let id3 = ri.get_variable_id("Y".to_owned());
         
         assert_eq!(id1, -1);
         assert_eq!(id1, id2);
@@ -92,11 +98,11 @@ mod test {
     #[test]
     fn get_function_id_1() {
         let mut ri = RenamingInfo::new();
-        let id1 = ri.get_function_id("f".to_string(), 2, true);
-        let id2 = ri.get_function_id("f".to_string(), 2, true);
-        let id3 = ri.get_function_id("f".to_string(), 2, false);
-        let id4 = ri.get_function_id("f".to_string(), 3, true);
-        let id5 = ri.get_function_id("g".to_string(), 2, true);
+        let id1 = ri.get_function_id("f".to_owned(), 2, true);
+        let id2 = ri.get_function_id("f".to_owned(), 2, true);
+        let id3 = ri.get_function_id("f".to_owned(), 2, false);
+        let id4 = ri.get_function_id("f".to_owned(), 3, true);
+        let id5 = ri.get_function_id("g".to_owned(), 2, true);
         
         assert_eq!(id1, 1);
         assert_eq!(id1, id2);
