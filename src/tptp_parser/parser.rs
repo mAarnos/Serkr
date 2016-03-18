@@ -106,7 +106,24 @@ pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
 #[cfg(test)]
 mod test {
     use tptp_parser::parser_grammar::*;
-    use tptp_parser::ast::*;
+    use tptp_parser::ast::*;   
+    use super::parse_tptp_file;
+    
+    #[test]
+    fn parser_test_1() {
+        assert!(parse_tptp_file("test_problems/SYN000-1.p").is_ok());
+    }
+    
+    #[test]
+    fn parser_test_2() {
+        assert!(parse_tptp_file("test_problems/SYN000+1.p").is_ok());
+    }
+    
+    #[test]
+    fn parser_test_3() {
+        // Try to read a file which does not exist.
+        assert!(parse_tptp_file("test_problems/does_not_exists.p").is_err());
+    }
     
     #[test]
     fn parse_cnf_annotated_propositional() {

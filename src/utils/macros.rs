@@ -37,3 +37,17 @@ macro_rules! assert_neq {
         }
     })
 }
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn assert_neq_1() {
+        assert_neq!(2, 3);
+    }
+    
+    #[test]
+    #[should_panic]
+    fn assert_neq_2() {
+        assert_neq!(2, 2);
+    }
+} 
