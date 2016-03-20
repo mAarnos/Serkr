@@ -279,8 +279,13 @@ mod test {
     }
     
     #[test]
-    fn parse_distinct_object_test() {
+    fn parse_distinct_object_1() {
         assert_eq!(parse_distinct_object("\"A \\\"Microsoft \\ escape\\\"\"").unwrap(), "A \\\"Microsoft \\ escape\\\"");
+    }
+    
+    #[test]
+    fn parse_distinct_object_2() {
+        assert_eq!(parse_distinct_object(r#"" abc \""#).unwrap(), " abc \\");
     }
     
     #[test]
