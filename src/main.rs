@@ -36,8 +36,8 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
-#![cfg_attr(feature="clippy", allow(new_without_default, result_unwrap_used))]
-#![cfg_attr(feature="clippy", allow(print_stdout, use_debug))]
+// This particular clippy lint is pretty insane.
+#![cfg_attr(feature="clippy", allow(indexing_slicing))]
 
 #[macro_use]
 extern crate clap;
@@ -49,6 +49,8 @@ pub mod tptp_parser;
 pub mod cnf;
 pub mod prover;
 
+#[cfg_attr(feature="clippy", allow(use_debug))]
+#[cfg_attr(feature="clippy", allow(print_stdout))]
 fn main() {
     let matches = clap::App::new("Serkr")
                       .version(crate_version!())
@@ -81,9 +83,9 @@ fn main() {
                         let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
                         prover::proof_search::prove(&input_file, use_lpo, time_limit)
                     })
-                    .unwrap();
+                    .expect("Creating a new thread shouldn't fail");
 
-    let (proof_result, proof_statistics) = child.join().unwrap();
+    let (proof_result, proof_statistics) = child.join().expect("Joining a thread shouldn't fail");
 
     println!("{:?}", proof_result);
     println!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);

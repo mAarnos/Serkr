@@ -86,6 +86,7 @@ fn handle_include(incl: Include) -> Result<Vec<AnnotatedFormula>, String> {
 }
 
 /// Parses a file in TPTP format to a vector of annotated formulae.
+#[cfg_attr(feature="clippy", allow(use_debug))]
 pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
     let preprocessed_file = try!(read_and_preprocess_file(s));
     let parsed_file = try!(parse_TPTP_file(&preprocessed_file).map_err(|x| format!("{:?}", x)));
@@ -105,7 +106,24 @@ pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
 #[cfg(test)]
 mod test {
     use tptp_parser::parser_grammar::*;
-    use tptp_parser::ast::*;
+    use tptp_parser::ast::*;   
+    use super::parse_tptp_file;
+    
+    #[test]
+    fn parser_test_1() {
+        assert!(parse_tptp_file("test_problems/SYN000-1.p").is_ok());
+    }
+    
+    #[test]
+    fn parser_test_2() {
+        assert!(parse_tptp_file("test_problems/SYN000+1.p").is_ok());
+    }
+    
+    #[test]
+    fn parser_test_3() {
+        // Try to read a file which does not exist.
+        assert!(parse_tptp_file("test_problems/does_not_exists.p").is_err());
+    }
     
     #[test]
     fn parse_cnf_annotated_propositional() {
@@ -261,8 +279,13 @@ mod test {
     }
     
     #[test]
-    fn parse_distinct_object_test() {
+    fn parse_distinct_object_1() {
         assert_eq!(parse_distinct_object("\"A \\\"Microsoft \\ escape\\\"\"").unwrap(), "A \\\"Microsoft \\ escape\\\"");
+    }
+    
+    #[test]
+    fn parse_distinct_object_2() {
+        assert_eq!(parse_distinct_object(r#"" abc \""#).unwrap(), " abc \\");
     }
     
     #[test]

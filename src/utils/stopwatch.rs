@@ -68,3 +68,9 @@ impl Stopwatch {
         } - self.start_time) / 1000000
     }
 }
+
+impl Default for Stopwatch {
+    fn default() -> Stopwatch {
+        Stopwatch::new()
+    }
+}

@@ -76,8 +76,8 @@ fn fvt(t: &Term) -> HashSet<i64> {
 #[cfg(test)]
 mod test {
     use super::{free_in, fv};
-    use cnf::ast::{Term,Formula};
-    
+    use cnf::ast::{Term, Formula};
+
     #[test]
     fn free_in_1() {
         let x = Term::Variable(-1);
@@ -88,14 +88,18 @@ mod test {
         let p_y_z = Formula::Predicate(1, vec![y.clone(), z.clone()]);
         let p_x_z = Formula::Predicate(1, vec![x.clone(), z.clone()]);
         let f_q = Formula::Implies(Box::new(Formula::And(vec![p_x_y, p_y_z])), Box::new(p_x_z));
-        let f = Formula::Forall(-1, Box::new(Formula::Forall(-2, Box::new(Formula::Forall(-3, Box::new(f_q))))));
-        
+        let f =
+            Formula::Forall(-1,
+                            Box::new(Formula::Forall(-2,
+                                                     Box::new(Formula::Forall(-3,
+                                                                              Box::new(f_q))))));
+
         assert!(!free_in(&f, &x));
         assert!(!free_in(&f, &y));
         assert!(!free_in(&f, &z));
         assert!(!free_in(&f, &a));
     }
-    
+
     #[test]
     fn free_in_2() {
         let x = Term::Variable(-1);
@@ -103,11 +107,11 @@ mod test {
         let f_y = Term::Function(1, vec![y.clone()]);
         let p_x_f_y = Formula::Predicate(1, vec![x.clone(), f_y]);
         let f = Formula::Forall(-1, Box::new(Formula::Exists(-3, Box::new(p_x_f_y))));
-        
+
         assert!(!free_in(&f, &x));
         assert!(free_in(&f, &y));
     }
-    
+
     #[test]
     fn fv_1() {
         let x = Term::Variable(-1);
@@ -116,7 +120,7 @@ mod test {
         let p_x_y_z = Formula::Predicate(1, vec![x.clone(), y.clone(), z.clone()]);
         let f = Formula::Forall(-1, Box::new(Formula::Exists(-3, Box::new(p_x_y_z))));
         let free_variables = fv(&f);
-        
+
         assert_eq!(free_variables.len(), 1);
         assert!(free_variables.contains(&-2));
     }

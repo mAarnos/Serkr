@@ -43,5 +43,11 @@ impl ProofStatistics {
     }
 }
 
+impl Default for ProofStatistics {
+    fn default() -> ProofStatistics {
+        ProofStatistics::new()
+    }
+}
+
 #[cfg(test)]
 mod test {}

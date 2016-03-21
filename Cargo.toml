@@ -8,10 +8,10 @@ exclude = ["examples/*", "test_problems/*"]
 build = "build.rs" 
 
 [build-dependencies.lalrpop]
-version = "0.10.0"
+version = "*"
 
 [dependencies.lalrpop-util]
-version = "0.10.0"
+version = "*"
 
 [dependencies.time]
 version = "*"

@@ -39,6 +39,7 @@ fn create_overlapped_term0(u_p: &mut Term, t: &Term, trace: &[usize], n: usize) 
 }
 
 /// TODO: I really, REALLY should document and clean this up.
+#[cfg_attr(feature="clippy", allow(too_many_arguments))]
 fn overlaps(term_ordering: &TermOrdering,
             s: &Term,
             t: &Term,

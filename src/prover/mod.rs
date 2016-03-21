@@ -39,6 +39,9 @@ mod problem_analysis;
 // flatten is just not descriptive and it also means something else on top of that.
 mod flatten_cnf;
 
+/// Contains stuff on reporting the result of a proof search.
+mod proof_result;
+
 /// Contains stuff on statistics collected during a proof search.
 mod proof_statistics;
 
