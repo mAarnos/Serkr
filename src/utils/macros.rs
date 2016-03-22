@@ -38,6 +38,14 @@ macro_rules! assert_neq {
     })
 }
 
+/// A println which appends "% " to the start of everything to print.
+/// Avoids lots of annoying work when printing stuff in the SZS format.
+#[macro_export]
+macro_rules! println_szs {
+    ($fmt:expr) => (print!(concat!("% ", concat!($fmt, "\n"))));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!("% ", concat!($fmt, "\n")), $($arg)*));
+}
+
 #[cfg(test)]
 mod test {
     #[test]
