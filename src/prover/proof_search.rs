@@ -85,18 +85,17 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 
 /// The main proof search loop.
 /// Note that we use the DISCOUNT version of the given clause algorithm.
-#[cfg_attr(feature="clippy", allow(print_stdout))]
 fn serkr_loop(mut proof_state: ProofState,
               mut var_cnt: i64,
               max_time_in_ms: u64,
               contains_conjectures: bool)
               -> (ProofResult, ProofStatistics) {
+    assert_eq!(proof_state.get_used_size(), 0);          
+              
     let mut sw = Stopwatch::new();
     let mut stats = ProofStatistics::new();
-    let mut ms_count = 1000;
     let mut added_to_unused = 0;
-
-    println!("Initial clauses: {}", proof_state.get_unused_size());
+    stats.initial_clauses = proof_state.get_unused_size();
 
     sw.start();
 
@@ -107,22 +106,6 @@ fn serkr_loop(mut proof_state: ProofState,
         // If we have spent too much time already just give up.
         if stats.elapsed_ms > max_time_in_ms {
             return (ProofResult::Timeout, stats);
-        }
-
-        if stats.elapsed_ms > ms_count {
-            println!("info time {} iterations {} used {} unused {} sp {} ef {} er {} trivial {} \
-                      fs {} bs {}",
-                     stats.elapsed_ms,
-                     stats.iterations,
-                     proof_state.get_used_size(),
-                     proof_state.get_unused_size(),
-                     stats.sp_count,
-                     stats.ef_count,
-                     stats.er_count,
-                     stats.trivial_count,
-                     stats.fs_count,
-                     stats.bs_count);
-            ms_count += 1000;
         }
 
         // We start by simplifying the chosen clause as much as possible.
@@ -136,7 +119,9 @@ fn serkr_loop(mut proof_state: ProofState,
         }
 
         // Check if the clause is redundant in some way. If it is no need to process it more.
-        if forward_subsumed(&chosen_clause, proof_state.get_used()) {
+        if trivial(&chosen_clause) {
+            stats.trivial_count += 1;
+        } else if forward_subsumed(&chosen_clause, proof_state.get_used()) {
             stats.fs_count += 1;
         } else {
             stats.bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
@@ -162,7 +147,7 @@ fn serkr_loop(mut proof_state: ProofState,
                 // unless we first simplify it with destructive equality resolution.
                 cheap_simplify(&mut cl);
                 if trivial(&cl) {
-                    stats.trivial_count += 1;
+                    stats.trivial_inference_count += 1;
                 } else {
                     // Give a unique ID to the clause.
                     cl.set_id(added_to_unused);

@@ -22,6 +22,7 @@ pub enum ProofResult {
     CounterSatisfiable,
     Unsatisfiable,
     Satisfiable,
+    GaveUp,
     Timeout,
     Error(String),
 }
@@ -42,6 +43,36 @@ impl ProofResult {
             ProofResult::CounterSatisfiable
         } else {
             ProofResult::Satisfiable
+        }
+    }
+    
+    /// Returns a String which describes the type of the ProofResult.
+    /// The reason for this is function is trouble with SZS format output.
+    pub fn display_type(&self) -> String {
+        match *self {
+            ProofResult::Theorem => "Theorem".to_owned(),
+            ProofResult::CounterSatisfiable => "CounterSatisfiable".to_owned(),
+            ProofResult::Unsatisfiable => "Unsatisfiable".to_owned(),
+            ProofResult::Satisfiable => "Satisfiable".to_owned(),
+            ProofResult::GaveUp => "GaveUp".to_owned(),
+            ProofResult::Timeout => "Timeout".to_owned(),
+            ProofResult::Error(_) => "Error".to_owned()
+        }
+    }
+    
+    /// Is the current result successful (in the sense that a proof of some kind was found)?
+    pub fn is_successful(&self) -> bool {
+        match *self {
+            ProofResult::Timeout | ProofResult::Error(_) => false,
+            _ => true
+        }
+    }
+    
+    /// Is the current result an error?
+    pub fn is_err(&self) -> bool {
+        match *self {
+            ProofResult::Error(_) => true,
+            _ => false,
         }
     }
 }

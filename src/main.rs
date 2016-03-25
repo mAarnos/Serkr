@@ -49,8 +49,37 @@ pub mod tptp_parser;
 pub mod cnf;
 pub mod prover;
 
-#[cfg_attr(feature="clippy", allow(use_debug))]
+use prover::proof_result::ProofResult;
+use prover::proof_statistics::ProofStatistics;
+
 #[cfg_attr(feature="clippy", allow(print_stdout))]
+fn print_proof_result(proof_result: &ProofResult, input_file: &str) {
+    println_szs!("SZS status {} for {}", proof_result.display_type(), input_file);  
+    if proof_result.is_successful() {
+        println_szs!("SZS output None for {} : Proof output is not yet supported", input_file);
+    }
+    println!("");
+}
+
+#[cfg_attr(feature="clippy", allow(print_stdout))]
+fn print_statistics(proof_statistics: &ProofStatistics) {
+    println_szs!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);
+    
+    println_szs!("Initial clauses: {}", proof_statistics.initial_clauses);
+    println_szs!("Analyzed clauses: {}", proof_statistics.iterations);
+    println_szs!("  Trivial: {}", proof_statistics.trivial_count);
+    println_szs!("  Forward subsumed: {}", proof_statistics.fs_count);
+    println_szs!("  Nonredundant: {}", proof_statistics.nonredudant_processed_count());
+    
+    println_szs!("Backward subsumptions: {}", proof_statistics.bs_count);
+    
+    println_szs!("Inferred clauses: {}", proof_statistics.inferred_clauses_count());
+    println_szs!("  Superposition: {}", proof_statistics.sp_count);
+    println_szs!("  Equality factoring: {}", proof_statistics.ef_count);
+    println_szs!("  Equality resolution: {}", proof_statistics.er_count);
+    println_szs!("Nontrivial inferred clauses: {}", proof_statistics.nontrivial_inferred_clauses_count());
+}
+
 fn main() {
     let matches = clap::App::new("Serkr")
                       .version(crate_version!())
@@ -70,9 +99,10 @@ fn main() {
                                .long("kbo")
                                .conflicts_with("lpo"))
                       .get_matches();
-
-    println!("Serkr {}, (C) 2015-2016 Mikko Aarnos", crate_version!());
-
+                      
+    // Hack to get around lifetime issues.
+    let input_file_name = matches.value_of("INPUT")
+                                 .expect("This should always be OK").to_owned();
     // Hack to get around the parser/CNF transformer from crashing with very large files.
     let child = std::thread::Builder::new()
                     .stack_size(32 * 1024 * 1024)
@@ -87,6 +117,8 @@ fn main() {
 
     let (proof_result, proof_statistics) = child.join().expect("Joining a thread shouldn't fail");
 
-    println!("{:?}", proof_result);
-    println!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);
+    print_proof_result(&proof_result, &input_file_name);
+    if !proof_result.is_err() {
+        print_statistics(&proof_statistics);
+    }
 }

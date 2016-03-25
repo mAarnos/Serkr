@@ -4,6 +4,7 @@ from sys import argv
 from os.path import join, getsize
 from os import walk
 from multiprocessing import Pool
+from re import match
 
 def parse_args():
     parser = ArgumentParser(description='Analyze TPTP problems en masse')
@@ -45,13 +46,23 @@ def find_status_of_problem(path, cnf):
                 return status
     raise AssertionError("Status should always be possible to find")
 
-def is_valid_prover_status(s):
-    return s == "Timeout" or s == "Unsatisfiable" or s == "Satisfiable" or s == "Theorem" or s == "CounterSatisfiable"
+def is_valid_prover_status_cnf(s):
+    return s == "Timeout" or s == "Unsatisfiable" or s == "Satisfiable"
 
-def find_status_of_prover(s):
+def is_valid_prover_status_fof(s):
+    return is_valid_prover_status_cnf(s) or s == "Theorem" or s == "CounterSatisfiable"
+
+def is_valid_prover_status(s, cnf):
+    if cnf:
+        return is_valid_prover_status_cnf(s)
+    else:
+        return is_valid_prover_status_fof(s)
+
+def find_status_of_prover(s, cnf):
     for line in s.split('\n'):
-        if is_valid_prover_status(line):
-            return line
+        m = match("% SZS status ([a-zA-Z]+) .*", line)
+        if m and is_valid_prover_status(m.group(1), cnf):
+            return m.group(1)
     raise AssertionError("Prover status should always be possible to find")
 
 args = parse_args()
@@ -61,8 +72,8 @@ def analyze_file(data):
     cnf = data[1]
     print(s)
     problem_status = find_status_of_problem(s, cnf)
-    output = check_output(["serkr.exe", "-t=%d" % args.time, s],universal_newlines=True)
-    prover_status = find_status_of_prover(output)
+    output = check_output(["serkr.exe", "-t=%d" % args.time, s], universal_newlines=True)
+    prover_status = find_status_of_prover(output, cnf)
 
     if not prover_status == "Timeout":
         if not prover_status == problem_status:

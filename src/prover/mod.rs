@@ -40,10 +40,10 @@ mod problem_analysis;
 mod flatten_cnf;
 
 /// Contains stuff on reporting the result of a proof search.
-mod proof_result;
+pub mod proof_result;
 
 /// Contains stuff on statistics collected during a proof search.
-mod proof_statistics;
+pub mod proof_statistics;
 
 /// Contains stuff for keeping track of the current proof state during a proof search.
 mod proof_state;
