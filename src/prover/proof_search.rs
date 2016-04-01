@@ -215,7 +215,7 @@ pub fn prove(s: &str, use_lpo: bool, max_time_in_s: u64) -> (ProofResult, ProofS
         let term_ordering = create_term_ordering(use_lpo, &flattened_cnf_f);
         let proof_state = ProofState::new(flattened_cnf_f, term_ordering);
         serkr_loop(proof_state,
-                   renaming_info.var_cnt,
+                   renaming_info.get_newest_variable_id(),
                    max_time_in_s * 1000,
                    contains_conjectures)
     }

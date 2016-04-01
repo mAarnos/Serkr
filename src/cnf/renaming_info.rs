@@ -18,13 +18,12 @@ use std::collections::HashMap;
 
 /// Mappings from literals, terms and variables to IDs.
 /// Variables get a negative ID, functions get a positive ID while equality gets 0.
-#[allow(missing_docs)]
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct RenamingInfo {
-    pub fun_map: HashMap<(String, usize, bool), i64>,
-    pub var_map: HashMap<String, i64>,
-    pub fun_cnt: i64,
-    pub var_cnt: i64,
+    fun_map: HashMap<(String, usize, bool), i64>,
+    var_map: HashMap<String, i64>,
+    fun_cnt: i64,
+    var_cnt: i64,
 }
 
 impl RenamingInfo {
@@ -44,7 +43,9 @@ impl RenamingInfo {
         if let Some(&id) = self.var_map.get(&s) {
             id
         } else {
-            self.create_new_variable_id(s)
+            self.var_cnt -= 1;
+            self.var_map.insert(s, self.var_cnt);
+            self.var_cnt
         }
     }
 
@@ -54,22 +55,27 @@ impl RenamingInfo {
         if let Some(&id) = self.fun_map.get(&(s.clone(), arity, predicate)) {
             id
         } else {
-            self.create_new_function_id(s, arity, predicate)
+            self.fun_cnt += 1;
+            self.fun_map.insert((s, arity, predicate), self.fun_cnt);
+            self.fun_cnt
         }
     }
-
-    /// Creates a new variable ID matching the given string.
-    fn create_new_variable_id(&mut self, s: String) -> i64 {
+    
+    /// Creates a new skolem function ID.
+    pub fn create_new_skolem_function_id(&mut self) -> i64 {
+        self.fun_cnt += 1;
+        self.fun_cnt
+    }
+    
+    /// Creates a new variable ID:
+    pub fn create_new_variable_id(&mut self) -> i64 {
         self.var_cnt -= 1;
-        self.var_map.insert(s, self.var_cnt);
         self.var_cnt
     }
-
-    /// Creates a new function ID matching the given string and arity.
-    fn create_new_function_id(&mut self, s: String, arity: usize, predicate: bool) -> i64 {
-        self.fun_cnt += 1;
-        self.fun_map.insert((s, arity, predicate), self.fun_cnt);
-        self.fun_cnt
+    
+    /// Returns the newest variable ID created.
+    pub fn get_newest_variable_id(&self) -> i64 {
+        self.var_cnt
     }
 }
 
