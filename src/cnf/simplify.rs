@@ -14,6 +14,7 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
+use std::collections::HashSet;
 use cnf::ast::{Term, Formula};
 use cnf::free_variables::free_in;
 
@@ -63,35 +64,22 @@ fn negate(f: Formula) -> Formula {
 /// "p and true" can be simplified to "p"
 /// "p and false" can be simplified to "false".
 fn simplify_and(l: Vec<Formula>) -> Formula {
-    let mut simplified_l = l.into_iter()
-                            .map(simplify)
-                            .filter(|x| *x != Formula::True)
-                            .collect::<Vec<_>>();
+    // Duplicates are automatically removed thanks to us using a set.
+    let simplified_l = l.into_iter()
+                        .map(simplify)
+                        .filter(|x| *x != Formula::True)
+                        .collect::<HashSet<_>>();
 
-    if simplified_l.iter().any(|x| *x == Formula::False) {
+    if simplified_l.contains(&Formula::False) {
         Formula::False
     } else {
-        // Combines duplicate deletion and detection for 'p or not p'.
-        let mut i = 0;
-        while i < simplified_l.len() {
-            let mut j = i + 1;
-            let negated_f = negate(simplified_l[i].clone());
-
-            while j < simplified_l.len() {
-                if negated_f == simplified_l[j] {
-                    return Formula::False;
-                }
-
-                if simplified_l[i] == simplified_l[j] {
-                    simplified_l.swap_remove(j);
-                    continue;
-                }
-                j += 1;
+        for p in simplified_l.iter() { 
+            let p_negated = negate(p.clone());
+            if simplified_l.contains(&p_negated) {
+                return Formula::False;
             }
-
-            i += 1;
         }
-
+        
         if simplified_l.is_empty() {
             Formula::True
         } else if simplified_l.len() == 1 {
@@ -101,7 +89,7 @@ fn simplify_and(l: Vec<Formula>) -> Formula {
                 panic!("This shouldn't be possible, check the above asserts")
             }
         } else {
-            Formula::And(simplified_l)
+            Formula::And(simplified_l.into_iter().collect())
         }
     }
 }
@@ -111,33 +99,19 @@ fn simplify_and(l: Vec<Formula>) -> Formula {
 /// "p or true" can be simplified to "true"
 /// "p or false" can be simplified to "p".
 fn simplify_or(l: Vec<Formula>) -> Formula {
-    let mut simplified_l = l.into_iter()
+    let simplified_l = l.into_iter()
                             .map(simplify)
                             .filter(|x| *x != Formula::False)
-                            .collect::<Vec<_>>();
+                            .collect::<HashSet<_>>();
 
-    if simplified_l.iter().any(|x| *x == Formula::True) {
+    if simplified_l.contains(&Formula::True) {
         Formula::True
     } else {
-        // Combines duplicate deletion and detection for 'p or not p'.
-        let mut i = 0;
-        while i < simplified_l.len() {
-            let mut j = i + 1;
-            let negated_f = negate(simplified_l[i].clone());
-
-            while j < simplified_l.len() {
-                if negated_f == simplified_l[j] {
-                    return Formula::True;
-                }
-
-                if simplified_l[i] == simplified_l[j] {
-                    simplified_l.swap_remove(j);
-                    continue;
-                }
-                j += 1;
+        for p in simplified_l.iter() { 
+            let p_negated = negate(p.clone());
+            if simplified_l.contains(&p_negated) {
+                return Formula::True;
             }
-
-            i += 1;
         }
 
         if simplified_l.is_empty() {
@@ -149,7 +123,7 @@ fn simplify_or(l: Vec<Formula>) -> Formula {
                 panic!("This shouldn't be possible, check the above asserts")
             }
         } else {
-            Formula::Or(simplified_l)
+            Formula::Or(simplified_l.into_iter().collect())
         }
     }
 }
