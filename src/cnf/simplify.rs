@@ -327,7 +327,7 @@ mod test {
         let f2 = Formula::Predicate(2, vec![]);
         // And yet again.
         let correct_f_1 = Formula::Or(vec![f1.clone(), f2.clone()]);
-        let correct_f_2 = Formula::Or(vec![f2.clone(), f2.clone()]);
+        let correct_f_2 = Formula::Or(vec![f2.clone(), f1.clone()]);
         let s = simplify_or(vec![f1, f2]);
         assert!(s == correct_f_1 || s == correct_f_2);
     }
