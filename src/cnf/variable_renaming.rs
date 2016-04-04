@@ -29,7 +29,11 @@ pub fn rename(f: Formula, ri: &mut RenamingInfo) -> Formula {
     }
 }
 
-fn rename_quantifier(id: i64, p: Formula, ri: &mut RenamingInfo, universal_quantifier: bool) -> Formula {
+fn rename_quantifier(id: i64,
+                     p: Formula,
+                     ri: &mut RenamingInfo,
+                     universal_quantifier: bool)
+                     -> Formula {
     let new_id = ri.create_new_variable_id();
     let renamed_p = rename(rename_variable(p, id, new_id), ri);
 

@@ -18,6 +18,9 @@
 //!
 //! Most of the stuff here is based on "Andreas Nonnengart, Christoph Weidenbach, Im Stadtwald, Im Stadtwald (2001). Computing Small Clause Normal Forms".
 
+// A good guideline for algorithms in this module is that everything should be O(n log n) at worst if possible.
+// There always is some problem in the TPTP library which will FUCK YOU UP if you do not keep that in mind.
+
 /// Contains the AST used during the CNF transformation.
 pub mod ast;
 
@@ -30,14 +33,12 @@ pub mod ast_transformer;
 mod free_variables;
 
 mod simplify;
-#[allow(dead_code)]
 mod formula_renaming;
 mod nnf;
 mod variable_renaming;
 mod standard_skolemization;
-mod pull_out_quantifiers;
-mod drop_universal_quantifiers;
 mod distribute_ors_over_ands;
 
-/// Contains a naive version of the CNF transformation algorithm.
-pub mod naive_cnf;
+/// Contains the standard version of the CNF transformation algorithm.
+/// Since we use standard (not advanced) skolemization the name is like it is.
+pub mod standard_cnf;

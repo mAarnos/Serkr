@@ -45,4 +45,3 @@ pub enum Formula {
     Forall(i64, Box<Formula>),
     Exists(i64, Box<Formula>),
 }
-

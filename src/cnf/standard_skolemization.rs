@@ -17,7 +17,7 @@
 use cnf::ast::{Term, Formula};
 use cnf::renaming_info::RenamingInfo;
 use cnf::variable_renaming::rename;
-use cnf::free_variables::fv;
+use cnf::free_variables::free_variables;
 
 /// Eliminates existential quantifiers by replacing them with new skolem functions.
 /// To do this we also rename all bound variables.
@@ -32,16 +32,17 @@ fn skolemize1(f: Formula, ri: &mut RenamingInfo) -> Formula {
     match f {
         Formula::And(l) => Formula::And(l.into_iter().map(|x| skolemize1(x, ri)).collect()),
         Formula::Or(l) => Formula::Or(l.into_iter().map(|x| skolemize1(x, ri)).collect()),
-        Formula::Forall(id, p) => Formula::Forall(id, Box::new(skolemize1(*p, ri))),
+        Formula::Forall(_, p) => skolemize1(*p, ri),
         Formula::Exists(id, p) => skolemize_exists(id, *p, ri),
         _ => f,
     }
 }
 
 fn skolemize_exists(id: i64, f: Formula, ri: &mut RenamingInfo) -> Formula {
-    let skolem_f_id =  ri.create_new_skolem_function_id();
-    let xs = fv(&Formula::Exists(id, Box::new(f.clone())));
-    let sf = Term::Function(skolem_f_id, xs.into_iter().map(Term::Variable).collect());
+    let skolem_f_id = ri.create_new_skolem_function_id();
+    let mut vars = free_variables(&f);
+    vars.remove(&id);
+    let sf = Term::Function(skolem_f_id, vars.into_iter().map(Term::Variable).collect());
     skolemize1(tsubst(f, id, &sf), ri)
 }
 

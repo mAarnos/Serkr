@@ -40,7 +40,7 @@ use prover::problem_analysis::determine_term_ordering::create_term_ordering;
 
 use cnf::ast::Formula;
 use cnf::ast_transformer::tptp_to_cnf_ast;
-use cnf::naive_cnf::cnf;
+use cnf::standard_cnf::cnf;
 use utils::stopwatch::Stopwatch;
 
 /// Rename a clause so that it contains no variables in common with any other clause.
@@ -90,8 +90,8 @@ fn serkr_loop(mut proof_state: ProofState,
               max_time_in_ms: u64,
               contains_conjectures: bool)
               -> (ProofResult, ProofStatistics) {
-    assert_eq!(proof_state.get_used_size(), 0);          
-              
+    assert_eq!(proof_state.get_used_size(), 0);
+
     let mut sw = Stopwatch::new();
     let mut stats = ProofStatistics::new();
     let mut added_to_unused = 0;
@@ -189,18 +189,28 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
 /// First we can decide whether we want to use LPO or KBO.
 /// Then there is the option of limiting the time of the proof search.
 pub fn prove(s: &str, use_lpo: bool, max_time_in_s: u64) -> (ProofResult, ProofStatistics) {
-    let (parsed_formula, mut renaming_info, contains_conjectures) = match tptp_to_cnf_ast(s) {
+    // First we obviously need to parse the file.
+    let (mut axioms, conjectures, mut renaming_info) = match tptp_to_cnf_ast(s) {
         Ok(res) => res,
         Err(s) => {
             return (ProofResult::Error(s), ProofStatistics::new());
         }
     };
+    let contains_conjectures = !conjectures.is_empty();
 
-    let cnf_f = if contains_conjectures {
-        cnf(Formula::Not(Box::new(parsed_formula)), &mut renaming_info)
+    // Choose the correct form for the combination of axioms and conjectures.
+    let f = if !axioms.is_empty() && !conjectures.is_empty() {
+        axioms.push(Formula::Not(Box::new(Formula::And(conjectures))));
+        Formula::And(axioms)
+    } else if !axioms.is_empty() {
+        Formula::And(axioms)
+    } else if conjectures.is_empty() {
+        panic!("We should always have some clauses");
     } else {
-        cnf(parsed_formula, &mut renaming_info)
+        Formula::And(vec![Formula::Not(Box::new(Formula::And(conjectures)))])
     };
+    // And finally transform the whole thing into CNF.
+    let cnf_f = cnf(f, &mut renaming_info);
 
     if cnf_f == Formula::False {
         (ProofResult::new_refutation(contains_conjectures),

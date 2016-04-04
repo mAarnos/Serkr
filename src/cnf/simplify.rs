@@ -73,13 +73,13 @@ fn simplify_and(l: Vec<Formula>) -> Formula {
     if simplified_l.contains(&Formula::False) {
         Formula::False
     } else {
-        for p in simplified_l.iter() { 
+        for p in &simplified_l {
             let p_negated = negate(p.clone());
             if simplified_l.contains(&p_negated) {
                 return Formula::False;
             }
         }
-        
+
         if simplified_l.is_empty() {
             Formula::True
         } else if simplified_l.len() == 1 {
@@ -100,14 +100,14 @@ fn simplify_and(l: Vec<Formula>) -> Formula {
 /// "p or false" can be simplified to "p".
 fn simplify_or(l: Vec<Formula>) -> Formula {
     let simplified_l = l.into_iter()
-                            .map(simplify)
-                            .filter(|x| *x != Formula::False)
-                            .collect::<HashSet<_>>();
+                        .map(simplify)
+                        .filter(|x| *x != Formula::False)
+                        .collect::<HashSet<_>>();
 
     if simplified_l.contains(&Formula::True) {
         Formula::True
     } else {
-        for p in simplified_l.iter() { 
+        for p in &simplified_l {
             let p_negated = negate(p.clone());
             if simplified_l.contains(&p_negated) {
                 return Formula::True;

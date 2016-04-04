@@ -16,14 +16,17 @@
 
 use cnf::ast::Formula;
 use cnf::simplify::simplify_formula;
+use cnf::formula_renaming::rename_formula;
+use cnf::renaming_info::RenamingInfo;
 
 /// Converts a formula into an equivalent negation normal form.
-pub fn nnf(f: Formula) -> Formula {
+pub fn nnf(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
     let simplified_f = simplify_formula(f);
     if simplified_f == Formula::True || simplified_f == Formula::False {
         simplified_f
     } else {
-        let nnf_formula = move_nots_inward(elim_imp_and_eq(simplified_f, true));
+        let renamed_f = rename_formula(simplified_f, renaming_info);
+        let nnf_formula = move_nots_inward(elim_imp_and_eq(renamed_f, true));
         assert!(is_in_nnf(&nnf_formula));
         nnf_formula
     }
