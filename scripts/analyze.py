@@ -5,6 +5,7 @@ from os.path import join, getsize
 from os import walk
 from multiprocessing import Pool
 from re import match
+from random import shuffle
 
 def parse_args():
     parser = ArgumentParser(description='Analyze TPTP problems en masse')
@@ -42,7 +43,11 @@ def find_status_of_problem(path, cnf):
             if line.startswith("%Status:"):
                 status = line[8:]           
                 if not is_valid_problem_status(status, cnf):
-                    raise AssertionError("Status not known")
+                    # Contradictory axioms means that everything is a theorem of the axioms.
+                    if status == "ContradictoryAxioms":
+                        status = "Theorem"
+                    else:
+                        raise AssertionError("Status not known")
                 return status
     raise AssertionError("Status should always be possible to find")
 
@@ -77,7 +82,7 @@ def analyze_file(data):
 
     if not prover_status == "Timeout":
         if not prover_status == problem_status:
-            raise AssertionError("Prover disagrees with TPTP problem status, take note!")
+            raise AssertionError("Prover disagrees with TPTP problem %s status, take note!" % (s))
         return 1
 
     return 0
@@ -91,7 +96,7 @@ def main():
                     file_names.append((join(root, file), True))
                 elif args.analyze_fof and file[6] in {'+'}:
                     file_names.append((join(root, file), False))
-
+    shuffle(file_names)
     pool = Pool(args.processes)
     results = pool.map(analyze_file, file_names)
     print("Proved %d out of %d" % (sum(results), len(file_names)))
