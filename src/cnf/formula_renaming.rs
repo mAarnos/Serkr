@@ -211,7 +211,16 @@ fn product(cache: &mut HashMap<(Formula, bool), BigInt>,
 }
 
 /// Renames subformulae of f to avoid an exponential increase in generated clauses.
-pub fn rename_formula(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
+/// If renaming_limit is 0, we do not do any renaming.
+pub fn rename_formula(f: Formula,
+                      renaming_info: &mut RenamingInfo,
+                      renaming_limit: u64)
+                      -> Formula {
+    if renaming_limit == 0 {
+        return f;
+    }
+
+    // If we do not do caching formula renaming is faaaar too slow to do any good.
     let mut cache = HashMap::with_capacity(256);
     let mut renamed_formulas = vec![];
     let mut formulas_to_rename = if let Formula::And(v) = f {
@@ -227,7 +236,7 @@ pub fn rename_formula(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
                                     One::one(),
                                     Zero::zero(),
                                     Polarity::Positive,
-                                    BigInt::from_u64(32).expect("should never happen"));
+                                    BigInt::from_u64(renaming_limit).expect("should not happen"));
         renamed_formulas.push(new_f);
         formulas_to_rename.extend(renaming_info.clear_definitions());
     }

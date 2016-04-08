@@ -188,7 +188,11 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
 /// Attempts to prove the stuff in the TPTP file at the location given.
 /// First we can decide whether we want to use LPO or KBO.
 /// Then there is the option of limiting the time of the proof search.
-pub fn prove(s: &str, use_lpo: bool, max_time_in_s: u64) -> (ProofResult, ProofStatistics) {
+pub fn prove(s: &str,
+             use_lpo: bool,
+             max_time_in_s: u64,
+             renaming_limit: u64)
+             -> (ProofResult, ProofStatistics) {
     // First we obviously need to parse the file.
     let (mut axioms, conjectures, mut renaming_info) = match tptp_to_cnf_ast(s) {
         Ok(res) => res,
@@ -210,7 +214,7 @@ pub fn prove(s: &str, use_lpo: bool, max_time_in_s: u64) -> (ProofResult, ProofS
         Formula::And(vec![Formula::Not(Box::new(Formula::And(conjectures)))])
     };
     // And finally transform the whole thing into CNF.
-    let cnf_f = cnf(f, &mut renaming_info);
+    let cnf_f = cnf(f, &mut renaming_info, renaming_limit);
 
     if cnf_f == Formula::False {
         (ProofResult::new_refutation(contains_conjectures),
@@ -238,463 +242,463 @@ mod test {
 
     #[test]
     fn pelletier_1() {
-        let (result, _) = prove("test_problems/p1.p", false, 300);
+        let (result, _) = prove("test_problems/p1.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_1_negated() {
-        let (result, _) = prove("test_problems/p1n.p", false, 300);
+        let (result, _) = prove("test_problems/p1n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_2() {
-        let (result, _) = prove("test_problems/p2.p", false, 300);
+        let (result, _) = prove("test_problems/p2.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_3() {
-        let (result, _) = prove("test_problems/p3.p", false, 300);
+        let (result, _) = prove("test_problems/p3.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_4() {
-        let (result, _) = prove("test_problems/p4.p", false, 300);
+        let (result, _) = prove("test_problems/p4.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_5() {
-        let (result, _) = prove("test_problems/p5.p", false, 300);
+        let (result, _) = prove("test_problems/p5.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_6() {
-        let (result, _) = prove("test_problems/p6.p", false, 300);
+        let (result, _) = prove("test_problems/p6.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_7() {
-        let (result, _) = prove("test_problems/p7.p", false, 300);
+        let (result, _) = prove("test_problems/p7.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_8() {
-        let (result, _) = prove("test_problems/p8.p", false, 300);
+        let (result, _) = prove("test_problems/p8.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_8_negated() {
-        let (result, _) = prove("test_problems/p8n.p", false, 300);
+        let (result, _) = prove("test_problems/p8n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_9() {
-        let (result, _) = prove("test_problems/p9.p", false, 300);
+        let (result, _) = prove("test_problems/p9.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_10() {
-        let (result, _) = prove("test_problems/p10.p", false, 300);
+        let (result, _) = prove("test_problems/p10.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_11() {
-        let (result, _) = prove("test_problems/p11.p", false, 300);
+        let (result, _) = prove("test_problems/p11.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_12() {
-        let (result, _) = prove("test_problems/p12.p", false, 300);
+        let (result, _) = prove("test_problems/p12.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_13() {
-        let (result, _) = prove("test_problems/p13.p", false, 300);
+        let (result, _) = prove("test_problems/p13.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_14() {
-        let (result, _) = prove("test_problems/p14.p", false, 300);
+        let (result, _) = prove("test_problems/p14.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_15_original() {
-        let (result, _) = prove("test_problems/p15o.p", false, 300);
+        let (result, _) = prove("test_problems/p15o.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_15_errata() {
-        let (result, _) = prove("test_problems/p15e.p", false, 300);
+        let (result, _) = prove("test_problems/p15e.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_16() {
-        let (result, _) = prove("test_problems/p16.p", false, 300);
+        let (result, _) = prove("test_problems/p16.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_17() {
-        let (result, _) = prove("test_problems/p17.p", false, 300);
+        let (result, _) = prove("test_problems/p17.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_18() {
-        let (result, _) = prove("test_problems/p18.p", false, 300);
+        let (result, _) = prove("test_problems/p18.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_18_negated() {
-        let (result, _) = prove("test_problems/p18n.p", false, 300);
+        let (result, _) = prove("test_problems/p18n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_19() {
-        let (result, _) = prove("test_problems/p19.p", false, 300);
+        let (result, _) = prove("test_problems/p19.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_20() {
-        let (result, _) = prove("test_problems/p20.p", false, 300);
+        let (result, _) = prove("test_problems/p20.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_21() {
-        let (result, _) = prove("test_problems/p21.p", false, 300);
+        let (result, _) = prove("test_problems/p21.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_22() {
-        let (result, _) = prove("test_problems/p22.p", false, 300);
+        let (result, _) = prove("test_problems/p22.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_22_negated() {
-        let (result, _) = prove("test_problems/p22n.p", false, 300);
+        let (result, _) = prove("test_problems/p22n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_23() {
-        let (result, _) = prove("test_problems/p23.p", false, 300);
+        let (result, _) = prove("test_problems/p23.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_24() {
-        let (result, _) = prove("test_problems/p24.p", false, 300);
+        let (result, _) = prove("test_problems/p24.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_25() {
-        let (result, _) = prove("test_problems/p25.p", false, 300);
+        let (result, _) = prove("test_problems/p25.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_26() {
-        let (result, _) = prove("test_problems/p26.p", false, 300);
+        let (result, _) = prove("test_problems/p26.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_27() {
-        let (result, _) = prove("test_problems/p27.p", false, 300);
+        let (result, _) = prove("test_problems/p27.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_28_original() {
-        let (result, _) = prove("test_problems/p28o.p", false, 300);
+        let (result, _) = prove("test_problems/p28o.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_28_errata() {
-        let (result, _) = prove("test_problems/p28e.p", false, 300);
+        let (result, _) = prove("test_problems/p28e.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_29() {
-        let (result, _) = prove("test_problems/p29.p", false, 300);
+        let (result, _) = prove("test_problems/p29.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_30() {
-        let (result, _) = prove("test_problems/p30.p", false, 300);
+        let (result, _) = prove("test_problems/p30.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_30_negated() {
-        let (result, _) = prove("test_problems/p30n.p", false, 300);
+        let (result, _) = prove("test_problems/p30n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_31() {
-        let (result, _) = prove("test_problems/p31.p", false, 300);
+        let (result, _) = prove("test_problems/p31.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_32() {
-        let (result, _) = prove("test_problems/p32.p", false, 300);
+        let (result, _) = prove("test_problems/p32.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_33() {
-        let (result, _) = prove("test_problems/p33.p", false, 300);
+        let (result, _) = prove("test_problems/p33.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_35() {
-        let (result, _) = prove("test_problems/p35.p", false, 300);
+        let (result, _) = prove("test_problems/p35.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_35_negated() {
-        let (result, _) = prove("test_problems/p35n.p", false, 300);
+        let (result, _) = prove("test_problems/p35n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_36() {
-        let (result, _) = prove("test_problems/p36.p", false, 300);
+        let (result, _) = prove("test_problems/p36.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_37() {
-        let (result, _) = prove("test_problems/p37.p", false, 300);
+        let (result, _) = prove("test_problems/p37.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_39() {
-        let (result, _) = prove("test_problems/p39.p", false, 300);
+        let (result, _) = prove("test_problems/p39.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_40_original() {
-        let (result, _) = prove("test_problems/p40o.p", false, 300);
+        let (result, _) = prove("test_problems/p40o.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_40_errata() {
-        let (result, _) = prove("test_problems/p40e.p", false, 300);
+        let (result, _) = prove("test_problems/p40e.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_41() {
-        let (result, _) = prove("test_problems/p41.p", false, 300);
+        let (result, _) = prove("test_problems/p41.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_42() {
-        let (result, _) = prove("test_problems/p42.p", false, 300);
+        let (result, _) = prove("test_problems/p42.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_43() {
-        let (result, _) = prove("test_problems/p43.p", false, 300);
+        let (result, _) = prove("test_problems/p43.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_44() {
-        let (result, _) = prove("test_problems/p44.p", false, 300);
+        let (result, _) = prove("test_problems/p44.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_45() {
-        let (result, _) = prove("test_problems/p45.p", false, 300);
+        let (result, _) = prove("test_problems/p45.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_46() {
-        let (result, _) = prove("test_problems/p46.p", false, 300);
+        let (result, _) = prove("test_problems/p46.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_48() {
-        let (result, _) = prove("test_problems/p48.p", false, 300);
+        let (result, _) = prove("test_problems/p48.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_49() {
-        let (result, _) = prove("test_problems/p49.p", false, 300);
+        let (result, _) = prove("test_problems/p49.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_50() {
-        let (result, _) = prove("test_problems/p50.p", false, 300);
+        let (result, _) = prove("test_problems/p50.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_50_negated() {
-        let (result, _) = prove("test_problems/p50n.p", false, 300);
+        let (result, _) = prove("test_problems/p50n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_51() {
-        let (result, _) = prove("test_problems/p51.p", false, 300);
+        let (result, _) = prove("test_problems/p51.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_52() {
-        let (result, _) = prove("test_problems/p52.p", false, 300);
+        let (result, _) = prove("test_problems/p52.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_55() {
-        let (result, _) = prove("test_problems/p55.p", false, 300);
+        let (result, _) = prove("test_problems/p55.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_56() {
-        let (result, _) = prove("test_problems/p56.p", false, 300);
+        let (result, _) = prove("test_problems/p56.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_56_negated() {
-        let (result, _) = prove("test_problems/p56n.p", false, 300);
+        let (result, _) = prove("test_problems/p56n.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
     #[test]
     fn pelletier_57() {
-        let (result, _) = prove("test_problems/p57.p", false, 300);
+        let (result, _) = prove("test_problems/p57.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_58() {
-        let (result, _) = prove("test_problems/p58.p", false, 300);
+        let (result, _) = prove("test_problems/p58.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_59() {
-        let (result, _) = prove("test_problems/p59.p", false, 300);
+        let (result, _) = prove("test_problems/p59.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_60() {
-        let (result, _) = prove("test_problems/p60.p", false, 300);
+        let (result, _) = prove("test_problems/p60.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_61() {
-        let (result, _) = prove("test_problems/p61.p", false, 300);
+        let (result, _) = prove("test_problems/p61.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_62_errata_errata() {
-        let (result, _) = prove("test_problems/p62ee.p", false, 300);
+        let (result, _) = prove("test_problems/p62ee.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_63() {
-        let (result, _) = prove("test_problems/p63.p", false, 300);
+        let (result, _) = prove("test_problems/p63.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_64() {
-        let (result, _) = prove("test_problems/p64.p", false, 300);
+        let (result, _) = prove("test_problems/p64.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_65() {
-        let (result, _) = prove("test_problems/p65.p", false, 300);
+        let (result, _) = prove("test_problems/p65.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn pelletier_72() {
-        let (result, _) = prove("test_problems/p72.p", false, 300);
+        let (result, _) = prove("test_problems/p72.p", false, 300, 32);
         assert_eq!(result, ProofResult::Unsatisfiable);
     }
 
     #[test]
     fn davis_putnam() {
-        let (result, _) = prove("test_problems/davis_putnam.p", false, 300);
+        let (result, _) = prove("test_problems/davis_putnam.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn los() {
-        let (result, _) = prove("test_problems/los.p", false, 300);
+        let (result, _) = prove("test_problems/los.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn ewd() {
-        let (result, _) = prove("test_problems/ewd.p", false, 300);
+        let (result, _) = prove("test_problems/ewd.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn djikstra() {
-        let (result, _) = prove("test_problems/djikstra.p", false, 300);
+        let (result, _) = prove("test_problems/djikstra.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn djikstra_negated() {
-        let (result, _) = prove("test_problems/djikstra_negated.p", false, 300);
+        let (result, _) = prove("test_problems/djikstra_negated.p", false, 300, 32);
         assert_eq!(result, ProofResult::CounterSatisfiable);
     }
 
@@ -702,13 +706,14 @@ mod test {
     fn group_left_inverse_means_right_inverse() {
         let (result, _) = prove("test_problems/group_left_inverse_means_right_inverse.p",
                                 false,
-                                300);
+                                300,
+                                32);
         assert_eq!(result, ProofResult::Theorem);
     }
 
     #[test]
     fn set_union_is_commutative() {
-        let (result, _) = prove("test_problems/set_union_is_commutative.p", false, 300);
+        let (result, _) = prove("test_problems/set_union_is_commutative.p", false, 300, 32);
         assert_eq!(result, ProofResult::Theorem);
     }
 }

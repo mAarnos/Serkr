@@ -63,12 +63,10 @@ fn remove_comments(s: &str) -> String {
                 if !escaping_next {
                     inside_double_quoted = !inside_double_quoted;
                 } 
-            } else if c == '%' {
-                // Percentage signs inside strings should be ignored.
-                if !inside_single_quoted && !inside_double_quoted {
-                    comment_start_location = Some(i);
-                    break;
-                }
+            } else if c == '%' && !inside_single_quoted && !inside_double_quoted{
+                // This percentage sign wasn't inside a string, so it is a real comment.
+                comment_start_location = Some(i);
+                break;
             }
             
             escaping_next = false;

@@ -36,8 +36,8 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
-// This particular clippy lint is pretty insane.
-#![cfg_attr(feature="clippy", allow(indexing_slicing))]
+#![cfg_attr(feature="clippy", allow(indexing_slicing, similar_names, 
+                                    many_single_char_names, doc_markdown))]
 
 #[macro_use]
 extern crate clap;
@@ -91,9 +91,12 @@ fn main() {
                       .version(crate_version!())
                       .author("Mikko Aarnos <mikko.aarnos@gmail.com>")
                       .about("An automated theorem prover for first order logic with equality")
-                      .args_from_usage("<INPUT> 'The TPTP file the program should analyze'
-                                        -t, --time_limit=[time_limit] 'Time limit for the prover \
-                                                                       (default=300s)'")
+                      .args_from_usage("<INPUT> 'The TPTP file the program should analyze'")
+                      .arg(clap::Arg::with_name("time-limit")
+                               .help("Time limit for the prover (default=300s)")
+                               .short("t")
+                               .long("time-limit")
+                               .value_name("arg"))
                       .arg(clap::Arg::with_name("lpo")
                                .help("Use LPO as the term ordering")
                                .short("l")
@@ -104,6 +107,13 @@ fn main() {
                                .short("k")
                                .long("kbo")
                                .conflicts_with("lpo"))
+                      .arg(clap::Arg::with_name("formula-renaming")
+                               .help("Adjust the limit for renaming subformulae to avoid \
+                                      exponential blowup in the CNF transformer. The default \
+                                      (=32) seems to work pretty well. 0 disables formula \
+                                      renaming.")
+                               .long("formula-renaming")
+                               .value_name("arg"))
                       .get_matches();
 
     // Hack to get around lifetime issues.
@@ -117,8 +127,13 @@ fn main() {
                         let input_file = matches.value_of("INPUT")
                                                 .expect("This should always be OK");
                         let use_lpo = matches.is_present("lpo");
-                        let time_limit = value_t!(matches, "time_limit", u64).unwrap_or(300);
-                        prover::proof_search::prove(&input_file, use_lpo, time_limit)
+                        let time_limit = value_t!(matches, "time-limit", u64).unwrap_or(300);
+                        let renaming_limit = value_t!(matches, "formula-renaming", u64)
+                                                 .unwrap_or(32);
+                        prover::proof_search::prove(&input_file,
+                                                    use_lpo,
+                                                    time_limit,
+                                                    renaming_limit)
                     })
                     .expect("Creating a new thread shouldn't fail");
 

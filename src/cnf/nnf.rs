@@ -20,12 +20,12 @@ use cnf::formula_renaming::rename_formula;
 use cnf::renaming_info::RenamingInfo;
 
 /// Converts a formula into an equivalent negation normal form.
-pub fn nnf(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
+pub fn nnf(f: Formula, renaming_info: &mut RenamingInfo, renaming_limit: u64) -> Formula {
     let simplified_f = simplify_formula(f);
     if simplified_f == Formula::True || simplified_f == Formula::False {
         simplified_f
     } else {
-        let renamed_f = rename_formula(simplified_f, renaming_info);
+        let renamed_f = rename_formula(simplified_f, renaming_info, renaming_limit);
         let nnf_formula = move_nots_inward(elim_imp_and_eq(renamed_f, true));
         assert!(is_in_nnf(&nnf_formula));
         nnf_formula

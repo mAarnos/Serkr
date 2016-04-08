@@ -21,11 +21,11 @@ use cnf::standard_skolemization::skolemize;
 use cnf::distribute_ors_over_ands::distribute_ors_over_ands;
 
 /// Turns a formula into CNF.
-pub fn cnf(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
+pub fn cnf(f: Formula, renaming_info: &mut RenamingInfo, renaming_limit: u64) -> Formula {
     if f == Formula::True || f == Formula::False || is_in_cnf(&f) {
         f
     } else {
-        let nnf_f = nnf(f, renaming_info);
+        let nnf_f = nnf(f, renaming_info, renaming_limit);
         let skolemized_f = skolemize(nnf_f, renaming_info);
         let cnf_f = distribute_ors_over_ands(skolemized_f);
         assert!(cnf_f == Formula::True || cnf_f == Formula::False || is_in_cnf(&cnf_f));
