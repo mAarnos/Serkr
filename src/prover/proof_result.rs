@@ -45,7 +45,7 @@ impl ProofResult {
             ProofResult::Satisfiable
         }
     }
-    
+
     /// Returns a String which describes the type of the ProofResult.
     /// The reason for this is function is trouble with SZS format output.
     pub fn display_type(&self) -> String {
@@ -56,18 +56,18 @@ impl ProofResult {
             ProofResult::Satisfiable => "Satisfiable".to_owned(),
             ProofResult::GaveUp => "GaveUp".to_owned(),
             ProofResult::Timeout => "Timeout".to_owned(),
-            ProofResult::Error(_) => "Error".to_owned()
+            ProofResult::Error(_) => "Error".to_owned(),
         }
     }
-    
+
     /// Is the current result successful (in the sense that a proof of some kind was found)?
     pub fn is_successful(&self) -> bool {
         match *self {
             ProofResult::Timeout | ProofResult::Error(_) => false,
-            _ => true
+            _ => true,
         }
     }
-    
+
     /// Is the current result an error?
     pub fn is_err(&self) -> bool {
         match *self {

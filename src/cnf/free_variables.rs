@@ -43,39 +43,56 @@ fn occurs_in(t: &Term, s: &Term) -> bool {
 }
 
 /// Get the free variables of a formula.
-pub fn fv(f: &Formula) -> HashSet<i64> {
+pub fn free_variables(f: &Formula) -> HashSet<i64> {
+    let mut vars = HashSet::new();
+    fv(f, &mut vars);
+    vars
+}
+
+/// Perform the actual getting of variables.
+fn fv(f: &Formula, vars: &mut HashSet<i64>) {
     match *f {
-        Formula::True | Formula::False => HashSet::new(),
-        Formula::Predicate(_, ref params) => params.iter().flat_map(fvt).collect(),
-        Formula::Not(ref p) => fv(p),
-        Formula::And(ref l) | Formula::Or(ref l) => l.iter().flat_map(|x| fv(x)).collect(),
+        Formula::Predicate(_, ref params) => {
+            for x in params {
+                fvt(x, vars);
+            }
+        }
+        Formula::Not(ref p) => fv(p, vars),
+        Formula::And(ref l) | Formula::Or(ref l) => {
+            for x in l {
+                fv(x, vars);
+            }
+        }
         Formula::Implies(ref p, ref q) | Formula::Equivalent(ref p, ref q) => {
-            fv(p).union(&fv(q)).cloned().collect()
+            fv(p, vars);
+            fv(q, vars);
         }
         Formula::Forall(id, ref p) | Formula::Exists(id, ref p) => {
-            let mut lhs = fv(p);
-            lhs.remove(&id);
-            lhs
+            fv(p, vars);
+            vars.remove(&id);
         }
+        _ => (),
     }
 }
 
-/// Get the free variables of a term.
-fn fvt(t: &Term) -> HashSet<i64> {
+/// Helper function for above.
+fn fvt(t: &Term, vars: &mut HashSet<i64>) {
     match *t {
         Term::Variable(id) => {
             assert!(id < 0);
-            let mut set = HashSet::new();
-            set.insert(id);
-            set
+            vars.insert(id);
         }
-        Term::Function(_, ref params) => params.iter().flat_map(fvt).collect(),
+        Term::Function(_, ref params) => {
+            for x in params {
+                fvt(x, vars);
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::{free_in, fv};
+    use super::{free_in, free_variables};
     use cnf::ast::{Term, Formula};
 
     #[test]
@@ -113,15 +130,15 @@ mod test {
     }
 
     #[test]
-    fn fv_1() {
+    fn free_variables_1() {
         let x = Term::Variable(-1);
         let y = Term::Variable(-2);
         let z = Term::Variable(-3);
         let p_x_y_z = Formula::Predicate(1, vec![x.clone(), y.clone(), z.clone()]);
         let f = Formula::Forall(-1, Box::new(Formula::Exists(-3, Box::new(p_x_y_z))));
-        let free_variables = fv(&f);
+        let vars = free_variables(&f);
 
-        assert_eq!(free_variables.len(), 1);
-        assert!(free_variables.contains(&-2));
+        assert_eq!(vars.len(), 1);
+        assert!(vars.contains(&-2));
     }
 }

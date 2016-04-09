@@ -240,7 +240,7 @@ arguments: Vec<Term> = {
 };
 
 pub include: Include = {
-    "include" "(" <file_n: file_name> <fs: formula_selection?> ")" "." => (file_n, fs)
+    "include(" <file_n: file_name> <fs: formula_selection?> ")" "." => (file_n, fs)
 };
 
 formula_selection: Vec<String> = {

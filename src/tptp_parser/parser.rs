@@ -24,12 +24,63 @@ use std::path::Path;
 use tptp_parser::ast::*;
 use tptp_parser::parser_grammar::parse_TPTP_file;
 
+/// Checks if a character is a double quote. 
+/// We only have this function because doing this the obvious way breaks syntax highlighting.
+/// A bit brittle.
+fn is_double_quote(c: char) -> bool {
+    c as u8 == 34
+}
+
 /// Used for removing all comments from the file parsed in.
 fn remove_comments(s: &str) -> String {
-    let comment_line_regex = regex::Regex::new(r"[%].*[\n]").expect("This should always work");
+    // First remove all comment blocks.
     let comment_block_regex = regex::Regex::new(r"[/][*]([^*]*[*][*]*[^/*])*[^*]*[*][*]*[/]").expect("This should always work");
-    let s2 = comment_line_regex.replace_all(s, regex::NoExpand(""));
-    comment_block_regex.replace_all(&s2, regex::NoExpand(""))
+    let s2 = comment_block_regex.replace_all(s, regex::NoExpand(""));
+    let mut s3 = "".to_owned();
+    
+    // Then remove all comment lines. 
+    // This is a bit tricky due to the possibility of single-quoted and double-quoted strings.
+    // Escaping is also annoying.
+    // All in all this part most likely has some subtle bugs.
+    for l in s2.lines() {
+        let mut inside_single_quoted = false;
+        let mut inside_double_quoted = false;
+        let mut comment_start_location = None;
+        let mut escaping_next = false;
+        
+        for (i, c) in l.chars().enumerate() {
+            assert!(!inside_single_quoted || !inside_double_quoted);
+            
+            if (inside_single_quoted || inside_double_quoted) && c == '\\' {
+                // Two slashes in a row is just a character, otherwise raise escape flag.
+                escaping_next = !escaping_next;
+                continue;
+            } else if !inside_double_quoted && c == '\'' {
+                if !escaping_next {
+                    inside_single_quoted = !inside_single_quoted;
+                } 
+            } else if !inside_single_quoted && is_double_quote(c)  {
+                if !escaping_next {
+                    inside_double_quoted = !inside_double_quoted;
+                } 
+            } else if c == '%' && !inside_single_quoted && !inside_double_quoted{
+                // This percentage sign wasn't inside a string, so it is a real comment.
+                comment_start_location = Some(i);
+                break;
+            }
+            
+            escaping_next = false;
+        }
+        
+        // Did we find a comment? If so remove it.
+        if let Some(pos) = comment_start_location {
+            s3.push_str(&l[0..pos]);
+        } else {
+            s3.push_str(l);
+        }
+    }
+    
+    s3
 }
 
 /// Remove all empty lines (i.e. containing only whitespace) from the file passed in.

@@ -22,11 +22,18 @@ use cnf::ast::Term as CnfTerm;
 use cnf::ast::Formula as CnfFormula;
 use cnf::renaming_info::RenamingInfo;
 
+/// Parses the file at the location given by the string into a CNF AST, if possible.
+/// More specifically, the CNF AST is in two parts: axioms and conjectures.
+/// Either one might be empty but not both.
+pub fn tptp_to_cnf_ast(s: &str) -> Result<(Vec<CnfFormula>, Vec<CnfFormula>, RenamingInfo), String> {
+    Ok(try!(tptp_ast_to_cnf_ast(try!(parse_tptp_file(s)))))
+}
+
 /// Transforms the AST format of the TPTP parser into the AST format of the CNF transformer.
-/// Also returns info on whether the problem contains conjectures or not.
-/// This information is important for correct proof output.
+/// The first and second elements of the tuple are the axioms and conjectures of the problem.
+/// Either one might be empty, but not both.
 fn tptp_ast_to_cnf_ast(f_list: Vec<AnnotatedFormula>)
-                       -> Result<(CnfFormula, RenamingInfo, bool), String> {
+                       -> Result<(Vec<CnfFormula>, Vec<CnfFormula>, RenamingInfo), String> {
     // Check if any of the formula roles is incorrect.
     // Also, we hit the if let borrow bug again.
     if let Some(f) = f_list.iter().find(|&f| !formula_role_valid(f)) {
@@ -47,6 +54,7 @@ fn tptp_ast_to_cnf_ast(f_list: Vec<AnnotatedFormula>)
     let (conj_annotated, other_annotated): (Vec<_>, Vec<_>) = f_list.into_iter().partition(|x| {
         get_formula_role(x) == "conjecture"
     });
+
     let conj = conj_annotated.into_iter()
                              .map(strip_annotations)
                              .map(|x| transform_ast(x, &mut renaming_info))
@@ -56,35 +64,11 @@ fn tptp_ast_to_cnf_ast(f_list: Vec<AnnotatedFormula>)
                                .map(|x| transform_ast(x, &mut renaming_info))
                                .collect::<Vec<_>>();
 
-    if conj.is_empty() {
-        if other.len() == 1 {
-            Ok((other[0].clone(), renaming_info, false))
-        } else {
-            Ok((CnfFormula::And(other), renaming_info, false))
-        }
-    } else if other.is_empty() {
-        if conj.len() == 1 {
-            Ok((conj[0].clone(), renaming_info, true))
-        } else {
-            Ok((CnfFormula::And(conj), renaming_info, true))
-        }
-    } else {
-        let left = if other.len() == 1 {
-            other[0].clone()
-        } else {
-            CnfFormula::And(other)
-        };
-        let right = if conj.len() == 1 {
-            conj[0].clone()
-        } else {
-            CnfFormula::And(conj)
-        };
-        Ok((CnfFormula::Implies(Box::new(left), Box::new(right)),
-            renaming_info,
-            true))
-    }
+    assert!(conj.len() > 0 || other.len() > 0);
+    Ok((other, conj, renaming_info))
 }
 
+/// Returns an error string for a faulty CNF formula role.
 fn cnf_formula_role_error(f: &AnnotatedFormula) -> String {
     format!("Formula role was expected to be one of \
              'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture' instead of \
@@ -92,6 +76,7 @@ fn cnf_formula_role_error(f: &AnnotatedFormula) -> String {
             get_formula_role(f))
 }
 
+/// Returns an error string for a faulty FOF formula role.
 fn fof_formula_role_error(f: &AnnotatedFormula) -> String {
     format!("Formula role was expected to be one of \
              'axiom|hypothesis|definition|assumption|lemma|theorem|negated_conjecture|conjecture' \
@@ -130,13 +115,6 @@ fn formula_role_valid_cnf(s: &str) -> bool {
 /// Returns true if the formula role for a FOF formula is valid.
 fn formula_role_valid_fof(s: &str) -> bool {
     formula_role_valid_cnf(s) || s == "conjecture"
-}
-
-/// Parses the file at the location given by the string into a CNF AST, if possible.
-/// Returns the renaming info used during the transformation.
-/// Also returns information on whether the problem has conjectures or not.
-pub fn tptp_to_cnf_ast(s: &str) -> Result<(CnfFormula, RenamingInfo, bool), String> {
-    Ok(try!(tptp_ast_to_cnf_ast(try!(parse_tptp_file(s)))))
 }
 
 fn transform_ast(f: ParserFormula, ri: &mut RenamingInfo) -> CnfFormula {

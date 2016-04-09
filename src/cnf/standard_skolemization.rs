@@ -17,32 +17,33 @@
 use cnf::ast::{Term, Formula};
 use cnf::renaming_info::RenamingInfo;
 use cnf::variable_renaming::rename;
-use cnf::free_variables::fv;
+use cnf::free_variables::free_variables;
 
 /// Eliminates existential quantifiers by replacing them with new skolem functions.
 /// To do this we also rename all bound variables.
 pub fn skolemize(f: Formula, renaming_info: &mut RenamingInfo) -> Formula {
-    let renamed_f = rename(f, &mut renaming_info.var_cnt);
-    let skolemized_f = skolemize1(renamed_f, &mut renaming_info.fun_cnt);
+    let renamed_f = rename(f, renaming_info);
+    let skolemized_f = skolemize1(renamed_f, renaming_info);
     assert!(!contains_existential_quantifiers(&skolemized_f));
     skolemized_f
 }
 
-fn skolemize1(f: Formula, n: &mut i64) -> Formula {
+fn skolemize1(f: Formula, ri: &mut RenamingInfo) -> Formula {
     match f {
-        Formula::And(l) => Formula::And(l.into_iter().map(|x| skolemize1(x, n)).collect()),
-        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| skolemize1(x, n)).collect()),
-        Formula::Forall(id, p) => Formula::Forall(id, Box::new(skolemize1(*p, n))),
-        Formula::Exists(id, p) => skolemize_exists(id, *p, n),
+        Formula::And(l) => Formula::And(l.into_iter().map(|x| skolemize1(x, ri)).collect()),
+        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| skolemize1(x, ri)).collect()),
+        Formula::Forall(_, p) => skolemize1(*p, ri),
+        Formula::Exists(id, p) => skolemize_exists(id, *p, ri),
         _ => f,
     }
 }
 
-fn skolemize_exists(id: i64, f: Formula, n: &mut i64) -> Formula {
-    *n += 1;
-    let xs = fv(&Formula::Exists(id, Box::new(f.clone())));
-    let sf = Term::Function(*n, xs.into_iter().map(Term::Variable).collect());
-    skolemize1(tsubst(f, id, &sf), n)
+fn skolemize_exists(id: i64, f: Formula, ri: &mut RenamingInfo) -> Formula {
+    let skolem_f_id = ri.create_new_skolem_function_id();
+    let mut vars = free_variables(&f);
+    vars.remove(&id);
+    let sf = Term::Function(skolem_f_id, vars.into_iter().map(Term::Variable).collect());
+    skolemize1(tsubst(f, id, &sf), ri)
 }
 
 fn tsubst(f: Formula, from: i64, to: &Term) -> Formula {

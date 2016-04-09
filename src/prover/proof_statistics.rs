@@ -46,17 +46,17 @@ impl ProofStatistics {
             trivial_inference_count: 0,
         }
     }
-    
+
     /// Returns the amount of nonredundant processed clauses.
     pub fn nonredudant_processed_count(&self) -> u64 {
         self.iterations - self.trivial_count - self.fs_count
     }
-    
+
     /// Returns the amount of inferred clauses.
     pub fn inferred_clauses_count(&self) -> u64 {
         self.sp_count + self.ef_count + self.er_count
     }
-    
+
     /// Returns the amount of nontrivial inferred clauses.
     /// That is, the amount of clauses not immediately discarded.
     pub fn nontrivial_inferred_clauses_count(&self) -> u64 {

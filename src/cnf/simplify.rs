@@ -14,6 +14,7 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
+use std::collections::HashSet;
 use cnf::ast::{Term, Formula};
 use cnf::free_variables::free_in;
 
@@ -63,33 +64,20 @@ fn negate(f: Formula) -> Formula {
 /// "p and true" can be simplified to "p"
 /// "p and false" can be simplified to "false".
 fn simplify_and(l: Vec<Formula>) -> Formula {
-    let mut simplified_l = l.into_iter()
-                            .map(simplify)
-                            .filter(|x| *x != Formula::True)
-                            .collect::<Vec<_>>();
+    // Duplicates are automatically removed thanks to us using a set.
+    let simplified_l = l.into_iter()
+                        .map(simplify)
+                        .filter(|x| *x != Formula::True)
+                        .collect::<HashSet<_>>();
 
-    if simplified_l.iter().any(|x| *x == Formula::False) {
+    if simplified_l.contains(&Formula::False) {
         Formula::False
     } else {
-        // Combines duplicate deletion and detection for 'p or not p'.
-        let mut i = 0;
-        while i < simplified_l.len() {
-            let mut j = i + 1;
-            let negated_f = negate(simplified_l[i].clone());
-
-            while j < simplified_l.len() {
-                if negated_f == simplified_l[j] {
-                    return Formula::False;
-                }
-
-                if simplified_l[i] == simplified_l[j] {
-                    simplified_l.swap_remove(j);
-                    continue;
-                }
-                j += 1;
+        for p in &simplified_l {
+            let p_negated = negate(p.clone());
+            if simplified_l.contains(&p_negated) {
+                return Formula::False;
             }
-
-            i += 1;
         }
 
         if simplified_l.is_empty() {
@@ -101,7 +89,7 @@ fn simplify_and(l: Vec<Formula>) -> Formula {
                 panic!("This shouldn't be possible, check the above asserts")
             }
         } else {
-            Formula::And(simplified_l)
+            Formula::And(simplified_l.into_iter().collect())
         }
     }
 }
@@ -111,33 +99,19 @@ fn simplify_and(l: Vec<Formula>) -> Formula {
 /// "p or true" can be simplified to "true"
 /// "p or false" can be simplified to "p".
 fn simplify_or(l: Vec<Formula>) -> Formula {
-    let mut simplified_l = l.into_iter()
-                            .map(simplify)
-                            .filter(|x| *x != Formula::False)
-                            .collect::<Vec<_>>();
+    let simplified_l = l.into_iter()
+                        .map(simplify)
+                        .filter(|x| *x != Formula::False)
+                        .collect::<HashSet<_>>();
 
-    if simplified_l.iter().any(|x| *x == Formula::True) {
+    if simplified_l.contains(&Formula::True) {
         Formula::True
     } else {
-        // Combines duplicate deletion and detection for 'p or not p'.
-        let mut i = 0;
-        while i < simplified_l.len() {
-            let mut j = i + 1;
-            let negated_f = negate(simplified_l[i].clone());
-
-            while j < simplified_l.len() {
-                if negated_f == simplified_l[j] {
-                    return Formula::True;
-                }
-
-                if simplified_l[i] == simplified_l[j] {
-                    simplified_l.swap_remove(j);
-                    continue;
-                }
-                j += 1;
+        for p in &simplified_l {
+            let p_negated = negate(p.clone());
+            if simplified_l.contains(&p_negated) {
+                return Formula::True;
             }
-
-            i += 1;
         }
 
         if simplified_l.is_empty() {
@@ -149,7 +123,7 @@ fn simplify_or(l: Vec<Formula>) -> Formula {
                 panic!("This shouldn't be possible, check the above asserts")
             }
         } else {
-            Formula::Or(simplified_l)
+            Formula::Or(simplified_l.into_iter().collect())
         }
     }
 }
@@ -259,12 +233,16 @@ mod test {
     fn simplify_and_1() {
         let f1 = Formula::Predicate(1, vec![]);
         let f2 = Formula::Predicate(2, vec![]);
-        let correct_f = Formula::And(vec![f1.clone(), f2.clone()]);
-        assert_eq!(simplify_and(vec![f1.clone(), f2.clone(), Formula::True]),
-                   correct_f);
-        assert_eq!(simplify_and(vec![f1.clone(), Formula::True, f2.clone()]),
-                   correct_f);
-        assert_eq!(simplify_and(vec![Formula::True, f1, f2]), correct_f);
+        // Nondeterministic tests are a bitch.
+        // There are some others in this file, but beyond that there shouldn't be any.
+        let correct_f_1 = Formula::And(vec![f2.clone(), f1.clone()]);
+        let correct_f_2 = Formula::And(vec![f1.clone(), f2.clone()]);
+        let s1 = simplify_and(vec![f1.clone(), f2.clone(), Formula::True]);
+        let s2 = simplify_and(vec![f1.clone(), Formula::True, f2.clone()]);
+        let s3 = simplify_and(vec![Formula::True, f1, f2]);
+        assert!(s1 == correct_f_1 || s1 == correct_f_2);
+        assert!(s2 == correct_f_1 || s2 == correct_f_2);
+        assert!(s3 == correct_f_1 || s3 == correct_f_2);
     }
 
     #[test]
@@ -296,8 +274,11 @@ mod test {
     fn simplify_and_5() {
         let f1 = Formula::Predicate(1, vec![]);
         let f2 = Formula::Predicate(2, vec![]);
-        let correct_f = Formula::And(vec![f1.clone(), f2.clone()]);
-        assert_eq!(simplify_and(vec![f1, f2]), correct_f);
+        // Nondeterminism again.
+        let correct_f_1 = Formula::And(vec![f2.clone(), f1.clone()]);
+        let correct_f_2 = Formula::And(vec![f1.clone(), f2.clone()]);
+        let s = simplify_and(vec![f1, f2]);
+        assert!(s == correct_f_1 || s == correct_f_2);
     }
 
     #[test]
@@ -315,12 +296,15 @@ mod test {
     fn simplify_or_2() {
         let f1 = Formula::Predicate(1, vec![]);
         let f2 = Formula::Predicate(2, vec![]);
-        let correct_f = Formula::Or(vec![f1.clone(), f2.clone()]);
-        assert_eq!(simplify_or(vec![f1.clone(), f2.clone(), Formula::False]),
-                   correct_f);
-        assert_eq!(simplify_or(vec![f1.clone(), Formula::False, f2.clone()]),
-                   correct_f);
-        assert_eq!(simplify_or(vec![Formula::False, f1, f2]), correct_f);
+        // Nondeterminism yet again.
+        let correct_f_1 = Formula::Or(vec![f1.clone(), f2.clone()]);
+        let correct_f_2 = Formula::Or(vec![f2.clone(), f1.clone()]);
+        let s1 = simplify_or(vec![f1.clone(), f2.clone(), Formula::False]);
+        let s2 = simplify_or(vec![f1.clone(), Formula::False, f2.clone()]);
+        let s3 = simplify_or(vec![Formula::False, f1, f2]);
+        assert!(s1 == correct_f_1 || s1 == correct_f_2);
+        assert!(s2 == correct_f_1 || s2 == correct_f_2);
+        assert!(s3 == correct_f_1 || s3 == correct_f_2);
     }
 
     #[test]
@@ -341,8 +325,11 @@ mod test {
     fn simplify_or_5() {
         let f1 = Formula::Predicate(1, vec![]);
         let f2 = Formula::Predicate(2, vec![]);
-        let correct_f = Formula::Or(vec![f1.clone(), f2.clone()]);
-        assert_eq!(simplify_or(vec![f1, f2]), correct_f);
+        // And yet again.
+        let correct_f_1 = Formula::Or(vec![f1.clone(), f2.clone()]);
+        let correct_f_2 = Formula::Or(vec![f2.clone(), f1.clone()]);
+        let s = simplify_or(vec![f1, f2]);
+        assert!(s == correct_f_1 || s == correct_f_2);
     }
 
     #[test]
@@ -417,12 +404,9 @@ mod test {
     fn simplify_quantifier_1() {
         let n = Term::Variable(-1);
         let odd = Formula::Predicate(1, vec![n.clone()]);
-        let even = Formula::Predicate(2, vec![n.clone()]);
-        let odd_or_even = Formula::Or(vec![odd, even]);
-        let f = Formula::Exists(-1, Box::new(odd_or_even.clone()));
-        assert_eq!(simplify_quantifier(-2, odd_or_even.clone(), true),
-                   odd_or_even);
-        assert_eq!(simplify_quantifier(-1, odd_or_even, false), f);
+        let f = Formula::Exists(-1, Box::new(odd.clone()));
+        assert_eq!(simplify_quantifier(-2, odd.clone(), false), odd);
+        assert_eq!(simplify_quantifier(-1, odd, false), f);
     }
 
     #[test]

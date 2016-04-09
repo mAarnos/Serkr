@@ -15,23 +15,27 @@
 //
 
 use cnf::ast::{Term, Formula};
+use cnf::renaming_info::RenamingInfo;
 
 /// Renames variables so that different occurences of quantifiers bind different variables.
-pub fn rename(f: Formula, n: &mut i64) -> Formula {
+pub fn rename(f: Formula, ri: &mut RenamingInfo) -> Formula {
     match f {
-        Formula::Not(p) => Formula::Not(Box::new(rename(*p, n))),
-        Formula::And(l) => Formula::And(l.into_iter().map(|x| rename(x, n)).collect()),
-        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| rename(x, n)).collect()),
-        Formula::Forall(id, p) => rename_quantifier(id, *p, n, true),
-        Formula::Exists(id, p) => rename_quantifier(id, *p, n, false),
+        Formula::Not(p) => Formula::Not(Box::new(rename(*p, ri))),
+        Formula::And(l) => Formula::And(l.into_iter().map(|x| rename(x, ri)).collect()),
+        Formula::Or(l) => Formula::Or(l.into_iter().map(|x| rename(x, ri)).collect()),
+        Formula::Forall(id, p) => rename_quantifier(id, *p, ri, true),
+        Formula::Exists(id, p) => rename_quantifier(id, *p, ri, false),
         _ => f,
     }
 }
 
-fn rename_quantifier(id: i64, p: Formula, n: &mut i64, universal_quantifier: bool) -> Formula {
-    *n -= 1;
-    let new_id = *n;
-    let renamed_p = rename(rename_variable(p, id, *n), n);
+fn rename_quantifier(id: i64,
+                     p: Formula,
+                     ri: &mut RenamingInfo,
+                     universal_quantifier: bool)
+                     -> Formula {
+    let new_id = ri.create_new_variable_id();
+    let renamed_p = rename(rename_variable(p, id, new_id), ri);
 
     if universal_quantifier {
         Formula::Forall(new_id, Box::new(renamed_p))

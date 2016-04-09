@@ -28,4 +28,3 @@ version = "*"
 [dependencies.clippy]
 version = "*"
 optional = true
-
