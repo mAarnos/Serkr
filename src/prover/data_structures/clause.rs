@@ -16,13 +16,12 @@
 
 use std::ops::Index;
 use std::slice::{Iter, IterMut};
-use std::cmp::Ordering;
 use std::fmt::{Debug, Formatter, Error};
 use prover::data_structures::literal::Literal;
 use prover::unification::substitution::Substitution;
 
 /// A multiset containing literals.
-// TODO: Eq and PartialEq are nonsensical at the moment but proper solutions would be expensive.
+/// Here also Eq and PartialEq and intensional instead of extensional.
 #[derive(Eq, PartialEq, Clone)]
 pub struct Clause {
     id: Option<u64>,
@@ -92,16 +91,15 @@ impl Clause {
         }
     }
 
-    /// Get the amount of symbols in this clause.
-    /// TODO: move somewhere else.
-    pub fn symbol_count(&self) -> usize {
-        self.literals.iter().fold(0, |acc, l| acc + l.symbol_count())
-    }
-
-    /// Set the id of the clause.
+    /// Set the ID of the clause.
     /// The IDs should be unique so care must be taken.
     pub fn set_id(&mut self, new_id: u64) {
         self.id = Some(new_id);
+    }
+    
+    /// Get the ID of the clause.
+    pub fn get_id(&self) -> u64 {
+        self.id.expect("ID should always exist")
     }
 }
 
@@ -123,20 +121,5 @@ impl Debug for Clause {
             }
         }
         write!(formatter, " }}")
-    }
-}
-
-/// The priority queue depends on "Ord".
-/// We order clauses in heuristic order, not in anything concrete.
-impl Ord for Clause {
-    fn cmp(&self, other: &Clause) -> Ordering {
-        other.symbol_count().cmp(&self.symbol_count())
-    }
-}
-
-/// "PartialOrd" needs to be implemented as well.
-impl PartialOrd for Clause {
-    fn partial_cmp(&self, other: &Clause) -> Option<Ordering> {
-        Some(other.symbol_count().cmp(&self.symbol_count()))
     }
 }
