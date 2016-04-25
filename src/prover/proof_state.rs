@@ -40,7 +40,7 @@ impl ProofState {
             used_clauses: Vec::new(),
             unused_clauses: HashMap::new(),
             term_ordering: term_order,
-            clause_order: vec![BinaryHeap::new(), BinaryHeap::new()],
+            clause_order: vec![BinaryHeap::new()],
             heuristic_order: vec![Heuristic::Size(2, 1)],
             heuristic_use_count: vec![5],
             current_heuristic_count: 0,

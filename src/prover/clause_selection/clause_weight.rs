@@ -74,8 +74,8 @@ fn clause_symbol_count(cl: &Clause, f_value: u64, v_value: u64) -> u64 {
 }
     
 fn literal_symbol_count(l: &Literal, f_value: u64, v_value: u64) -> u64 {
-    f_value + term_symbol_count(l.get_lhs(), f_value, v_value) 
-            + term_symbol_count(l.get_rhs(), f_value, v_value)
+    term_symbol_count(l.get_lhs(), f_value, v_value) + 
+    term_symbol_count(l.get_rhs(), f_value, v_value)
 }
     
 fn term_symbol_count(t: &Term, f_value: u64, v_value: u64) -> u64 {
