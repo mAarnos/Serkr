@@ -148,12 +148,6 @@ impl Term {
         }
     }
 
-    /// Get the amount of symbols in this term.
-    // TODO: move somewhere else.
-    pub fn symbol_count(&self) -> usize {
-        self.args.iter().fold(1, |acc, t| acc + t.symbol_count())
-    }
-
     /// Used for iterating the subterms of a term.
     pub fn iter(&self) -> Iter<Term> {
         self.args.iter()

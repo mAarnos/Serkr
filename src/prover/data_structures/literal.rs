@@ -84,12 +84,6 @@ impl Literal {
         (self.lhs == l.lhs && self.rhs == l.rhs) || (self.lhs == l.rhs && self.rhs == l.lhs)
     }
 
-    /// Get the amount of symbols in this literal
-    /// TODO: move this somewhere else.
-    pub fn symbol_count(&self) -> usize {
-        1 + self.lhs.symbol_count() + self.rhs.symbol_count()
-    }
-
     /// Used for iterating through the lhs and rhs of the literal.
     pub fn iter(&self) -> Iter {
         Iter {

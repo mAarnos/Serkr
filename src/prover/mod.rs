@@ -35,6 +35,9 @@ mod data_structures;
 /// Contains functions for automatically determining good prover settings for a given problem.
 mod problem_analysis;
 
+/// Contains functions for selecting given clauses to analyze in the proof search.
+mod clause_selection;
+
 // TODO: figure out a new name for this.
 // flatten is just not descriptive and it also means something else on top of that.
 mod flatten_cnf;

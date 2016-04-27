@@ -88,13 +88,13 @@ fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
 fn serkr_loop(mut proof_state: ProofState,
               mut var_cnt: i64,
               max_time_in_ms: u64,
-              contains_conjectures: bool)
+              contains_conjectures: bool,
+              mut id_count: u64)
               -> (ProofResult, ProofStatistics) {
     assert_eq!(proof_state.get_used_size(), 0);
 
     let mut sw = Stopwatch::new();
     let mut stats = ProofStatistics::new();
-    let mut added_to_unused = 0;
     stats.initial_clauses = proof_state.get_unused_size();
 
     sw.start();
@@ -112,7 +112,7 @@ fn serkr_loop(mut proof_state: ProofState,
         simplify(proof_state.get_term_ordering(),
                  &mut chosen_clause,
                  proof_state.get_used());
-
+                 
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
             return (ProofResult::new_refutation(contains_conjectures), stats);
@@ -150,8 +150,8 @@ fn serkr_loop(mut proof_state: ProofState,
                     stats.trivial_inference_count += 1;
                 } else {
                     // Give a unique ID to the clause.
-                    cl.set_id(added_to_unused);
-                    added_to_unused += 1;
+                    cl.set_id(id_count);
+                    id_count += 1;
                     proof_state.add_to_unused(cl);
                 }
             }
@@ -183,6 +183,19 @@ fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
     }
 
     newer_clauses
+}
+
+/// Assigns IDs to the initial clauses.
+/// Returns the ID following the last given ID.
+fn assign_ids_to_initial_clauses(clauses: &mut [Clause]) -> u64 {
+    let mut id_count = 0;
+    
+    for cl in clauses {
+        cl.set_id(id_count);
+        id_count += 1;
+    }
+    
+    id_count
 }
 
 /// Attempts to prove the stuff in the TPTP file at the location given.
@@ -223,7 +236,8 @@ pub fn prove(s: &str,
         (ProofResult::new_saturation(contains_conjectures),
          ProofStatistics::new())
     } else {
-        let flattened_cnf_f = flatten_cnf(cnf_f);
+        let mut flattened_cnf_f = flatten_cnf(cnf_f);
+        let id_count = assign_ids_to_initial_clauses(&mut flattened_cnf_f);
         // Large problems get stuck in preprocessing, so it is not used currently.
         // let preprocessed_problem = preprocess_clauses(flattened_cnf_f);
         let term_ordering = create_term_ordering(use_lpo, &flattened_cnf_f);
@@ -231,7 +245,8 @@ pub fn prove(s: &str,
         serkr_loop(proof_state,
                    renaming_info.get_newest_variable_id(),
                    max_time_in_s * 1000,
-                   contains_conjectures)
+                   contains_conjectures,
+                   id_count)
     }
 }
 

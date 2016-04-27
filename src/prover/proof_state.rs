@@ -14,26 +14,43 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::BinaryHeap;
+use std::collections::{HashMap, BinaryHeap};
 use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
+use prover::clause_selection::clause_weight::ClauseWeight;
+use prover::clause_selection::heuristic::Heuristic;
+use prover::clause_selection::pick_best::{pick_best_clause, choose_heuristic};
 
 /// Contains the current proof state.
 /// That is, the used, the unused clauses and the term ordering used.
 pub struct ProofState {
     used_clauses: Vec<Clause>,
-    unused_clauses: BinaryHeap<Clause>,
+    unused_clauses: HashMap<u64, Clause>,
     term_ordering: TermOrdering,
+    clause_order: Vec<BinaryHeap<ClauseWeight>>,
+    heuristic_order: Vec<Heuristic>,
+    heuristic_use_count: Vec<usize>,
+    current_heuristic_count: usize,
 }
 
 impl ProofState {
     /// Creates a new proof state.
     pub fn new(preprocessed_clauses: Vec<Clause>, term_order: TermOrdering) -> ProofState {
-        ProofState {
+        let mut state = ProofState {
             used_clauses: Vec::new(),
-            unused_clauses: preprocessed_clauses.into_iter().collect(),
+            unused_clauses: HashMap::new(),
             term_ordering: term_order,
+            clause_order: vec![BinaryHeap::new()],
+            heuristic_order: vec![Heuristic::Size(2, 1)],
+            heuristic_use_count: vec![5],
+            current_heuristic_count: 0,
+        };
+        
+        for cl in preprocessed_clauses.into_iter() {
+            state.add_to_unused(cl);
         }
+        
+        state
     }
 
     /// Get the amount of used clauses.
@@ -48,7 +65,8 @@ impl ProofState {
 
     /// Picks the best clause from unused and removes it from there.
     pub fn pick_best_clause(&mut self) -> Option<Clause> {
-        self.unused_clauses.pop()
+        let i = choose_heuristic(&self.heuristic_use_count, &mut self.current_heuristic_count);
+        pick_best_clause(&mut self.unused_clauses, &mut self.clause_order[i])
     }
 
     /// Adds the given clause to used clauses.
@@ -58,7 +76,11 @@ impl ProofState {
 
     /// Adds the given clause to unused clauses.
     pub fn add_to_unused(&mut self, cl: Clause) {
-        self.unused_clauses.push(cl);
+        for i in 0..self.heuristic_order.len() {
+            let cw = self.heuristic_order[i].new_clauseweight(&cl);
+            self.clause_order[i].push(cw);
+        }
+        self.unused_clauses.insert(cl.get_id(), cl);
     }
 
     /// Get a reference term ordering used.
@@ -69,12 +91,6 @@ impl ProofState {
     /// Get a reference to the used clauses.
     pub fn get_used(&self) -> &Vec<Clause> {
         &self.used_clauses
-    }
-
-    /// Get a reference to the unused clauses.
-    #[allow(dead_code)]
-    pub fn get_unused(&self) -> &BinaryHeap<Clause> {
-        &self.unused_clauses
     }
 
     /// Get a mutable reference to the used clauses.
