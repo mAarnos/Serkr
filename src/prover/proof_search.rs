@@ -27,10 +27,8 @@ use prover::simplification::literal_deletion::cheap_simplify;
 use prover::simplification::tautology_deletion::trivial;
 use prover::simplification::subsumption::subsumes_clause;
 use prover::simplification::equality_subsumption::equality_subsumes_clause;
-use prover::simplification::simplify_reflect::simplify_reflect;
 use prover::simplification::rewriting::rewrite_literals;
-
-use prover::ordering::term_ordering::TermOrdering;
+use prover::simplification::simplify_reflect::simplify_reflect;
 
 use prover::inference::equality_resolution::equality_resolution;
 use prover::inference::equality_factoring::equality_factoring;
@@ -52,20 +50,23 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
     }
 }
 
-/// Checks if a given clause is subsumed by some clause in a given set of clauses.
-fn forward_subsumed(cl: &Clause, clauses: &[Clause]) -> bool {
-    clauses.iter().any(|cl2| equality_subsumes_clause(cl2, cl) || subsumes_clause(cl2, cl))
+/// Checks if a given clause is subsumed by the set of used clauses.
+fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
+    proof_state.get_used()
+               .iter()
+               .any(|cl2| equality_subsumes_clause(cl2, cl) || subsumes_clause(cl2, cl))
 }
 
-/// Removes all clauses from a given set subsumed by a given clause.
+/// Removes all clauses from the set of used clauses subsumed by a given clause.
 /// Returns the amount of back subsumed clauses.
-fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> u64 {
+fn backward_subsumption(proof_state: &mut ProofState, cl: &Clause) -> u64 {
     let mut i = 0;
     let mut bs_count = 0;
 
-    while i < clauses.len() {
-        if equality_subsumes_clause(&cl, &clauses[i]) || subsumes_clause(&cl, &clauses[i]) {
-            clauses.swap_remove(i);
+    // Ugly but necessary due to borrowing rules.
+    while i < proof_state.get_used().len() {
+        if equality_subsumes_clause(&cl, &proof_state.get_used()[i]) || subsumes_clause(&cl, &proof_state.get_used()[i]) {
+            proof_state.remove_from_used(i);
             bs_count += 1;
             continue;
         }
@@ -76,11 +77,13 @@ fn backward_subsumption(cl: &Clause, clauses: &mut Vec<Clause>) -> u64 {
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.
-fn simplify(term_ordering: &TermOrdering, cl: &mut Clause, clauses: &[Clause]) {
-    for cl2 in clauses {
+fn simplify(proof_state: &ProofState, cl: &mut Clause) {
+    for cl2 in proof_state.get_used() {
         simplify_reflect(cl2, cl);
     }
-    rewrite_literals(term_ordering, clauses, cl);
+    rewrite_literals(proof_state.get_term_ordering(), 
+                     proof_state.get_term_index(), 
+                     cl);
 }
 
 /// The main proof search loop.
@@ -109,9 +112,7 @@ fn serkr_loop(mut proof_state: ProofState,
         }
 
         // We start by simplifying the chosen clause as much as possible.
-        simplify(proof_state.get_term_ordering(),
-                 &mut chosen_clause,
-                 proof_state.get_used());
+        simplify(&proof_state, &mut chosen_clause);
                  
         // If we derived a contradiction we are done.
         if chosen_clause.is_empty() {
@@ -121,10 +122,10 @@ fn serkr_loop(mut proof_state: ProofState,
         // Check if the clause is redundant in some way. If it is no need to process it more.
         if trivial(&chosen_clause) {
             stats.trivial_count += 1;
-        } else if forward_subsumed(&chosen_clause, proof_state.get_used()) {
+        } else if forward_subsumed(&proof_state, &chosen_clause) {
             stats.fs_count += 1;
         } else {
-            stats.bs_count += backward_subsumption(&chosen_clause, proof_state.get_used_mut());
+            stats.bs_count += backward_subsumption(&mut proof_state, &chosen_clause);
             proof_state.add_to_used(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
 
@@ -159,30 +160,6 @@ fn serkr_loop(mut proof_state: ProofState,
     }
 
     (ProofResult::new_saturation(contains_conjectures), stats)
-}
-
-/// Try to simplify, delete tautologies and remove subsumed clauses from those clauses passed in.
-/// Possibly very costly due to subsumption checks.
-#[allow(dead_code)]
-fn preprocess_clauses(mut clauses: Vec<Clause>) -> Vec<Clause> {
-    // Simplify the clauses as much as possible.
-    for cl in &mut clauses {
-        cheap_simplify(cl);
-    }
-
-    // Then get rid of tautologies.
-    let mut new_clauses = clauses.into_iter().filter(|cl| !trivial(cl)).collect::<Vec<_>>();
-
-    // Remove all subsumed clauses.
-    let mut newer_clauses = Vec::new();
-    while let Some(cl) = new_clauses.pop() {
-        if !forward_subsumed(&cl, &newer_clauses) {
-            backward_subsumption(&cl, &mut newer_clauses);
-            newer_clauses.push(cl);
-        }
-    }
-
-    newer_clauses
 }
 
 /// Assigns IDs to the initial clauses.
@@ -238,8 +215,6 @@ pub fn prove(s: &str,
     } else {
         let mut flattened_cnf_f = flatten_cnf(cnf_f);
         let id_count = assign_ids_to_initial_clauses(&mut flattened_cnf_f);
-        // Large problems get stuck in preprocessing, so it is not used currently.
-        // let preprocessed_problem = preprocess_clauses(flattened_cnf_f);
         let term_ordering = create_term_ordering(use_lpo, &flattened_cnf_f);
         let proof_state = ProofState::new(flattened_cnf_f, term_ordering);
         serkr_loop(proof_state,

@@ -18,49 +18,42 @@ use prover::data_structures::term::Term;
 use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::unification::matching::term_match;
+use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
+
+// Note: rewriting is probably incomplete as it is used currently. Fix that.
 
 /// Does one rewrite step.
 /// Returns true if something was rewritten.
-#[cfg_attr(feature="clippy", allow(collapsible_if))]
-fn normal_form_step(term_ordering: &TermOrdering, active: &[Clause], u: &mut Term) -> bool {
-    for cl in active {
-        if cl.is_positive_unit() {
-            if try_rewrite_at_position(term_ordering, cl[0].get_lhs(), cl[0].get_rhs(), u) ||
-               try_rewrite_at_position(term_ordering, cl[0].get_rhs(), cl[0].get_lhs(), u) {
-                return true;
+fn normal_form_step(term_ordering: &TermOrdering, term_index: &TopSymbolHashIndex, t: &mut Term) -> bool {
+    if let Some(iter) = term_index.possible_matches(t) {
+        for &(ref l, ref r) in iter {
+            if let Some(sigma) = term_match(l, t) {
+                let mut new_l = l.clone();
+                let mut new_r = r.clone();
+                new_l.subst(&sigma);
+                new_r.subst(&sigma);
+                if term_ordering.gt(&new_l, &new_r) {
+                    *t = new_r;
+                    return true;
+                }
             }
         }
     }
 
-    u.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
-}
-
-fn try_rewrite_at_position(term_ordering: &TermOrdering, s: &Term, t: &Term, u: &mut Term) -> bool {
-    if let Some(sigma) = term_match(s, u) {
-        let mut new_s = s.clone();
-        let mut new_t = t.clone();
-        new_s.subst(&sigma);
-        new_t.subst(&sigma);
-        if term_ordering.gt(&new_s, &new_t) {
-            *u = new_t;
-            return true;
-        }
-    }
-
-    false
+    t.iter_mut().any(|t2| normal_form_step(term_ordering, term_index, t2))
 }
 
 /// Reduces a term into normal form with regards to the active clause set.
-fn normal_form(term_ordering: &TermOrdering, active: &[Clause], t: &mut Term) {
-    while normal_form_step(term_ordering, active, t) {
+fn normal_form(term_ordering: &TermOrdering, term_index: &TopSymbolHashIndex, t: &mut Term) {
+    while normal_form_step(term_ordering, term_index, t) {
     }
 }
 
 /// Rewrites a given clause into normal form with regards to the active clause set.
-pub fn rewrite_literals(term_ordering: &TermOrdering, active: &[Clause], cl: &mut Clause) {
+pub fn rewrite_literals(term_ordering: &TermOrdering, term_index: &TopSymbolHashIndex, cl: &mut Clause) {
     for l in cl.iter_mut() {
-        normal_form(term_ordering, active, l.get_lhs_mut());
-        normal_form(term_ordering, active, l.get_rhs_mut());
+        normal_form(term_ordering, term_index, l.get_lhs_mut());
+        normal_form(term_ordering, term_index, l.get_rhs_mut());
     }
 }
 

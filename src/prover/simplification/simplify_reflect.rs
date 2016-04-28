@@ -32,12 +32,12 @@ pub fn simplify_reflect(cl1: &Clause, cl2: &mut Clause) {
 }
 
 /// Simplifies the clause with positive simplify-reflect.
-fn positive_simplify_reflect(s: &Term, t: &Term, cl2: &mut Clause) {
+fn positive_simplify_reflect(s: &Term, t: &Term, cl: &mut Clause) {
     let mut i = 0;
 
-    while i < cl2.size() {
-        if cl2[i].is_negative() && eqn_subsumes_eqn(s, t, cl2[i].get_lhs(), cl2[i].get_rhs()) {
-            cl2.swap_remove(i);
+    while i < cl.size() {
+        if cl[i].is_negative() && eqn_subsumes_eqn(s, t, cl[i].get_lhs(), cl[i].get_rhs()) {
+            cl.swap_remove(i);
             continue;
         }
 
@@ -46,12 +46,12 @@ fn positive_simplify_reflect(s: &Term, t: &Term, cl2: &mut Clause) {
 }
 
 /// Simplifies the clause with negative simplify-reflect.
-fn negative_simplify_reflect(s: &Term, t: &Term, cl2: &mut Clause) {
+fn negative_simplify_reflect(s: &Term, t: &Term, cl: &mut Clause) {
     let mut i = 0;
 
-    while i < cl2.size() {
-        if cl2[i].is_positive() && match_term_pairs(s, t, cl2[i].get_lhs(), cl2[i].get_rhs()) {
-            cl2.swap_remove(i);
+    while i < cl.size() {
+        if cl[i].is_positive() && match_term_pairs(s, t, cl[i].get_lhs(), cl[i].get_rhs()) {
+            cl.swap_remove(i);
             continue;
         }
 

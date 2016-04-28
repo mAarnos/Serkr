@@ -38,6 +38,9 @@ mod problem_analysis;
 /// Contains functions for selecting given clauses to analyze in the proof search.
 mod clause_selection;
 
+/// Contains data structures for efficient retrieval of information from sets of terms/clauses.
+mod indexing;
+
 // TODO: figure out a new name for this.
 // flatten is just not descriptive and it also means something else on top of that.
 mod flatten_cnf;
