@@ -65,7 +65,7 @@ fn backward_subsumption(proof_state: &mut ProofState, cl: &Clause) -> u64 {
 
     // Ugly but necessary due to borrowing rules.
     while i < proof_state.get_used().len() {
-        if equality_subsumes_clause(&cl, &proof_state.get_used()[i]) || subsumes_clause(&cl, &proof_state.get_used()[i]) {
+        if equality_subsumes_clause(cl, &proof_state.get_used()[i]) || subsumes_clause(cl, &proof_state.get_used()[i]) {
             proof_state.remove_from_used(i);
             bs_count += 1;
             continue;

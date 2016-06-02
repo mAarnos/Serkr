@@ -86,7 +86,7 @@ fn tsubst_variable(t: Term, from: i64, to: &Term) -> Term {
 fn contains_existential_quantifiers(f: &Formula) -> bool {
     match *f {
         Formula::And(ref l) | Formula::Or(ref l) => l.iter().any(contains_existential_quantifiers),
-        Formula::Forall(_, ref p) => contains_existential_quantifiers(&p),
+        Formula::Forall(_, ref p) => contains_existential_quantifiers(p),
         Formula::Exists(_, _) => true,
         _ => false,
     }

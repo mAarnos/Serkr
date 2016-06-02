@@ -54,7 +54,7 @@ fn is_disjunction(f: &Formula) -> bool {
 fn is_literal(f: &Formula) -> bool {
     match *f {
         Formula::Predicate(_, _) => true,
-        Formula::Not(ref p) => is_atomic(&p),
+        Formula::Not(ref p) => is_atomic(p),
         _ => false,
     }
 }

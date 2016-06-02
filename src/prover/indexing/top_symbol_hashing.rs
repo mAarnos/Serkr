@@ -52,11 +52,8 @@ impl TopSymbolHashIndex {
     fn remove_rewrite_rule_from_index(&mut self, s: &Term, t: &Term) {
         if s.is_function() {
             if let Some(vec) = self.index.get_mut(&s.get_id()) {
-                for i in 0..vec.len() {
-                    if *s == vec[i].0 && *t == vec[i].1 {
-                        vec.swap_remove(i);
-                        break;
-                    }
+                if let Some(i) = vec.iter().position(|p| p.0 == *s && p.1 == *t) {
+                    vec.swap_remove(i);
                 }
             }
         }    

@@ -52,7 +52,7 @@ fn estimate_size(cache: &mut HashMap<(Formula, bool), BigInt>,
                 estimate_size(cache, p, false) * estimate_size(cache, q, false)
             }
         }
-        Formula::Forall(_, ref p) | Formula::Exists(_, ref p) => estimate_size(cache, &p, polarity),
+        Formula::Forall(_, ref p) | Formula::Exists(_, ref p) => estimate_size(cache, p, polarity),
         _ => panic!("True and false should've been eliminated already"),
     };
 

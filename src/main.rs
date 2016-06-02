@@ -130,7 +130,7 @@ fn main() {
                         let time_limit = value_t!(matches, "time-limit", u64).unwrap_or(300);
                         let renaming_limit = value_t!(matches, "formula-renaming", u64)
                                                  .unwrap_or(32);
-                        prover::proof_search::prove(&input_file,
+                        prover::proof_search::prove(input_file,
                                                     use_lpo,
                                                     time_limit,
                                                     renaming_limit)

@@ -121,7 +121,7 @@ impl Term {
 
     /// Substitutes according to the mapping.
     pub fn subst(&mut self, substitution: &Substitution) {
-        if let Some(t) = substitution.get(&self) {
+        if let Some(t) = substitution.get(self) {
             *self = t.clone();
         } else {
             for x in &mut self.args {
