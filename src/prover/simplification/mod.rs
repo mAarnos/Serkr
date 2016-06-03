@@ -17,7 +17,7 @@
 /// Contains functions for checking if a clause subsumes some other clause.
 pub mod subsumption;
 
-/// Contains functions for checking if a positive unit clause subsumes some ther clause.
+/// Contains functions for checking if a positive unit clause subsumes some other clause.
 pub mod equality_subsumption;
 
 /// Contains functions for rewriting positive and negative literals.

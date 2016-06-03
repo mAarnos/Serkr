@@ -26,7 +26,7 @@ use prover::proof_state::ProofState;
 use prover::simplification::literal_deletion::cheap_simplify;
 use prover::simplification::tautology_deletion::trivial;
 use prover::simplification::subsumption::subsumes_clause;
-use prover::simplification::equality_subsumption::equality_subsumes_clause;
+use prover::simplification::equality_subsumption::forward_equality_subsumed;
 use prover::simplification::rewriting::rewrite_literals;
 use prover::simplification::simplify_reflect::simplify_reflect;
 
@@ -52,35 +52,15 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 
 /// Checks if a given clause is subsumed by the set of used clauses.
 fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
+    forward_equality_subsumed(proof_state.get_term_index(), cl) ||
     proof_state.get_used()
                .iter()
-               .any(|cl2| equality_subsumes_clause(cl2, cl) || subsumes_clause(cl2, cl))
-}
-
-/// Removes all clauses from the set of used clauses subsumed by a given clause.
-/// Returns the amount of back subsumed clauses.
-fn backward_subsumption(proof_state: &mut ProofState, cl: &Clause) -> u64 {
-    let mut i = 0;
-    let mut bs_count = 0;
-
-    // Ugly but necessary due to borrowing rules.
-    while i < proof_state.get_used().len() {
-        if equality_subsumes_clause(cl, &proof_state.get_used()[i]) || subsumes_clause(cl, &proof_state.get_used()[i]) {
-            proof_state.remove_from_used(i);
-            bs_count += 1;
-            continue;
-        }
-        i += 1;
-    }
-
-    bs_count
+               .any(|cl2| subsumes_clause(cl2, cl))
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.
 fn simplify(proof_state: &ProofState, cl: &mut Clause) {
-    for cl2 in proof_state.get_used() {
-        simplify_reflect(cl2, cl);
-    }
+    simplify_reflect(proof_state.get_term_index(), cl);
     rewrite_literals(proof_state.get_term_ordering(), 
                      proof_state.get_term_index(), 
                      cl);
@@ -125,7 +105,7 @@ fn serkr_loop(mut proof_state: ProofState,
         } else if forward_subsumed(&proof_state, &chosen_clause) {
             stats.fs_count += 1;
         } else {
-            stats.bs_count += backward_subsumption(&mut proof_state, &chosen_clause);
+            // stats.bs_count += backward_subsumption(&mut proof_state, &chosen_clause);
             proof_state.add_to_used(chosen_clause.clone());
             rename_clause(&mut chosen_clause, &mut var_cnt);
 

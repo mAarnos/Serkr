@@ -25,6 +25,11 @@ pub fn term_match(s: &Term, t: &Term) -> Option<Substitution> {
     term_match_general(Substitution::new(), vec![(s.clone(), t.clone())])
 }
 
+/// A version of term_match where we extend a given substitution.
+pub fn term_match_with_subst(sigma: Substitution, s: &Term, t: &Term) -> Option<Substitution> {
+    term_match_general(sigma, vec![(s.clone(), t.clone())])
+}
+
 /// A more general version of term_match.
 /// We can pass in a substitution to expand.
 /// We can also give more pairs of equations than just one.
@@ -64,17 +69,6 @@ pub fn term_match_general(mut substitution: Substitution,
     }
 
     Some(substitution)
-}
-
-/// Check if there is a sigma so that s\sigma = u and t\sigma = v (or with s and t switched).
-pub fn match_term_pairs(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
-    let eqs = vec![(s.clone(), u.clone()), (t.clone(), v.clone())];
-    if term_match_general(Substitution::new(), eqs).is_some() {
-        true
-    } else {
-        let eqs2 = vec![(t.clone(), u.clone()), (s.clone(), v.clone())];
-        term_match_general(Substitution::new(), eqs2).is_some()
-    }
 }
 
 #[cfg(test)]

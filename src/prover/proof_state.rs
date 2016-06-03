@@ -73,14 +73,8 @@ impl ProofState {
 
     /// Adds the given clause to used clauses.
     pub fn add_to_used(&mut self, cl: Clause) {
-        self.term_index.add_clause_to_index(&self.term_ordering, &cl);
+        self.term_index.add_clause_to_index(&cl);
         self.used_clauses.push(cl);
-    }
-    
-    /// Removes the clause at a given index from the set of used clauses.
-    pub fn remove_from_used(&mut self, i: usize) {
-        self.term_index.remove_clause_from_index(&self.used_clauses[i]);
-        self.used_clauses.swap_remove(i);
     }
 
     /// Adds the given clause to unused clauses.

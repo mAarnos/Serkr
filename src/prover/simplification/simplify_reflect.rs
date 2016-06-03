@@ -14,29 +14,17 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use prover::data_structures::term::Term;
+use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
-use prover::unification::matching::match_term_pairs;
-use prover::simplification::equality_subsumption::eqn_subsumes_eqn;
+use prover::simplification::equality_subsumption::{matching_equation_exists, equation_subsumed};
+use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
 
-/// Simplifies cl2 by positive and negative simplify-reflect if possible.
-pub fn simplify_reflect(cl1: &Clause, cl2: &mut Clause) {
-    if cl1.is_unit() {
-        let l = &cl1[0];
-        if l.is_positive() {
-            positive_simplify_reflect(l.get_lhs(), l.get_rhs(), cl2);
-        } else {
-            negative_simplify_reflect(l.get_lhs(), l.get_rhs(), cl2);
-        }
-    }
-}
-
-/// Simplifies the clause with positive simplify-reflect.
-fn positive_simplify_reflect(s: &Term, t: &Term, cl: &mut Clause) {
+/// Simplifies a given clause by positive and negative simplify-reflect.
+pub fn simplify_reflect(term_index: &TopSymbolHashIndex, cl: &mut Clause) {
     let mut i = 0;
 
     while i < cl.size() {
-        if cl[i].is_negative() && eqn_subsumes_eqn(s, t, cl[i].get_lhs(), cl[i].get_rhs()) {
+        if simplifiable(term_index, &cl[i]) {
             cl.swap_remove(i);
             continue;
         }
@@ -45,17 +33,11 @@ fn positive_simplify_reflect(s: &Term, t: &Term, cl: &mut Clause) {
     }
 }
 
-/// Simplifies the clause with negative simplify-reflect.
-fn negative_simplify_reflect(s: &Term, t: &Term, cl: &mut Clause) {
-    let mut i = 0;
-
-    while i < cl.size() {
-        if cl[i].is_positive() && match_term_pairs(s, t, cl[i].get_lhs(), cl[i].get_rhs()) {
-            cl.swap_remove(i);
-            continue;
-        }
-
-        i += 1;
+fn simplifiable(term_index: &TopSymbolHashIndex, l: &Literal) -> bool {
+    if l.is_positive(){
+        matching_equation_exists(term_index, l.get_lhs(), l.get_rhs(), false)
+    } else {
+        equation_subsumed(term_index, l.get_lhs(), l.get_rhs())
     }
 }
 

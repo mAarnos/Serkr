@@ -26,7 +26,7 @@ use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
 /// Returns true if something was rewritten.
 fn normal_form_step(term_ordering: &TermOrdering, term_index: &TopSymbolHashIndex, t: &mut Term) -> bool {
     if let Some(iter) = term_index.possible_matches(t) {
-        for &(ref l, ref r) in iter {
+        for &(ref l, ref r, _) in iter.filter(|x| x.2) {
             if let Some(sigma) = term_match(l, t) {
                 let mut new_l = l.clone();
                 let mut new_r = r.clone();

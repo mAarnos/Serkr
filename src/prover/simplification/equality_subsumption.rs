@@ -17,47 +17,75 @@
 use prover::data_structures::term::Term;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
-use prover::unification::matching::match_term_pairs;
+use prover::unification::matching::{term_match, term_match_with_subst};
+use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
 
-/// Checks if the equation s = t equality subsumes u = v.
-// TODO: remove pub, rename into something more suited.
-pub fn eqn_subsumes_eqn(s: &Term, t: &Term, u: &Term, v: &Term) -> bool {
-    if u == v || match_term_pairs(s, t, u, v) {
-        true
-    } else if u.is_function() && u.get_id() == v.get_id() {
-        assert_eq!(u.get_arity(), v.get_arity());
-
-        for i in 0..u.get_arity() {
-            if !eqn_subsumes_eqn(s, t, &u[i], &v[i]) {
-                return false;
+/// Check if the term index contains a matching literal without taking into account symmetricity.
+fn matching_equation_exists_asymmetric(term_index: &TopSymbolHashIndex, s: &Term, t: &Term, pos: bool) -> bool {
+    if let Some(iter) = term_index.possible_matches(s) {
+        for &(ref l, ref r, _) in iter.filter(|x| x.2 == pos) {
+            if let Some(sigma) = term_match(l, s) {
+                if term_match_with_subst(sigma, r, t).is_some() {
+                    return true;
+                }
             }
         }
+    }
+    
+    false
+}
 
+// TODO: figure out a better name
+pub fn matching_equation_exists(term_index: &TopSymbolHashIndex, s: &Term, t: &Term, pos: bool) -> bool {
+    matching_equation_exists_asymmetric(term_index, s, t, pos) ||
+    matching_equation_exists_asymmetric(term_index, t, s, pos)
+}
+
+/// Checks if we can make s = t by using some unit clause in the term index.
+// TODO: remove pub, rename into something more suited.
+pub fn equation_subsumed(term_index: &TopSymbolHashIndex, s: &Term, t: &Term) -> bool {
+    if s == t || matching_equation_exists(term_index, s, t, true) {
         true
+    } else if s.is_function() && s.get_id() == t.get_id() {
+        assert_eq!(s.get_arity(), t.get_arity());
+
+        // Only one different location is allowed.
+        let mut diff_index = None;
+        for (i, s_i) in s.iter().enumerate() {
+            if *s_i != t[i] {
+                if diff_index.is_some() {
+                    return false;
+                }
+                diff_index = Some(i);
+            }
+        }
+        
+        if let Some(i) = diff_index {
+            equation_subsumed(term_index, &s[i], &t[i])
+        } else {
+            panic!("At least one location should be different");
+        }
     } else {
         false
     }
 }
 
-/// Checks if the equation s = t equality subsumes a given literal.
-fn eqn_subsumes_literal(s: &Term, t: &Term, l: &Literal) -> bool {
+/// Checks if a given literal is equality subsumed by some unit clause in the term index.
+fn literal_subsumed(term_index: &TopSymbolHashIndex, l: &Literal) -> bool {
     if l.is_positive() {
-        eqn_subsumes_eqn(s, t, l.get_lhs(), l.get_rhs())
+        equation_subsumed(term_index, l.get_lhs(), l.get_rhs())
     } else {
+        // Positive simplify-reflect could be done here
         false
     }
 }
 
-/// Checks if the clause cl1 equality subsumes the clause cl2.
-pub fn equality_subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
-    if cl1.is_positive_unit() {
-        cl2.iter().any(|l| eqn_subsumes_literal(cl1[0].get_lhs(), cl1[0].get_rhs(), l))
-    } else {
-        false
-    }
+/// Checks if a given clause is equality subsumed by some unit clause in the term index.
+pub fn forward_equality_subsumed(term_index: &TopSymbolHashIndex, cl: &Clause) -> bool {
+    cl.iter().any(|l| literal_subsumed(term_index, l))
 }
 
-#[cfg(test)]
+#[cfg(out_of_order)]
 mod test {
     use super::equality_subsumes_clause;
     use prover::data_structures::term::Term;
