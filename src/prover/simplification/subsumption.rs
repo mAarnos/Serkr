@@ -14,8 +14,10 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
+use std::collections::hash_map::HashMap;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
+use prover::data_structures::term::Term;
 use prover::unification::matching::term_match_general;
 use prover::unification::substitution::Substitution;
 
@@ -32,12 +34,12 @@ fn match_literals(substitution: Substitution,
     term_match_general(substitution, eqs)
 }
 
-fn subsumes_clause0(substitution: Substitution,
-                    exclusion: &mut Vec<bool>,
-                    cl1: &Clause,
-                    cl2: &Clause,
-                    n: usize)
-                    -> bool {
+fn subsumes_clause(substitution: Substitution,
+                   exclusion: &mut Vec<bool>,
+                   cl1: &Clause,
+                   cl2: &Clause,
+                   n: usize)
+                   -> bool {
     if n >= cl1.size() {
         true
     } else {
@@ -48,7 +50,7 @@ fn subsumes_clause0(substitution: Substitution,
                 // First one way...
                 if let Some(new_subst) = match_literals(substitution.clone(), l1, l2, false) {
                     exclusion[i] = true;
-                    let res = subsumes_clause0(new_subst, exclusion, cl1, cl2, n + 1);
+                    let res = subsumes_clause(new_subst, exclusion, cl1, cl2, n + 1);
                     exclusion[i] = false;
                     if res {
                         return true;
@@ -58,7 +60,7 @@ fn subsumes_clause0(substitution: Substitution,
                 // ...and then the other way due to symmetry.
                 if let Some(new_subst) = match_literals(substitution.clone(), l1, l2, true) {
                     exclusion[i] = true;
-                    let res = subsumes_clause0(new_subst, exclusion, cl1, cl2, n + 1);
+                    let res = subsumes_clause(new_subst, exclusion, cl1, cl2, n + 1);
                     exclusion[i] = false;
                     if res {
                         return true;
@@ -71,63 +73,75 @@ fn subsumes_clause0(substitution: Substitution,
     }
 }
 
-/// A clause cannot subsume another clause unless
-/// the top function symbols subsume the top function symbols in the other clause.
-// TODO: clean this crap up
-fn function_symbols_subsume(cl1: &Clause, cl2: &Clause) -> bool {
-    let mut exclusion = vec![false; cl2.size()];
-    for l1 in cl1.iter() {
-        let l1_f_l = l1.get_lhs().is_function();
-        let l1_f_r = l1.get_rhs().is_function();
+/// Checks that a number of preconditions are fulfilled for cl1 subsuming cl2.
+fn fulfills_preconditions(cl1: &Clause, cl2: &Clause) -> bool {
+    // Obviously cl1 cannot have more literals than cl2.
+    if cl1.size() > cl2.size() {
+        return false;
+    } 
+    
+    let cl1_pos_size = cl1.positive_size();
+    let cl2_pos_size = cl2.positive_size();
+    
+    // Similarly for positive literals.
+    if cl1_pos_size > cl2_pos_size {
+        return false;
+    }
+    
+    // Similarly for negative literals.
+    if cl1.size() - cl1_pos_size > cl2.size() - cl2_pos_size {
+        return false;
+    }
+    
+    // Also cl1 cannot have more function symbols than cl2.
+    if cl1.symbol_count(1, 0) > cl2.symbol_count(1, 0) {
+        return false;
+    }
+    
+    not_more_function_symbols(cl1, cl2, true) && not_more_function_symbols(cl1, cl2, false)
+}
 
-        if !l1_f_l && !l1_f_r {
-            continue;
-        }
+/// Checks that cl1 doesn't have more (positive or negative) function symbols than cl2.
+fn not_more_function_symbols(cl1: &Clause, cl2: &Clause, pos_lit: bool) -> bool {
+    let mut counts = HashMap::new();
+    update_function_symbol_count(&mut counts, cl1, 1, pos_lit);
+    update_function_symbol_count(&mut counts, cl2, -1, pos_lit);
+    counts.values().all(|&count| count <= 0)
+}
 
-        let mut found_match = false;
-        for (i, l2) in cl2.iter().enumerate() {
-            if !exclusion[i] && l1.polarity_equal(l2) {
-                let l_id_l = l1.get_lhs().get_id();
-                let r_id_l = l2.get_lhs().get_id();
-                let l_id_r = l1.get_rhs().get_id();
-                let r_id_r = l2.get_rhs().get_id();
-
-                let functions_subsumed = if l1_f_l && l1_f_r {
-                    (l_id_l == r_id_l && l_id_r == r_id_r) || (l_id_l == r_id_r && l_id_r == r_id_l)
-                } else if l1_f_l {
-                    (l_id_l == r_id_l || l_id_l == r_id_r)
-                } else {
-                    (l_id_r == r_id_l || l_id_r == r_id_r)
-                };
-
-                if functions_subsumed {
-                    exclusion[i] = true;
-                    found_match = true;
-                    break;
-                }
-            }
-        }
-
-        if !found_match {
-            return false;
+/// Helper function for updating.
+fn update_function_symbol_count(counts: &mut HashMap<i64, i64>, cl: &Clause, weight: i64, pos_lit: bool) {
+    for l in cl.iter() {
+        if l.is_positive() == pos_lit {
+            update_function_symbol_count_in_term(counts, l.get_lhs(), weight);
+            update_function_symbol_count_in_term(counts, l.get_rhs(), weight);
         }
     }
+}
 
-    true
+/// Helper function for updating.
+fn update_function_symbol_count_in_term(counts: &mut HashMap<i64, i64>, t: &Term, weight: i64) {
+    if t.is_function() {
+        // And once again lexical borrows hit.
+        {
+            let v = counts.entry(t.get_id()).or_insert(0);
+            *v += weight;
+        }
+        
+        for x in t.iter() {
+            update_function_symbol_count_in_term(counts, x, weight);
+        }
+    }
 }
 
 /// Checks if the clause cl1 subsumes the clause cl2.
 /// We use multiset subsumption instead of set subsumption to prevent some undesirable effects.
 /// An example is the possibility of a clause subsuming its factors.
 /// Time complexity is O(n! * 2^n) which is kinda ridiculous. In practice n is small (<=5) though.
-pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
-    if cl1.size() <= cl2.size() {
-        if function_symbols_subsume(cl1, cl2) {
-            let mut exclusion = vec![false; cl2.size()];
-            subsumes_clause0(Substitution::new(), &mut exclusion, cl1, cl2, 0)
-        } else {
-            false
-        }
+pub fn subsumed(cl1: &Clause, cl2: &Clause) -> bool {
+    if fulfills_preconditions(cl1, cl2) {
+        let mut exclusion = vec![false; cl2.size()];
+        subsumes_clause(Substitution::new(), &mut exclusion, cl1, cl2, 0)
     } else {
         false
     }
@@ -135,7 +149,7 @@ pub fn subsumes_clause(cl1: &Clause, cl2: &Clause) -> bool {
 
 #[cfg(test)]
 mod test {
-    use super::subsumes_clause;
+    use super::subsumed;
     use prover::data_structures::term::Term;
     use prover::data_structures::literal::Literal;
     use prover::data_structures::clause::Clause;
@@ -153,8 +167,8 @@ mod test {
         let cl1 = Clause::new(vec![l1, l2]);
         let cl2 = Clause::new(vec![l3]);
 
-        assert!(!subsumes_clause(&cl1, &cl2));
-        assert!(subsumes_clause(&cl2, &cl1));
+        assert!(!subsumed(&cl1, &cl2));
+        assert!(subsumed(&cl2, &cl1));
     }
 
     #[test]
@@ -169,8 +183,8 @@ mod test {
         let cl1 = Clause::new(vec![l1]);
         let cl2 = Clause::new(vec![l2]);
 
-        assert!(subsumes_clause(&cl1, &cl2));
-        assert!(!subsumes_clause(&cl2, &cl1));
+        assert!(subsumed(&cl1, &cl2));
+        assert!(!subsumed(&cl2, &cl1));
     }
 
     #[test]
@@ -185,8 +199,8 @@ mod test {
         let cl1 = Clause::new(vec![l1]);
         let cl2 = Clause::new(vec![l2]);
 
-        assert!(subsumes_clause(&cl1, &cl2));
-        assert!(!subsumes_clause(&cl2, &cl1));
+        assert!(subsumed(&cl1, &cl2));
+        assert!(!subsumed(&cl2, &cl1));
     }
 
     #[test]
@@ -206,8 +220,8 @@ mod test {
         let cl1 = Clause::new(vec![cl_l1.clone(), cl1_l2]);
         let cl2 = Clause::new(vec![cl_l1, cl2_l2]);
 
-        assert!(!subsumes_clause(&cl1, &cl2));
-        assert!(subsumes_clause(&cl2, &cl1));
+        assert!(!subsumed(&cl1, &cl2));
+        assert!(subsumed(&cl2, &cl1));
     }
 
     #[test]
@@ -223,6 +237,6 @@ mod test {
 
         let cl = Clause::new(vec![l1, l2]);
 
-        assert!(subsumes_clause(&cl, &cl));
+        assert!(subsumed(&cl, &cl));
     }
 }

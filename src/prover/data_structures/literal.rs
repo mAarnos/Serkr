@@ -73,6 +73,12 @@ impl Literal {
         self.lhs.subst(substitution);
         self.rhs.subst(substitution);
     }
+    
+    /// Calculates the symbol count with given weights to function and variable symbols.
+    pub fn symbol_count(&self, f_value: u64, v_value: u64) -> u64 {
+        self.get_lhs().symbol_count(f_value, v_value) + 
+        self.get_rhs().symbol_count(f_value, v_value)
+    }
 
     /// Checks if the given literal has the same polarity as this one.
     pub fn polarity_equal(&self, l: &Literal) -> bool {

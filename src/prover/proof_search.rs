@@ -25,7 +25,7 @@ use prover::proof_state::ProofState;
 
 use prover::simplification::literal_deletion::cheap_simplify;
 use prover::simplification::tautology_deletion::trivial;
-use prover::simplification::subsumption::subsumes_clause;
+use prover::simplification::subsumption::subsumed;
 use prover::simplification::equality_subsumption::forward_equality_subsumed;
 use prover::simplification::rewriting::rewrite_literals;
 use prover::simplification::simplify_reflect::simplify_reflect;
@@ -55,7 +55,7 @@ fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
     forward_equality_subsumed(proof_state.get_term_index(), cl) ||
     proof_state.get_used()
                .iter()
-               .any(|cl2| subsumes_clause(cl2, cl))
+               .any(|cl2| subsumed(cl2, cl))
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.
@@ -71,8 +71,7 @@ fn simplify(proof_state: &ProofState, cl: &mut Clause) {
 fn serkr_loop(mut proof_state: ProofState,
               mut var_cnt: i64,
               max_time_in_ms: u64,
-              contains_conjectures: bool,
-              mut id_count: u64)
+              contains_conjectures: bool)
               -> (ProofResult, ProofStatistics) {
     assert_eq!(proof_state.get_used_size(), 0);
 
@@ -130,9 +129,6 @@ fn serkr_loop(mut proof_state: ProofState,
                 if trivial(&cl) {
                     stats.trivial_inference_count += 1;
                 } else {
-                    // Give a unique ID to the clause.
-                    cl.set_id(id_count);
-                    id_count += 1;
                     proof_state.add_to_unused(cl);
                 }
             }
@@ -140,19 +136,6 @@ fn serkr_loop(mut proof_state: ProofState,
     }
 
     (ProofResult::new_saturation(contains_conjectures), stats)
-}
-
-/// Assigns IDs to the initial clauses.
-/// Returns the ID following the last given ID.
-fn assign_ids_to_initial_clauses(clauses: &mut [Clause]) -> u64 {
-    let mut id_count = 0;
-    
-    for cl in clauses {
-        cl.set_id(id_count);
-        id_count += 1;
-    }
-    
-    id_count
 }
 
 /// Attempts to prove the stuff in the TPTP file at the location given.
@@ -193,15 +176,13 @@ pub fn prove(s: &str,
         (ProofResult::new_saturation(contains_conjectures),
          ProofStatistics::new())
     } else {
-        let mut flattened_cnf_f = flatten_cnf(cnf_f);
-        let id_count = assign_ids_to_initial_clauses(&mut flattened_cnf_f);
+        let flattened_cnf_f = flatten_cnf(cnf_f);
         let term_ordering = create_term_ordering(use_lpo, &flattened_cnf_f);
         let proof_state = ProofState::new(flattened_cnf_f, term_ordering);
         serkr_loop(proof_state,
                    renaming_info.get_newest_variable_id(),
                    max_time_in_s * 1000,
-                   contains_conjectures,
-                   id_count)
+                   contains_conjectures)
     }
 }
 

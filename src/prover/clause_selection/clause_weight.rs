@@ -16,8 +16,6 @@
 
 use std::cmp::Ordering;
 use prover::data_structures::clause::Clause;
-use prover::data_structures::literal::Literal;
-use prover::data_structures::term::Term;
 
 /// Different ways to give weights to clauses.
 /// Trying to order different variants in the enum results in a panic.
@@ -35,7 +33,7 @@ impl ClauseWeight {
     /// The variable 'f_value' is the value to give to function symbols.
     /// Then 'v_value' is just the value to give to variables.
     pub fn new_size_weight(cl: &Clause, f_value: u64, v_value: u64) -> ClauseWeight {
-        ClauseWeight::Size(cl.get_id(), clause_symbol_count(cl, f_value, v_value))
+        ClauseWeight::Size(cl.get_id(), cl.symbol_count(f_value, v_value))
     }
     
     /// Creates a new weight based on the age of the clause.
@@ -67,21 +65,5 @@ impl Ord for ClauseWeight {
              _ => panic!("faulty comparision")
         }
     }
-}
-
-fn clause_symbol_count(cl: &Clause, f_value: u64, v_value: u64) -> u64 {
-    cl.iter().fold(0, |acc, l| acc + literal_symbol_count(l, f_value, v_value))
-}
-    
-fn literal_symbol_count(l: &Literal, f_value: u64, v_value: u64) -> u64 {
-    term_symbol_count(l.get_lhs(), f_value, v_value) + 
-    term_symbol_count(l.get_rhs(), f_value, v_value)
-}
-    
-fn term_symbol_count(t: &Term, f_value: u64, v_value: u64) -> u64 {
-    if t.is_variable() {
-        v_value
-    } else {
-        t.iter().fold(f_value, |acc, sub_t| acc + term_symbol_count(sub_t, f_value, v_value))
-    }
-}
+} 
+   

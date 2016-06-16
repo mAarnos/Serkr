@@ -41,6 +41,12 @@ impl Clause {
     pub fn size(&self) -> usize {
         self.literals.len()
     }
+    
+    /// Get the amount of positive literals in the clause.
+    pub fn positive_size(&self) -> usize {
+        self.literals.iter()
+                     .fold(0, |acc, l| if l.is_positive() { 1 + acc } else { acc })
+    }
 
     /// Checks if the clause is empty.
     pub fn is_empty(&self) -> bool {
@@ -85,7 +91,12 @@ impl Clause {
             l.subst(substitution);
         }
     }
-
+    
+    /// Calculates the symbol count with given weights to function and variable symbols.
+    pub fn symbol_count(&self, f_value: u64, v_value: u64) -> u64 {
+        self.iter().fold(0, |acc, l| acc + l.symbol_count(f_value, v_value))
+    }
+   
     /// Set the ID of the clause.
     /// The IDs should be unique so care must be taken.
     pub fn set_id(&mut self, new_id: u64) {

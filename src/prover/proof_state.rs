@@ -31,7 +31,8 @@ pub struct ProofState {
     heuristic_order: Vec<Heuristic>,
     heuristic_use_count: Vec<usize>,
     current_heuristic_count: usize,
-    term_index: TopSymbolHashIndex
+    term_index: TopSymbolHashIndex,
+    id_count: u64
 }
 
 impl ProofState {
@@ -45,7 +46,8 @@ impl ProofState {
             heuristic_order: vec![Heuristic::Size(2, 1)],
             heuristic_use_count: vec![5],
             current_heuristic_count: 0,
-            term_index: TopSymbolHashIndex::new()
+            term_index: TopSymbolHashIndex::new(),
+            id_count: 0
         };
         
         for cl in preprocessed_clauses.into_iter() {
@@ -78,7 +80,10 @@ impl ProofState {
     }
 
     /// Adds the given clause to unused clauses.
-    pub fn add_to_unused(&mut self, cl: Clause) {
+    pub fn add_to_unused(&mut self, mut cl: Clause) {
+        // Give a unique ID to the clause.
+        cl.set_id(self.id_count);
+        self.id_count += 1;
         for i in 0..self.heuristic_order.len() {
             let cw = self.heuristic_order[i].new_clauseweight(&cl);
             self.clause_order[i].push(cw);

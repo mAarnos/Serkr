@@ -129,6 +129,15 @@ impl Term {
             }
         }
     }
+    
+    /// Calculates the symbol count with given weights to function and variable symbols.
+    pub fn symbol_count(&self, f_value: u64, v_value: u64) -> u64 {
+        if self.is_variable() {
+            v_value
+        } else {
+            self.iter().fold(f_value, |acc, sub_t| acc + sub_t.symbol_count(f_value, v_value))
+        }
+    }
 
     /// Rename all variables in a term so that it has no variables in common with other clauses.
     pub fn rename_no_common(&mut self, sfn: &mut HashMap<i64, i64>, var_cnt: &mut i64) {
