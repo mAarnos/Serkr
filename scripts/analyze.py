@@ -6,6 +6,7 @@ from os import walk
 from multiprocessing import Pool
 from re import match
 from random import shuffle
+from time import time
 
 def parse_args():
     parser = ArgumentParser(description='Analyze TPTP problems en masse')
@@ -98,8 +99,10 @@ def main():
                     file_names.append((join(root, file), False))
     shuffle(file_names)
     pool = Pool(args.processes)
+    now = time()
     results = pool.map(analyze_file, file_names)
-    print("Proved %d out of %d" % (sum(results), len(file_names)))
+    after = time()
+    print("Proved %d out of %d in %d seconds" % (sum(results), len(file_names), after - now))
 
 if __name__ == "__main__":
     main()

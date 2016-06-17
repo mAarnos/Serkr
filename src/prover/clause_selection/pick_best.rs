@@ -47,6 +47,6 @@ pub fn choose_heuristic(heuristic_use_count: &[usize], current_heuristic_count: 
     
     // If we didn't find anything we need to reset the counter.
     assert_eq!(*current_heuristic_count, heuristic_use_count.iter().fold(0, |acc, x| acc + x));
-    *current_heuristic_count = 0;
+    *current_heuristic_count = 1;
     0
 }

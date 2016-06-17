@@ -60,10 +60,11 @@ fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
 
 /// A more expensive version of cheap_simplify with more effective rules.
 fn simplify(proof_state: &ProofState, cl: &mut Clause) {
-    simplify_reflect(proof_state.get_term_index(), cl);
     rewrite_literals(proof_state.get_term_ordering(), 
                      proof_state.get_term_index(), 
                      cl);
+    cheap_simplify(cl);
+    simplify_reflect(proof_state.get_term_index(), cl);
 }
 
 /// The main proof search loop.
