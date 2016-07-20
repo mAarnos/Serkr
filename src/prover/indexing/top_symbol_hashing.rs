@@ -64,12 +64,10 @@ impl TopSymbolHashIndex {
     pub fn possible_matches(&self, t: &Term) -> Option<Iter<(Term, Term, bool)>> {
         if t.is_variable() {
             None
+        } else if let Some(vec) = self.index.get(&t.get_id()) {
+            Some(vec.iter())
         } else {
-            if let Some(vec) = self.index.get(&t.get_id()) {
-                Some(vec.iter())
-            } else {
-                None
-            }
+            None
         }
     }
 }
