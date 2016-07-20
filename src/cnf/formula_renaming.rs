@@ -106,7 +106,7 @@ fn renaming_condition_fulfilled(cache: &mut HashMap<(Formula, bool), BigInt>,
 
 /// Tries to rename a formula. If it does not succeed it calls rename_formula again
 /// There is some bug with collapsible_if here.
-#[allow(collapsible_if)]
+#[cfg_attr(feature="clippy", allow(collapsible_if))]
 fn try_to_rename(cache: &mut HashMap<(Formula, bool), BigInt>,
                  ri: &mut RenamingInfo,
                  f: Formula,
