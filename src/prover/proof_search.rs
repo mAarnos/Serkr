@@ -25,7 +25,8 @@ use prover::proof_state::ProofState;
 
 use prover::simplification::literal_deletion::cheap_simplify;
 use prover::simplification::tautology_deletion::trivial;
-use prover::simplification::subsumption::subsumed;
+use prover::simplification::unit_subsumption::unit_subsumed;
+use prover::simplification::non_unit_subsumption::non_unit_subsumed;
 use prover::simplification::equality_subsumption::forward_equality_subsumed;
 use prover::simplification::rewriting::rewrite_literals;
 use prover::simplification::simplify_reflect::simplify_reflect;
@@ -52,10 +53,9 @@ fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
 
 /// Checks if a given clause is subsumed by the set of used clauses.
 fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
-    forward_equality_subsumed(proof_state.get_term_index(), cl) ||
-    proof_state.get_used()
-               .iter()
-               .any(|cl2| subsumed(cl2, cl))
+    forward_equality_subsumed(proof_state.get_term_index(), cl) || 
+    unit_subsumed(proof_state.get_term_index(), cl) ||
+    non_unit_subsumed(proof_state.get_used(), cl)
 }
 
 /// A more expensive version of cheap_simplify with more effective rules.

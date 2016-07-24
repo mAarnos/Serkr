@@ -75,6 +75,11 @@ fn subsumes_clause(substitution: Substitution,
 
 /// Checks that a number of preconditions are fulfilled for cl1 subsuming cl2.
 fn fulfills_preconditions(cl1: &Clause, cl2: &Clause) -> bool {
+    // Since this is non-unit subsumption we do not care about unit clauses.
+    if cl1.size() <= 1 {
+        return false;
+    }
+
     // Obviously cl1 cannot have more literals than cl2.
     if cl1.size() > cl2.size() {
         return false;
@@ -134,20 +139,24 @@ fn update_function_symbol_count_in_term(counts: &mut HashMap<i64, i64>, t: &Term
     }
 }
 
-/// Checks if the clause cl1 subsumes the clause cl2.
+/// Checks if a clause is non-unit subsumed by the active set.
 /// We use multiset subsumption instead of set subsumption to prevent some undesirable effects.
 /// An example is the possibility of a clause subsuming its factors.
 /// Time complexity is O(n! * 2^n) which is kinda ridiculous. In practice n is small (<=5) though.
-pub fn subsumed(cl1: &Clause, cl2: &Clause) -> bool {
-    if fulfills_preconditions(cl1, cl2) {
-        let mut exclusion = vec![false; cl2.size()];
-        subsumes_clause(Substitution::new(), &mut exclusion, cl1, cl2, 0)
-    } else {
-        false
+pub fn non_unit_subsumed(active: &[Clause], cl: &Clause) -> bool {
+    for act_cl in active {
+        if fulfills_preconditions(act_cl, cl) {
+            let mut exclusion = vec![false; cl.size()];
+            if subsumes_clause(Substitution::new(), &mut exclusion, act_cl, cl, 0) {
+                return true;
+            }
+        }
     }
+
+    false
 }
 
-#[cfg(test)]
+#[cfg(out_of_order)]
 mod test {
     use super::subsumed;
     use prover::data_structures::term::Term;
