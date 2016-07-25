@@ -24,7 +24,7 @@ use prover::inference::maximality::literal_maximal_in;
 pub fn equality_resolution(term_ordering: &TermOrdering,
                            cl: &Clause,
                            generated: &mut Vec<Clause>)
-                           -> u64 {
+                           -> usize {
     let mut er_count = 0;
 
     for (i, l) in cl.iter().enumerate() {

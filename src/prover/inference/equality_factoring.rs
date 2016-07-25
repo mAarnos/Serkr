@@ -28,7 +28,7 @@ use prover::inference::maximality::literal_maximal_in;
 pub fn equality_factoring(term_ordering: &TermOrdering,
                           cl: &Clause,
                           generated: &mut Vec<Clause>)
-                          -> u64 {
+                          -> usize {
     let mut ef_count = 0;
 
     for (i, l1) in cl.iter().enumerate() {
@@ -89,7 +89,7 @@ fn equality_factoring_create_new(term_ordering: &TermOrdering,
                                  u: &Term,
                                  v: &Term,
                                  i: usize)
-                                 -> u64 {
+                                 -> usize {
     let mut ef_count = 0;
 
     if let Some(sigma) = mgu(s, u) {

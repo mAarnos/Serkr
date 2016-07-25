@@ -50,8 +50,9 @@ pub mod tptp_parser;
 pub mod cnf;
 pub mod prover;
 
+use prover::proof_statistics::*;
 use prover::proof_result::ProofResult;
-use prover::proof_statistics::ProofStatistics;
+use utils::stopwatch::Stopwatch;
 
 #[cfg_attr(feature="clippy", allow(print_stdout))]
 fn print_proof_result(proof_result: &ProofResult, input_file: &str) {
@@ -66,25 +67,22 @@ fn print_proof_result(proof_result: &ProofResult, input_file: &str) {
 }
 
 #[cfg_attr(feature="clippy", allow(print_stdout))]
-fn print_statistics(proof_statistics: &ProofStatistics) {
-    println_szs!("Time elapsed (in ms): {}", proof_statistics.elapsed_ms);
+fn print_statistics(sw: &Stopwatch) {
+    println_szs!("Time elapsed (in ms): {}", sw.elapsed_ms());
 
-    println_szs!("Initial clauses: {}", proof_statistics.initial_clauses);
-    println_szs!("Analyzed clauses: {}", proof_statistics.iterations);
-    println_szs!("  Trivial: {}", proof_statistics.trivial_count);
-    println_szs!("  Forward subsumed: {}", proof_statistics.fs_count);
-    println_szs!("  Nonredundant: {}",
-                 proof_statistics.nonredudant_processed_count());
+    println_szs!("Initial clauses: {}", get_initial_clauses());
+    println_szs!("Analyzed clauses: {}", get_iteration_count());
+    println_szs!("  Trivial: {}", get_trivial_count());
+    println_szs!("  Forward subsumed: {}", get_forward_subsumed_count());
+    println_szs!("  Nonredundant: {}", get_nonredundant_analyzed_count());
 
-    println_szs!("Backward subsumptions: {}", proof_statistics.bs_count);
+    println_szs!("Backward subsumptions: {}", get_backward_subsumed_count());
 
-    println_szs!("Inferred clauses: {}",
-                 proof_statistics.inferred_clauses_count());
-    println_szs!("  Superposition: {}", proof_statistics.sp_count);
-    println_szs!("  Equality factoring: {}", proof_statistics.ef_count);
-    println_szs!("  Equality resolution: {}", proof_statistics.er_count);
-    println_szs!("Nontrivial inferred clauses: {}",
-                 proof_statistics.nontrivial_inferred_clauses_count());
+    println_szs!("Inferred clauses: {}", get_inferred_count());
+    println_szs!("  Superposition: {}", get_superposition_inferred_count());
+    println_szs!("  Equality factoring: {}", get_equality_factoring_inferred_count());
+    println_szs!("  Equality resolution: {}", get_equality_resolution_inferred_count());
+    println_szs!("Nontrivial inferred clauses: {}", get_nontrivial_inferred_count());
 }
 
 fn main() {
@@ -121,27 +119,35 @@ fn main() {
     let input_file_name = matches.value_of("INPUT")
                                  .expect("This should always be OK")
                                  .to_owned();
-    // Hack to get around the parser/CNF transformer from crashing with very large files.
-    let child = std::thread::Builder::new()
+    let time_limit_ms = value_t!(matches, "time-limit", u64).unwrap_or(300) * 1000;
+    
+    // The stack size is a hack to get around the parser/CNF transformer from crashing with very large files.
+    let _ = std::thread::Builder::new()
                     .stack_size(32 * 1024 * 1024)
                     .spawn(move || {
                         let input_file = matches.value_of("INPUT")
                                                 .expect("This should always be OK");
                         let use_lpo = matches.is_present("lpo");
-                        let time_limit = value_t!(matches, "time-limit", u64).unwrap_or(300);
                         let renaming_limit = value_t!(matches, "formula-renaming", u64)
                                                  .unwrap_or(32);
                         prover::proof_search::prove(input_file,
                                                     use_lpo,
-                                                    time_limit,
                                                     renaming_limit)
                     })
                     .expect("Creating a new thread shouldn't fail");
 
-    let (proof_result, proof_statistics) = child.join().expect("Joining a thread shouldn't fail");
-
+    let mut sw = Stopwatch::new();
+    let resolution = std::time::Duration::from_millis(10);
+    
+    sw.start();
+    while sw.elapsed_ms() < time_limit_ms && !has_search_finished() {
+        std::thread::sleep(resolution);
+    } 
+    sw.stop();
+    
+    let proof_result = get_proof_result();
     print_proof_result(&proof_result, &input_file_name);
     if !proof_result.is_err() {
-        print_statistics(&proof_statistics);
+        print_statistics(&sw);
     }
 }
