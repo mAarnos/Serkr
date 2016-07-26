@@ -17,7 +17,7 @@
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
 use prover::simplification::equality_subsumption::{matching_equation_exists, equation_subsumed};
-use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
 
 /// Simplifies a given clause by positive and negative simplify-reflect.
 pub fn simplify_reflect(term_index: &TopSymbolHashIndex, cl: &mut Clause) {

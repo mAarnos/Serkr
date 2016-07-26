@@ -18,7 +18,7 @@ use prover::data_structures::term::Term;
 use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::unification::matching::term_match;
-use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
 
 // Note: rewriting is probably incomplete as it is used currently. Fix that.
 

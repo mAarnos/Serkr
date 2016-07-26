@@ -18,7 +18,7 @@ use prover::data_structures::term::Term;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
 use prover::unification::matching::{term_match, term_match_with_subst};
-use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
 
 /// Check if the term index contains a matching literal without taking into account symmetricity.
 fn matching_equation_exists_asymmetric(term_index: &TopSymbolHashIndex, s: &Term, t: &Term, pos: bool) -> bool {

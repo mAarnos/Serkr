@@ -22,3 +22,7 @@ pub mod literal;
 
 /// Contains the data structure for clauses.
 pub mod clause;
+
+/// Contains a simple non-perfect term indexing data structure.
+/// Term indexes generally speed up many simplification and inference rules a lot.
+pub mod top_symbol_hashing;

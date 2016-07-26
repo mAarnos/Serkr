@@ -14,7 +14,7 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
 use prover::data_structures::clause::Clause;
 use prover::simplification::equality_subsumption::matching_equation_exists;
 

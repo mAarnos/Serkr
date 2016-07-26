@@ -20,7 +20,7 @@ use prover::ordering::term_ordering::TermOrdering;
 use prover::clause_selection::clause_weight::ClauseWeight;
 use prover::clause_selection::heuristic::Heuristic;
 use prover::clause_selection::pick_best::{pick_best_clause, choose_heuristic};
-use prover::indexing::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
 
 /// Contains the current proof state.
 pub struct ProofState {
