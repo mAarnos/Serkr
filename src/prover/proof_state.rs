@@ -20,7 +20,7 @@ use prover::ordering::term_ordering::TermOrdering;
 use prover::clause_selection::clause_weight::ClauseWeight;
 use prover::clause_selection::heuristic::Heuristic;
 use prover::clause_selection::pick_best::{pick_best_clause, choose_heuristic};
-use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::pd_tree::PDTree;
 
 /// Contains the current proof state.
 pub struct ProofState {
@@ -31,7 +31,7 @@ pub struct ProofState {
     heuristic_order: Vec<Heuristic>,
     heuristic_use_count: Vec<usize>,
     current_heuristic_count: usize,
-    term_index: TopSymbolHashIndex,
+    term_index: PDTree,
     id_count: u64
 }
 
@@ -43,10 +43,10 @@ impl ProofState {
             unused_clauses: HashMap::new(),
             term_ordering: term_order,
             clause_order: vec![BinaryHeap::new(), BinaryHeap::new()],
-            heuristic_order: vec![Heuristic::Size(2, 1), Heuristic::Age],
-            heuristic_use_count: vec![4, 1],
+            heuristic_order: vec![Heuristic::Size(2, 1)],
+            heuristic_use_count: vec![4],
             current_heuristic_count: 0,
-            term_index: TopSymbolHashIndex::new(),
+            term_index: PDTree::new(),
             id_count: 0
         };
         
@@ -97,7 +97,7 @@ impl ProofState {
     }
     
     /// Get a reference to the term index.
-    pub fn get_term_index(&self) -> &TopSymbolHashIndex {
+    pub fn get_term_index(&self) -> &PDTree {
         &self.term_index
     }
     

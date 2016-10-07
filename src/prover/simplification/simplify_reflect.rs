@@ -17,10 +17,10 @@
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
 use prover::simplification::equality_subsumption::{matching_equation_exists, equation_subsumed};
-use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
+use prover::data_structures::pd_tree::PDTree;
 
 /// Simplifies a given clause by positive and negative simplify-reflect.
-pub fn simplify_reflect(term_index: &TopSymbolHashIndex, cl: &mut Clause) {
+pub fn simplify_reflect(term_index: &PDTree, cl: &mut Clause) {
     let mut i = 0;
 
     while i < cl.size() {
@@ -33,7 +33,7 @@ pub fn simplify_reflect(term_index: &TopSymbolHashIndex, cl: &mut Clause) {
     }
 }
 
-fn simplifiable(term_index: &TopSymbolHashIndex, l: &Literal) -> bool {
+fn simplifiable(term_index: &PDTree, l: &Literal) -> bool {
     if l.is_positive(){
         matching_equation_exists(term_index, l.get_lhs(), l.get_rhs(), false)
     } else {

@@ -21,6 +21,7 @@ use prover::unification::substitution::Substitution;
 /// Returns the substitution if it exists.
 /// Note that we treat variables of a pair of terms as distinct even if they have the same name.
 /// This might cause us to have trivial mappings like x |-> x.
+#[allow(dead_code)]
 pub fn term_match(s: &Term, t: &Term) -> Option<Substitution> {
     term_match_general(Substitution::new(), vec![(s.clone(), t.clone())])
 }

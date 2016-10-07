@@ -87,7 +87,12 @@ impl Term {
     pub fn is_function(&self) -> bool {
         self.id >= 0
     }
-
+    
+    /// Checks if this term represents truth.
+    pub fn is_truth(&self) -> bool {
+        self.id == 0
+    }
+    
     /// Check if the term is a special function.
     pub fn is_special_function(&self) -> bool {
         self.sort_predicate

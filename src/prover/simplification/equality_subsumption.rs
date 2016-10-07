@@ -17,18 +17,14 @@
 use prover::data_structures::term::Term;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
-use prover::unification::matching::{term_match, term_match_with_subst};
-use prover::data_structures::top_symbol_hashing::TopSymbolHashIndex;
+use prover::unification::matching::term_match_with_subst;
+use prover::data_structures::pd_tree::PDTree;
 
 /// Check if the term index contains a matching literal without taking into account symmetricity.
-fn matching_equation_exists_asymmetric(term_index: &TopSymbolHashIndex, s: &Term, t: &Term, pos: bool) -> bool {
-    if let Some(iter) = term_index.possible_matches(s) {
-        for &(ref l, ref r, _) in iter.filter(|x| x.2 == pos) {
-            if let Some(sigma) = term_match(l, s) {
-                if term_match_with_subst(sigma, r, t).is_some() {
-                    return true;
-                }
-            }
+fn matching_equation_exists_asymmetric(term_index: &PDTree, s: &Term, t: &Term, pos: bool) -> bool {
+    for (_, r, sigma) in term_index.iter_generalizations(s, pos) {
+        if term_match_with_subst(sigma, r, t).is_some() {
+            return true;
         }
     }
     
@@ -36,14 +32,14 @@ fn matching_equation_exists_asymmetric(term_index: &TopSymbolHashIndex, s: &Term
 }
 
 // TODO: figure out a better name
-pub fn matching_equation_exists(term_index: &TopSymbolHashIndex, s: &Term, t: &Term, pos: bool) -> bool {
+pub fn matching_equation_exists(term_index: &PDTree, s: &Term, t: &Term, pos: bool) -> bool {
     matching_equation_exists_asymmetric(term_index, s, t, pos) ||
     matching_equation_exists_asymmetric(term_index, t, s, pos)
 }
 
 /// Checks if we can make s = t by using some unit clause in the term index.
 // TODO: remove pub, rename into something more suited.
-pub fn equation_subsumed(term_index: &TopSymbolHashIndex, s: &Term, t: &Term) -> bool {
+pub fn equation_subsumed(term_index: &PDTree, s: &Term, t: &Term) -> bool {
     if s == t || matching_equation_exists(term_index, s, t, true) {
         true
     } else if s.is_function() && s.get_id() == t.get_id() {
@@ -71,7 +67,7 @@ pub fn equation_subsumed(term_index: &TopSymbolHashIndex, s: &Term, t: &Term) ->
 }
 
 /// Checks if a given literal is equality subsumed by some unit clause in the term index.
-fn literal_subsumed(term_index: &TopSymbolHashIndex, l: &Literal) -> bool {
+fn literal_subsumed(term_index: &PDTree, l: &Literal) -> bool {
     if l.is_positive() {
         equation_subsumed(term_index, l.get_lhs(), l.get_rhs())
     } else {
@@ -81,7 +77,7 @@ fn literal_subsumed(term_index: &TopSymbolHashIndex, l: &Literal) -> bool {
 }
 
 /// Checks if a given clause is equality subsumed by some unit clause in the term index.
-pub fn forward_equality_subsumed(term_index: &TopSymbolHashIndex, cl: &Clause) -> bool {
+pub fn forward_equality_subsumed(term_index: &PDTree, cl: &Clause) -> bool {
     cl.iter().any(|l| literal_subsumed(term_index, l))
 }
 
