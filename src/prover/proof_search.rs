@@ -249,12 +249,10 @@ mod test {
         pelletier_59();
         pelletier_60();
         pelletier_61();
-        /*
         pelletier_62_errata_errata();
-        pelletier_63();
+        // -- pelletier_63();
         pelletier_64();
         pelletier_65();
-        */
         pelletier_72();
         
         // Some negated problems as well for variety.
@@ -273,7 +271,7 @@ mod test {
         ewd();
         djikstra();
         djikstra_negated();
-        // -- group_left_inverse_means_right_inverse();
+        group_left_inverse_means_right_inverse();
         // -- set_union_is_commutative();
     }
 

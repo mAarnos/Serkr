@@ -43,8 +43,8 @@ impl ProofState {
             unused_clauses: HashMap::new(),
             term_ordering: term_order,
             clause_order: vec![BinaryHeap::new(), BinaryHeap::new()],
-            heuristic_order: vec![Heuristic::Size(2, 1)],
-            heuristic_use_count: vec![4],
+            heuristic_order: vec![Heuristic::Size(2, 1), Heuristic::Age],
+            heuristic_use_count: vec![4, 1],
             current_heuristic_count: 0,
             term_index: PDTree::new(),
             id_count: 0

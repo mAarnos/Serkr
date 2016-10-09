@@ -14,6 +14,9 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// This file is too complicated, figure out a simper way.
+// To be precise, a lazy recursive iterator is very painful to write.
+
 use std::collections::HashMap;
 use std::slice::Iter as VIter;
 use std::collections::hash_map::Iter as MIter;
@@ -21,6 +24,7 @@ use prover::data_structures::clause::Clause;
 use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
 use prover::unification::matching::term_match_with_subst;
+use utils::either::Either;
 
 /// Used for traveling the positions of a term in prefix order lazily.
 #[derive(Clone)]
@@ -98,112 +102,22 @@ fn normalize_variables(l: &mut Term, r: &mut Term) {
     r.rename_no_common(&mut m, &mut x);
 }
 
-#[derive(Debug, Clone)]
-enum Trie {
-    Leaf(Term, Term, bool),
-    Node(HashMap<i64, Trie>)
-}
-
-impl Trie {
-    /// Creates a new empty trie.
-    pub fn new() -> Trie {
-        Trie::Node(HashMap::new())
-    }
-}
-
 /// A perfect discrimination tree is used for fast retrieval of 
 /// generalizations (an equation where one side matches the query term) 
 /// and specializations (an equation where the query term matches one side)
 /// of equations. This is critical for efficient use of many inference and simplification rules.
 #[derive(Debug, Clone)]
-pub struct PDTree {
-    data: Trie
-}
-
-pub struct GeneralizationIterator<'a> {
-    sign: bool,
-    stack: Vec<(Substitution, 
-                PrefixOrderIterator<'a>, 
-                MIter<'a, i64, Trie>)>
-}
-
-impl<'a> GeneralizationIterator<'a> {
-    fn new(trie: &'a Trie, t: &'a Term, sign: bool) -> GeneralizationIterator<'a> {
-        if let Trie::Node(ref m) = *trie {
-            GeneralizationIterator {
-                sign: sign, 
-                stack: vec!((Substitution::new(), 
-                             PrefixOrderIterator::new(t), 
-                             m.iter()))
-            }
-        } else {
-            panic!("Trie root should always be a node!");
-        }
-    }
-}
-
-impl<'a> Iterator for GeneralizationIterator<'a> {
-    type Item = (&'a Term, &'a Term, Substitution);
-    
-    fn next(&mut self) -> Option<(&'a Term, &'a Term, Substitution)> {
-        while let Some((subst, mut t_iter, mut trie_iter)) = self.stack.pop() {
-            // Check if there are symbols left. If there aren't, backtrack by doing nothing (see the loop).
-            if let Some(t) = t_iter.peek() {
-                let id = t.get_id();
-                // Analyze the current level.
-                while let Some((&k, subtrie)) = trie_iter.next() {
-                    // If the function symbols are the same we can skip it.
-                    if k == id && k >= 0 {
-                        let mut new_t_iter = t_iter.clone();
-                        new_t_iter.next(); // need to advance one for the next level
-                        match subtrie {
-                            &Trie::Leaf(ref l, ref r, sign) => if new_t_iter.peek().is_none() && sign == self.sign {
-                                let subst2 = subst.clone();
-                                self.stack.push((subst, t_iter, trie_iter));
-                                return Some((l, r, subst2));
-                            },
-                            &Trie::Node(ref m) => if new_t_iter.peek().is_some() {
-                                let new_subst = subst.clone();
-                                // Push the thing we popped out back in.
-                                // All this is done to avoid borrow checker trouble.
-                                self.stack.push((subst, t_iter, trie_iter));
-                                self.stack.push((new_subst, new_t_iter, m.iter()));
-                                break;
-                            } 
-                        } 
-                    } else if k < 0 {
-                        // Otherwise check if we can bind and continue.
-                        if let Some(new_subst) = term_match_with_subst(subst.clone(), &Term::new_variable(k), t) {
-                            let mut new_t_iter = t_iter.clone();
-                            new_t_iter.next(); // again, need to advance once
-                            new_t_iter.skip_subtree(); // since we matched we can skip a subtree
-                            match subtrie {
-                                &Trie::Leaf(ref l, ref r, sign) => if new_t_iter.peek().is_none() && sign == self.sign {
-                                    self.stack.push((subst, t_iter, trie_iter));
-                                    return Some((l, r, new_subst));
-                                },
-                                &Trie::Node(ref m) => if new_t_iter.peek().is_some() {
-                                    self.stack.push((subst, t_iter, trie_iter));
-                                    self.stack.push((new_subst, new_t_iter, m.iter()));
-                                    break;
-                                } 
-                            } 
-                        }
-                    }   
-                }
-            }
-        }
-        
-        None
-    }
+pub enum PDTree {
+    Leaf(Vec<(Term, Term, bool)>),
+    Node(HashMap<i64, PDTree>)
 }
 
 impl PDTree {
     /// Creates an empty perfect discrimination tree.
     pub fn new() -> PDTree {
-        PDTree { data: Trie::new() }
+        PDTree::Node(HashMap::new())
     }
-    
+
     /// Adds a clause to the index.
     /// Does nothing if the clause is not unit.
     pub fn add_clause_to_index(&mut self, cl: &Clause) {
@@ -213,45 +127,151 @@ impl PDTree {
                 let mut l = cl[0].get_lhs().clone();
                 let mut r = cl[0].get_rhs().clone();
                 normalize_variables(&mut l, &mut r);
-                insert_at_leaf(&mut self.data, PrefixOrderIterator::new(&l), &l, r, pos);
+                self.insert_at_leaf(PrefixOrderIterator::new(&l), &l, r, pos);
             }
             if !cl[0].get_rhs().is_truth() {
                 let mut l = cl[0].get_lhs().clone();
                 let mut r = cl[0].get_rhs().clone();
                 normalize_variables(&mut r, &mut l);
-                insert_at_leaf(&mut self.data, PrefixOrderIterator::new(&r), &r, l, pos);
+                self.insert_at_leaf(PrefixOrderIterator::new(&r), &r, l, pos);
             }
         }
     }
     
+    /// Inserts l = r (or l <> r) into the tree, constructing the path if it doesn't exist.
+    fn insert_at_leaf(&mut self, mut iter: PrefixOrderIterator, l: &Term, r: Term, sign: bool) {
+        match *self {
+            PDTree::Node(ref mut m) => if let Some(t) = iter.next() {
+                let id = t.get_id();
+                if let Some(subtree) = m.get_mut(&id) {
+                    subtree.insert_at_leaf(iter, l, r, sign);
+                    return;
+                } 
+                
+                // And once again the if-let borrow bug.
+                if iter.peek().is_some() {
+                    let mut subtree = PDTree::new();
+                    subtree.insert_at_leaf(iter, l, r, sign);
+                    m.insert(id, subtree);
+                } else {
+                    m.insert(id, PDTree::Leaf(vec!((l.clone(), r, sign))));
+                }
+            },
+            PDTree::Leaf(ref mut v) => v.push((l.clone(), r, sign)),
+        } 
+    }
+
     /// Finds generalizations of a given term with the given sign.
     pub fn iter_generalizations<'a>(&'a self, t: &'a Term, sign: bool) -> GeneralizationIterator<'a> {
-        GeneralizationIterator::new(&self.data, t, sign)
+        GeneralizationIterator::new(&self, t, sign)
     }
 }
 
-/// Inserts l = r (or l <> r) into the trie, constructing the path if it doesn't exist.
-fn insert_at_leaf(trie: &mut Trie, mut iter: PrefixOrderIterator, l: &Term, r: Term, sign: bool) {
-    if let Trie::Node(ref mut m) = *trie {
-        if let Some(t) = iter.next() {
-            let id = t.get_id();
-            if let Some(subtrie) = m.get_mut(&id) {
-                insert_at_leaf(subtrie, iter, l, r, sign);
-                return;
-            } 
-            
-            // And once again the if-let borrow bug.
-            if iter.peek().is_some() {
-                let mut subtrie = Trie::new();
-                insert_at_leaf(&mut subtrie, iter, l, r, sign);
-                m.insert(id, subtrie);
-            } else {
-                m.insert(id, Trie::Leaf(l.clone(), r, sign));
+pub struct GeneralizationIterator<'a> {
+    sign: bool,
+    stack: Vec<StackFrame<'a>>,
+}
+
+struct StackFrame<'a> {
+    subst: Substitution,
+    iter: PrefixOrderIterator<'a>, 
+    tree_iter: Either<MIter<'a, i64, PDTree>, VIter<'a, (Term, Term, bool)>>
+}
+
+impl<'a> GeneralizationIterator<'a> {
+    fn new(pd_tree: &'a PDTree, t: &'a Term, sign: bool) -> GeneralizationIterator<'a> {
+        if let PDTree::Node(ref m) = *pd_tree {
+            GeneralizationIterator {
+                sign: sign, 
+                stack: vec!(StackFrame {
+                    subst: Substitution::new(),
+                    iter: PrefixOrderIterator::new(t),
+                    tree_iter: Either::Left(m.iter())
+                }),
             }
-        } 
-    } else {
-        // Path to leaf already exists if we get here.
-        // Doesn't happen that often but must be taken care of.
+        } else {
+            panic!("PDTree root should always be a node!");
+        }
+    }  
+}
+
+impl<'a> Iterator for GeneralizationIterator<'a> {
+    type Item = (&'a Term, &'a Term, Substitution);
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(StackFrame { subst, mut iter, tree_iter }) = self.stack.pop() {
+            match tree_iter {
+                Either::Left(mut subtree_iter) => if let Some(t) = iter.peek() {
+                    let id = t.get_id();
+                    // Cannot use a for-loop as that moves the iterator.
+                    while let Some((&k, subtree)) = subtree_iter.next() {
+                        // If the function symbols are the same we can skip it.
+                        if k == id && k >= 0 {
+                            let mut new_iter = iter.clone();
+                            new_iter.next(); // Need to advance one for the next level.
+                            let new_tree_iter = match *subtree {
+                                PDTree::Leaf(ref l) => Either::Right(l.iter()),
+                                PDTree::Node(ref m) => Either::Left(m.iter()),
+                            };
+                            // Remember to push the stack frame back as we are not done with this node.
+                            self.stack.push(StackFrame {
+                                subst: subst.clone(),
+                                iter: iter,
+                                tree_iter: Either::Left(subtree_iter),
+                            });
+                            // Now add the stack frame for the recursive call.
+                            self.stack.push(StackFrame {
+                                subst: subst,
+                                iter: new_iter,
+                                tree_iter: new_tree_iter,
+                            });
+                            break;
+                        } else if k < 0 {
+                            // Otherwise check if we can bind and continue.
+                            if let Some(new_subst) = term_match_with_subst(subst.clone(), &Term::new_variable(k), t) {
+                                let mut new_iter = iter.clone();
+                                new_iter.next(); // Again, need to advance once
+                                new_iter.skip_subtree(); // Since we matched we can skip a subtree.
+                                let new_tree_iter = match *subtree {
+                                    PDTree::Leaf(ref l) => Either::Right(l.iter()),
+                                    PDTree::Node(ref m) => Either::Left(m.iter()),
+                                };
+                                // Remember to push the stack frame back as we are not done with this node.
+                                self.stack.push(StackFrame {
+                                    subst: subst,
+                                    iter: iter,
+                                    tree_iter: Either::Left(subtree_iter),
+                                });
+                                // Now add the stack frame for the recursive call.
+                                self.stack.push(StackFrame {
+                                    subst: new_subst,
+                                    iter: new_iter,
+                                    tree_iter: new_tree_iter,
+                                });
+                                break;
+                            }
+                        }
+                    }
+                },
+                Either::Right(mut leaf_iter) => if iter.next().is_none() {
+                    // Cannot use a for-loop as that moves the iterator.
+                    while let Some(&(ref l, ref r, sign)) = leaf_iter.next() {
+                        if self.sign == sign {
+                            let subst_copy = subst.clone();
+                            // Remember to push the stack frame back as we are not done with this leaf.
+                            self.stack.push(StackFrame {
+                                subst: subst,
+                                iter: iter,
+                                tree_iter: Either::Right(leaf_iter),
+                            });
+                            return Some((l, r, subst_copy));
+                        }
+                    }
+                },
+            }
+        }
+
+        None
     }
 }
 
