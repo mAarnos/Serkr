@@ -42,8 +42,8 @@ macro_rules! assert_neq {
 /// Avoids lots of annoying work when printing stuff in the SZS format.
 #[macro_export]
 macro_rules! println_szs {
-    ($fmt:expr) => (print!(concat!("% ", concat!($fmt, "\n"))));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!("% ", concat!($fmt, "\n")), $($arg)*));
+    ($fmt:expr) => (println!(concat!("% ", $fmt)));
+    ($fmt:expr, $($arg:tt)*) => (println!(concat!("% ", $fmt), $($arg)*));
 }
 
 #[cfg(test)]

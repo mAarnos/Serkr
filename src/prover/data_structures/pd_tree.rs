@@ -159,7 +159,7 @@ impl PDTree {
 
     /// Finds generalizations of a given term with the given sign.
     pub fn iter_generalizations<'a>(&'a self, t: &'a Term, sign: bool) -> GeneralizationIterator<'a> {
-        GeneralizationIterator::new(&self, t, sign)
+        GeneralizationIterator::new(self, t, sign)
     }
 }
 

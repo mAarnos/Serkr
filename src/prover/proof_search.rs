@@ -109,7 +109,7 @@ fn serkr_loop(mut proof_state: ProofState,
             add_equality_factoring_inferred_count(ef_count);
             add_equality_resolution_inferred_count(er_count);
 
-            for mut cl in inferred_clauses.into_iter() {
+            for mut cl in inferred_clauses {
                 // Simplification need to be done before triviality checking.
                 // Consider the clause x <> y, y <> z, x = z which is clearly a tautology.
                 // We cannot detect it as a tautology with a pure syntactical check,

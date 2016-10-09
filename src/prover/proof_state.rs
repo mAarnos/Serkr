@@ -50,7 +50,7 @@ impl ProofState {
             id_count: 0
         };
         
-        for cl in preprocessed_clauses.into_iter() {
+        for cl in preprocessed_clauses {
             state.add_to_unused(cl);
         }
         

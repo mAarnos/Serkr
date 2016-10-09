@@ -38,7 +38,8 @@
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
 #![cfg_attr(feature="clippy", allow(indexing_slicing, similar_names, 
                                     many_single_char_names, doc_markdown,
-                                    stutter, enum_variant_names))]
+                                    stutter, type_complexity,
+                                    missing_docs_in_private_items))]
 
 #[macro_use]
 extern crate clap;
