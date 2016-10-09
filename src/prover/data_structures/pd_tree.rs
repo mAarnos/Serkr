@@ -27,7 +27,7 @@ use prover::unification::matching::term_match_with_subst;
 use utils::either::Either;
 
 /// Used for traveling the positions of a term in prefix order lazily.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct PrefixOrderIterator<'a> {
     term: &'a Term,
     peek_term: Option<&'a Term>,
@@ -63,7 +63,7 @@ impl<'a> PrefixOrderIterator<'a> {
 impl<'a> Iterator for PrefixOrderIterator<'a> {
     type Item = &'a Term;
     
-    fn next(&mut self) -> Option<&'a Term> {
+    fn next(&mut self) -> Option<Self::Item> {
         // If we have peeked this is all we have to do.
         if self.peek_term.is_some() {
             let temp = self.peek_term;
@@ -73,18 +73,14 @@ impl<'a> Iterator for PrefixOrderIterator<'a> {
         
         if !self.started {
             self.started = true;
-            if self.term.get_arity() > 0 {
-                self.stack.push(self.term.iter());
-            } 
+            self.stack.push(self.term.iter());
             Some(self.term)
         } else if self.stack.is_empty() {
             None
         } else {
             for i in (0..self.stack.len()).rev() {
                 if let Some(t) = self.stack[i].next() {
-                    if t.get_arity() > 0 {
-                        self.stack.push(t.iter());
-                    } 
+                    self.stack.push(t.iter());
                     return Some(t);
                 } 
                 self.stack.pop();
@@ -354,5 +350,25 @@ mod test {
         assert_eq!(*matches[0].0, c);
         assert_eq!(*matches[0].1, t);
         assert_eq!(matches[0].2.size(), 0);
+    }
+    
+    #[test]
+    fn pd_tree_2() {
+        let x = Term::new_variable(-1);
+        let x2 = Term::new_variable(-2);
+        let f_x_x = Term::new_function(1, vec!(x.clone(), x.clone()));
+        let f_x2_x2 = Term::new_function(1, vec!(x2.clone(), x2.clone()));
+        let t = Term::new_truth();
+        let lit = Literal::new(false, f_x_x.clone(), t.clone());
+        let cl = Clause::new(vec!(lit));
+        
+        let mut pd_tree = PDTree::new();
+        pd_tree.add_clause_to_index(&cl);
+        let matches = pd_tree.iter_generalizations(&f_x2_x2, true).collect::<Vec<_>>();
+        
+        assert_eq!(matches.len(), 1);
+        assert_eq!(*matches[0].0, f_x_x);
+        assert_eq!(*matches[0].1, t);
+        assert_eq!(matches[0].2.size(), 1);
     }
 }

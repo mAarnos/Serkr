@@ -75,7 +75,7 @@ fn serkr_loop(mut proof_state: ProofState,
     
     while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
         increment_iteration_count();
-        
+
         // We start by simplifying the chosen clause as much as possible.
         simplify(&proof_state, &mut chosen_clause);
 
@@ -173,7 +173,6 @@ pub fn prove(s: &str,
 }
 
 #[cfg(test)]
-#[allow(dead_code)]
 mod test {
     use super::prove;
     use prover::proof_result::ProofResult;
@@ -220,7 +219,8 @@ mod test {
         pelletier_31();
         pelletier_32();
         pelletier_33();
-        // pelletier_34();
+        pelletier_34_original();
+        pelletier_34_errata();
         pelletier_35();
         pelletier_36();
         pelletier_37();
@@ -230,7 +230,7 @@ mod test {
         pelletier_40_errata();
         pelletier_41();
         pelletier_42();
-        // -- pelletier_43();
+        pelletier_43();
         pelletier_44();
         pelletier_45();
         pelletier_46();
@@ -250,10 +250,11 @@ mod test {
         pelletier_60();
         pelletier_61();
         pelletier_62_errata_errata();
-        // -- pelletier_63();
+        pelletier_63();
         pelletier_64();
         pelletier_65();
         pelletier_72();
+        pelletier_74();
         
         // Some negated problems as well for variety.
         pelletier_1_negated();
@@ -272,7 +273,7 @@ mod test {
         djikstra();
         djikstra_negated();
         group_left_inverse_means_right_inverse();
-        // -- set_union_is_commutative();
+        set_union_is_commutative();
     }
 
     fn pelletier_1() {
@@ -475,6 +476,16 @@ mod test {
         prove("test_problems/p33.p", false, 32);
         assert_eq!(get_proof_result(), ProofResult::Theorem);
     }
+    
+    fn pelletier_34_original() {
+        prove("test_problems/p34.p", false, 32);
+        assert_eq!(get_proof_result(), ProofResult::CounterSatisfiable);
+    }
+    
+    fn pelletier_34_errata() {
+        prove("test_problems/p34e.p", false, 32);
+        assert_eq!(get_proof_result(), ProofResult::Theorem);
+    }
 
     fn pelletier_35() {
         prove("test_problems/p35.p", false, 32);
@@ -633,6 +644,11 @@ mod test {
 
     fn pelletier_72() {
         prove("test_problems/p72.p", false, 32);
+        assert_eq!(get_proof_result(), ProofResult::Unsatisfiable);
+    }
+    
+    fn pelletier_74() {
+        prove("test_problems/p74.p", false, 32);
         assert_eq!(get_proof_result(), ProofResult::Unsatisfiable);
     }
 

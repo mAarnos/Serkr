@@ -17,6 +17,7 @@
 /// The Either type represents values with two possibilities.
 /// It is similar to Result, but the second possibility is not necessarily an error.
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum Either<L, R> {
     Left(L),
     Right(R)
