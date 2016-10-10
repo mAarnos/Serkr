@@ -59,7 +59,7 @@ pub fn term_match_general(mut substitution: Substitution,
                 continue;
             }
             // There wasn't, just bind.
-            substitution.insert(s, t);
+            substitution.insert(s.get_id(), t);
         } else {
             return None;
         }

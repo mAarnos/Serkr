@@ -60,7 +60,7 @@ fn unify(s: &Term, t: &Term) -> Option<Substitution> {
             }
 
             // And finally add the new mapping.
-            env.insert(s, t);
+            env.insert(s.get_id(), t);
         }
     }
 

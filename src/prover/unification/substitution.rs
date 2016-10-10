@@ -21,7 +21,7 @@ use prover::data_structures::term::Term;
 /// Represents a substitution of from variables to terms.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Substitution {
-    subst: HashMap<Term, Term>,
+    subst: HashMap<i64, Term>,
 }
 
 impl Substitution {
@@ -37,15 +37,15 @@ impl Substitution {
     }
 
     /// Inserts a new mapping from a variable to a term to the substitution.
-    pub fn insert(&mut self, s: Term, t: Term) {
-        assert!(s.is_variable());
-        let res = self.subst.insert(s, t);
+    pub fn insert(&mut self, id: i64, t: Term) {
+        assert!(id < 0);
+        let res = self.subst.insert(id, t);
         assert!(res.is_none());
     }
 
     /// Get an (optional) reference to the term which is to be substituted for a given variable.
     pub fn get(&self, t: &Term) -> Option<&Term> {
-        self.subst.get(t)
+        self.subst.get(&t.get_id())
     }
 
     /// Checks if the substitution is a variable renaming.
@@ -55,7 +55,7 @@ impl Substitution {
     }
 
     /// Hack, remove.
-    pub fn iter_mut(&mut self) -> IterMut<Term, Term> {
+    pub fn iter_mut(&mut self) -> IterMut<i64, Term> {
         self.subst.iter_mut()
     }
 }
