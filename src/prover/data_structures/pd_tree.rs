@@ -23,6 +23,7 @@ use std::collections::hash_map::Iter as MIter;
 use prover::data_structures::clause::Clause;
 use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
+use prover::ordering::term_ordering::TermOrdering;
 use prover::unification::matching::term_match_with_subst;
 use utils::either::Either;
 
@@ -104,7 +105,7 @@ fn normalize_variables(l: &mut Term, r: &mut Term) {
 /// of equations. This is critical for efficient use of many inference and simplification rules.
 #[derive(Debug, Clone)]
 pub enum PDTree {
-    Leaf(Vec<(Term, Term, bool)>),
+    Leaf(Vec<(Term, Term, bool, bool)>),
     Node(HashMap<i64, PDTree>)
 }
 
@@ -116,45 +117,63 @@ impl PDTree {
 
     /// Adds a clause to the index.
     /// Does nothing if the clause is not unit.
-    pub fn add_clause_to_index(&mut self, cl: &Clause) {
+    pub fn add_clause_to_index(&mut self, term_ordering: &TermOrdering, cl: &Clause) {
         if cl.is_unit() {
-            let pos = cl[0].is_positive();
-            if !cl[0].get_lhs().is_truth() {
-                let mut l = cl[0].get_lhs().clone();
-                let mut r = cl[0].get_rhs().clone();
-                normalize_variables(&mut l, &mut r);
-                self.insert_at_leaf(PrefixOrderIterator::new(&l), &l, r, pos);
-            }
-            if !cl[0].get_rhs().is_truth() {
-                let mut l = cl[0].get_lhs().clone();
-                let mut r = cl[0].get_rhs().clone();
-                normalize_variables(&mut r, &mut l);
-                self.insert_at_leaf(PrefixOrderIterator::new(&r), &r, l, pos);
+            let lit = &cl[0];
+            let pos = lit.is_positive();
+            let l = &lit.get_lhs();
+            let r = &lit.get_rhs();
+            if term_ordering.gt(l, r) {
+                self.add_eq_to_index(l, r, pos, true);
+            } else if term_ordering.gt(r, l) {
+                self.add_eq_to_index(r, l, pos, true);
+            } else {
+                self.add_eq_to_index(l, r, pos, false);
+                self.add_eq_to_index(r, l, pos, false);
             }
         }
     }
     
+    /// Adds an equation to the index without taking into account symmetry.
+    pub fn add_eq_to_index(&mut self, s: &Term, t: &Term, pos: bool, oriented: bool) {
+        let mut s_n = s.clone();
+        let mut t_n = t.clone();
+        normalize_variables(&mut s_n, &mut t_n);
+        self.insert_at_leaf(PrefixOrderIterator::new(&s_n), &s_n, t_n, pos, oriented);
+    }
+
     /// Inserts l = r (or l <> r) into the tree, constructing the path if it doesn't exist.
-    fn insert_at_leaf(&mut self, mut iter: PrefixOrderIterator, l: &Term, r: Term, sign: bool) {
-        match *self {
-            PDTree::Node(ref mut m) => if let Some(t) = iter.next() {
-                let id = t.get_id();
-                if let Some(subtree) = m.get_mut(&id) {
-                    subtree.insert_at_leaf(iter, l, r, sign);
-                    return;
-                } 
-                
-                // And once again the if-let borrow bug.
-                if iter.peek().is_some() {
-                    let mut subtree = PDTree::new();
-                    subtree.insert_at_leaf(iter, l, r, sign);
-                    m.insert(id, subtree);
-                } else {
-                    m.insert(id, PDTree::Leaf(vec!((l.clone(), r, sign))));
+    /// Needs to be implemented iteratively as otherwise we get stack overflows.
+    #[cfg_attr(feature="clippy", allow(while_let_on_iterator))]
+    fn insert_at_leaf(&mut self, mut iter: PrefixOrderIterator, l: &Term, r: Term, sign: bool, oriented: bool) {
+        let mut current = Some(self);
+        
+        while let Some(t) = iter.next() {
+            current = current.take().and_then(|tree| {
+                match *tree {
+                    PDTree::Node(ref mut m) => {
+                        Some(m.entry(t.get_id()).or_insert_with(|| {
+                            if iter.peek().is_some() {
+                                PDTree::new()
+                            } else {
+                                PDTree::Leaf(Vec::new())
+                            }
+                        }))
+                    },
+                    _ => None,
                 }
-            },
-            PDTree::Leaf(ref mut v) => v.push((l.clone(), r, sign)),
-        } 
+            });
+            
+            if current.is_none() {
+                break;
+            }
+        }
+        
+        if let Some(tree) = current {
+            if let PDTree::Leaf(ref mut v) = *tree {
+                v.push((l.clone(), r, sign, oriented));
+            }
+        }
     }
 
     /// Finds generalizations of a given term with the given sign.
@@ -171,7 +190,7 @@ pub struct GeneralizationIterator<'a> {
 struct StackFrame<'a> {
     subst: Substitution,
     iter: PrefixOrderIterator<'a>, 
-    tree_iter: Either<MIter<'a, i64, PDTree>, VIter<'a, (Term, Term, bool)>>
+    tree_iter: Either<MIter<'a, i64, PDTree>, VIter<'a, (Term, Term, bool, bool)>>
 }
 
 impl<'a> GeneralizationIterator<'a> {
@@ -192,7 +211,7 @@ impl<'a> GeneralizationIterator<'a> {
 }
 
 impl<'a> Iterator for GeneralizationIterator<'a> {
-    type Item = (&'a Term, &'a Term, Substitution);
+    type Item = (&'a Term, &'a Term, Substitution, bool);
     
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(StackFrame { subst, mut iter, tree_iter }) = self.stack.pop() {
@@ -251,7 +270,7 @@ impl<'a> Iterator for GeneralizationIterator<'a> {
                 },
                 Either::Right(mut leaf_iter) => if iter.next().is_none() {
                     // Cannot use a for-loop as that moves the iterator.
-                    while let Some(&(ref l, ref r, sign)) = leaf_iter.next() {
+                    while let Some(&(ref l, ref r, sign, oriented)) = leaf_iter.next() {
                         if self.sign == sign {
                             let subst_copy = subst.clone();
                             // Remember to push the stack frame back as we are not done with this leaf.
@@ -260,7 +279,7 @@ impl<'a> Iterator for GeneralizationIterator<'a> {
                                 iter: iter,
                                 tree_iter: Either::Right(leaf_iter),
                             });
-                            return Some((l, r, subst_copy));
+                            return Some((l, r, subst_copy, oriented));
                         }
                     }
                 },
@@ -275,8 +294,6 @@ impl<'a> Iterator for GeneralizationIterator<'a> {
 mod test {
     use super::PrefixOrderIterator;
     use super::PDTree;
-    use prover::data_structures::clause::Clause;
-    use prover::data_structures::literal::Literal;
     use prover::data_structures::term::Term;
     
     #[test]
@@ -339,11 +356,9 @@ mod test {
     fn pd_tree_1() {
         let c = Term::new_function(1, Vec::new());
         let t = Term::new_truth();
-        let lit = Literal::new(false, c.clone(), t.clone());
-        let cl = Clause::new(vec!(lit));
         
         let mut pd_tree = PDTree::new();
-        pd_tree.add_clause_to_index(&cl);
+        pd_tree.add_eq_to_index(&c, &t, true, true);
         let matches = pd_tree.iter_generalizations(&c, true).collect::<Vec<_>>();
         
         assert_eq!(matches.len(), 1);
@@ -359,16 +374,48 @@ mod test {
         let f_x_x = Term::new_function(1, vec!(x.clone(), x.clone()));
         let f_x2_x2 = Term::new_function(1, vec!(x2.clone(), x2.clone()));
         let t = Term::new_truth();
-        let lit = Literal::new(false, f_x_x.clone(), t.clone());
-        let cl = Clause::new(vec!(lit));
         
         let mut pd_tree = PDTree::new();
-        pd_tree.add_clause_to_index(&cl);
+        pd_tree.add_eq_to_index(&f_x_x, &t, true, true);
         let matches = pd_tree.iter_generalizations(&f_x2_x2, true).collect::<Vec<_>>();
         
         assert_eq!(matches.len(), 1);
         assert_eq!(*matches[0].0, f_x_x);
         assert_eq!(*matches[0].1, t);
         assert_eq!(matches[0].2.size(), 1);
+    }
+    
+    #[test]
+    fn pd_tree_3() {
+        let x = Term::new_variable(-1);
+        let y = Term::new_variable(-2);
+        let a = Term::new_constant(1);
+        let b = Term::new_constant(2);
+        
+        let f_a_x = Term::new_function(3, vec!(a.clone(), x.clone()));
+        let f_b_x = Term::new_function(3, vec!(b.clone(), x.clone()));
+        let f_x_x = Term::new_function(3, vec!(x.clone(), x.clone()));
+        let f_y_x = Term::new_function(3, vec!(y.clone(), x.clone()));
+        let f_x_y = Term::new_function(3, vec!(x.clone(), y.clone()));
+        let g_f_x_x = Term::new_function(4, vec!(f_x_x));
+        let g_f_x_y = Term::new_function(4, vec!(f_x_y));
+        let g_x = Term::new_function(4, vec!(x.clone()));
+        
+        let g_b = Term::new_function(4, vec!(b.clone()));
+        let f_a_g_b = Term::new_function(3, vec!(a.clone(), g_b));
+        let g_f_a_g_b = Term::new_function(4, vec!(f_a_g_b));
+        
+        let mut pd_tree = PDTree::new();
+        pd_tree.add_eq_to_index(&f_a_x, &a, true, true);
+        pd_tree.add_eq_to_index(&f_b_x, &x, true, true);
+        pd_tree.add_eq_to_index(&g_f_x_x, &f_y_x, true, true);
+        pd_tree.add_eq_to_index(&g_f_x_y, &g_x, true, true);
+        
+        let matches = pd_tree.iter_generalizations(&g_f_a_g_b, true).collect::<Vec<_>>();
+        
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].0, &g_f_x_y);
+        assert_eq!(matches[0].1, &g_x);
+        assert_eq!(matches[0].2.size(), 2);
     }
 }

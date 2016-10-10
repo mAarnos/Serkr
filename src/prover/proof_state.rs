@@ -75,7 +75,7 @@ impl ProofState {
 
     /// Adds the given clause to used clauses.
     pub fn add_to_used(&mut self, cl: Clause) {
-        self.term_index.add_clause_to_index(&cl);
+        self.term_index.add_clause_to_index(&self.term_ordering, &cl);
         self.used_clauses.push(cl);
     }
 

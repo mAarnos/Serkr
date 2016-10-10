@@ -31,11 +31,9 @@ pub fn equality_resolution(term_ordering: &TermOrdering,
         if l.is_negative() {
             if let Some(sigma) = mgu(l.get_lhs(), l.get_rhs()) {
                 let mut new_cl = cl.clone();
-                let mut new_l = l.clone();
-                new_cl.swap_remove(i);
                 new_cl.subst(&sigma);
-                new_l.subst(&sigma);
-
+                let new_l = new_cl.swap_remove(i);
+                
                 assert_eq!(new_l.get_lhs(), new_l.get_rhs());
 
                 if literal_maximal_in(term_ordering, &new_cl, &new_l) {

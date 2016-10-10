@@ -22,7 +22,7 @@ use prover::data_structures::pd_tree::PDTree;
 
 /// Check if the term index contains a matching literal without taking into account symmetricity.
 fn matching_equation_exists_asymmetric(term_index: &PDTree, s: &Term, t: &Term, pos: bool) -> bool {
-    for (_, r, sigma) in term_index.iter_generalizations(s, pos) {
+    for (_, r, sigma, _) in term_index.iter_generalizations(s, pos) {
         if term_match_with_subst(sigma, r, t).is_some() {
             return true;
         }

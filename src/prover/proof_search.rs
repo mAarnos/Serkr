@@ -22,12 +22,12 @@ use prover::data_structures::clause::Clause;
 use prover::proof_state::ProofState;
 use prover::proof_statistics::*;
 
-use prover::simplification::literal_deletion::cheap_simplify;
+use prover::simplification::literal_deletion::*;
 use prover::simplification::tautology_deletion::trivial;
 use prover::simplification::unit_subsumption::unit_subsumed;
 use prover::simplification::non_unit_subsumption::non_unit_subsumed;
 use prover::simplification::equality_subsumption::forward_equality_subsumed;
-use prover::simplification::rewriting::rewrite_literals;
+use prover::simplification::rewriting::rewrite_clause;
 use prover::simplification::simplify_reflect::simplify_reflect;
 
 use prover::inference::equality_resolution::equality_resolution;
@@ -56,11 +56,18 @@ fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
     non_unit_subsumed(proof_state.get_used(), cl)
 }
 
+/// Simplifies a clause with cheap (i.e. fast to run) rules if possible.
+fn cheap_simplify(cl: &mut Clause) {
+    destructive_equality_resolution(cl);
+    delete_resolved(cl);
+    delete_duplicates(cl);
+}
+
 /// A more expensive version of cheap_simplify with more effective rules.
 fn simplify(proof_state: &ProofState, cl: &mut Clause) {
-    rewrite_literals(proof_state.get_term_ordering(), 
-                     proof_state.get_term_index(), 
-                     cl);
+    rewrite_clause(proof_state.get_term_ordering(), 
+                   proof_state.get_term_index(), 
+                   cl);
     cheap_simplify(cl);
     simplify_reflect(proof_state.get_term_index(), cl);
 }

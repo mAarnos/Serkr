@@ -23,46 +23,44 @@ fn unify(s: &Term, t: &Term) -> Option<Substitution> {
     let mut env = Substitution::new();
     let mut eqs = vec![(s.clone(), t.clone())];
 
-    while let Some((eq1, eq2)) = eqs.pop() {
-        if eq1 == eq2 {
+    while let Some((s, t)) = eqs.pop() {
+        if s == t {
             continue; // delete
         }
 
-        if eq1.is_function() && eq2.is_function() {
-            if eq1.get_id() == eq2.get_id() {
+        if s.is_function() && t.is_function() {
+            if s.get_id() == t.get_id() {
                 // decompose
-                for eq in eq1.into_iter().zip(eq2.into_iter()) {
-                    eqs.push(eq);
-                }
+                eqs.extend(s.into_iter().zip(t.into_iter()));
             } else {
                 return None; // conflict
             }
-        } else if eq1.is_function() {
+        } else if s.is_function() {
             // swap
-            eqs.push((eq2, eq1));
-        } else if eq2.occurs(&eq1) {
+            eqs.push((t, s));
+        } else if t.occurs(&s) {
             return None; // check
         } else {
             // Can't unify between two different sorts.
-            if eq2.is_special_function() {
+            if t.is_special_function() {
                 return None;
             }
 
             // eliminate
-            // We soon add a mapping of the form eq1 |-> eq2.
-            // We might have mappings of the form x |-> eq1 which need to be fixed to x |-> eq2.
+            // We soon add a mapping of the form s |-> t.
+            // We might have mappings of the form x |-> s which need to be fixed to x |-> t.
             for (_, v) in env.iter_mut() {
-                v.subst_single(&eq1, &eq2);
+                v.subst_single(&s, &t);
             }
 
-            // Then eliminate all occurences of eq1.
+            // Then eliminate all occurences of s.
             for eq in &mut eqs {
-                eq.0.subst_single(&eq1, &eq2);
-                eq.1.subst_single(&eq1, &eq2);
+                eq.0.subst_single(&s, &t);
+                eq.1.subst_single(&s, &t);
             }
 
             // And finally add the new mapping.
-            env.insert(eq1, eq2);
+            env.insert(s, t);
         }
     }
 

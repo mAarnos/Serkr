@@ -34,7 +34,7 @@ pub struct Term {
 }
 
 impl Term {
-    /// Creates a new normal function. Note that the ID passed in should be negative.
+    /// Creates a new normal function. Note that the ID passed in should be positive.
     pub fn new_function(id: i64, args: Vec<Term>) -> Term {
         assert!(id > 0);
         Term {
@@ -52,6 +52,12 @@ impl Term {
             sort_predicate: true,
             args: args,
         }
+    }
+    
+    /// Creates a new constant. The ID passed in should be positive.
+    #[allow(dead_code)]
+    pub fn new_constant(id: i64) -> Term {
+        Term::new_function(id, Vec::new())
     }
 
     /// Creates a new variable. Note that the ID passed in should be negative.
@@ -89,6 +95,7 @@ impl Term {
     }
     
     /// Checks if this term represents truth.
+    #[allow(dead_code)]
     pub fn is_truth(&self) -> bool {
         self.id == 0
     }

@@ -37,33 +37,29 @@ pub fn term_match_with_subst(sigma: Substitution, s: &Term, t: &Term) -> Option<
 pub fn term_match_general(mut substitution: Substitution,
                           mut eqs: Vec<(Term, Term)>)
                           -> Option<Substitution> {
-    while let Some((eq1, eq2)) = eqs.pop() {
-        if eq1.is_function() && eq2.is_function() {
-            if eq1.get_id() == eq2.get_id() {
-                for eq in eq1.into_iter().zip(eq2.into_iter()) {
-                    eqs.push(eq);
-                }
+    while let Some((s, t)) = eqs.pop() {
+        if s.is_function() && t.is_function() {
+            if s.get_id() == t.get_id() {
+                eqs.extend(s.into_iter().zip(t.into_iter()));
             } else {
                 return None;
             }
-        } else if eq1.is_variable() {
+        } else if s.is_variable() {
             // Can't unify between two different sorts.
-            if eq2.is_special_function() {
+            if t.is_special_function() {
                 return None;
             }
-
-            // Suffers from the lexical scope borrow bug.
-            let mut probe_success = false;
-            if let Some(v) = substitution.get(&eq1) {
-                if *v != eq2 {
+            
+            // Check if there is a previous bind.
+            if let Some(v) = substitution.get(&s) {
+                // Check that it is not different.
+                if *v != t {
                     return None;
                 }
-                probe_success = true;
+                continue;
             }
-
-            if !probe_success {
-                substitution.insert(eq1, eq2);
-            }
+            // There wasn't, just bind.
+            substitution.insert(s, t);
         } else {
             return None;
         }

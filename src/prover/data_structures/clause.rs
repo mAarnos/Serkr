@@ -71,8 +71,8 @@ impl Clause {
     /// Removes a literal from the clause. Since we don't care about ordering we use swap_remove.
     /// Using this requires some care.
     /// A good example of correct use is found in tautology_deletion.rs
-    pub fn swap_remove(&mut self, index: usize) {
-        self.literals.swap_remove(index);
+    pub fn swap_remove(&mut self, index: usize) -> Literal {
+        self.literals.swap_remove(index)
     }
 
     /// Add the literal to the clause (without checking for duplicates).

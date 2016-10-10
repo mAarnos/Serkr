@@ -21,6 +21,25 @@ use prover::ordering::term_ordering::TermOrdering;
 use prover::ordering::precedence::Precedence;
 use prover::ordering::weight::Weight;
 
+fn single_unary_function_in_term(t: &Term, found_unary: &mut Option<i64>) -> bool {
+    if t.is_function() {
+        if t.get_arity() == 1 {
+            if let Some(id) = *found_unary {
+                if id != t.get_id() {
+                    *found_unary = None;
+                    return true;
+                }
+            } else {
+                *found_unary = Some(t.get_id());
+            }
+        }
+        
+        t.iter().any(|sub_t| single_unary_function_in_term(sub_t, found_unary))
+    } else {
+        false
+    }
+}
+
 /// If the problem contains one unary function, this function finds it.
 fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     let mut found_unary = None;
@@ -28,15 +47,9 @@ fn single_unary_function(clauses: &[Clause]) -> Option<i64> {
     for cl in clauses {
         for l in cl.iter() {
             for t in l.iter() {
-                if t.get_arity() == 1 {
-                    assert!(t.is_function());
-                    if found_unary.is_some() {
-                        if found_unary != Some(t.get_id()) {
-                            return None;
-                        }
-                    } else {
-                        found_unary = Some(t.get_id());
-                    }
+                if single_unary_function_in_term(t, &mut found_unary) {
+                    assert!(found_unary.is_none());
+                    break;
                 }
             }
         }

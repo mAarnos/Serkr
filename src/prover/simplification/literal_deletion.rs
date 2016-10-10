@@ -17,13 +17,6 @@
 use prover::data_structures::clause::Clause;
 use prover::unification::full_unification::mgu;
 
-/// Simplifies a clause with cheap (i.e. fast to run) rules if possible.
-pub fn cheap_simplify(cl: &mut Clause) {
-    destructive_equality_resolution(cl);
-    delete_resolved(cl);
-    delete_duplicates(cl);
-}
-
 /// Deletes all duplicated literals from a clause.
 pub fn delete_duplicates(cl: &mut Clause) {
     let mut i = 0;

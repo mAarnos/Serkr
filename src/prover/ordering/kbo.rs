@@ -105,10 +105,14 @@ fn kbo_precedence(precedence: &Precedence,
                   s: &Term,
                   t: &Term)
                   -> bool {
-    if Some(s.get_id()) == *only_unary_func && Some(t.get_id()) != *only_unary_func {
-        return true;
-    } else if Some(s.get_id()) != *only_unary_func && Some(t.get_id()) == *only_unary_func {
-        return false;
+    if let Some(id) = *only_unary_func {
+        if s.get_id() == id && t.get_id() != id {
+            return true;
+        } else if s.get_id() != id && t.get_id() == id {
+            return false;
+        } else if s.get_id() == id && t.get_id() == id {
+            return false;
+        }
     }
 
     precedence.gt(s, t)
