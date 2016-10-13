@@ -144,7 +144,7 @@ pub fn parse_tptp_file(s: &str) -> Result<Vec<AnnotatedFormula>, String> {
     
     // Handle all includes.
     let mut formulas = Vec::<AnnotatedFormula>::new(); 
-    for input in parsed_file.into_iter() {
+    for input in parsed_file {
         match input {
             TptpInput::AnnForm(f) => formulas.push(f),
             TptpInput::Incl(i) => formulas.append(&mut try!(handle_include(i))),

@@ -1,6 +1,6 @@
 use tptp_parser::ast::*;
 
-grammar["LALR(1)"];
+grammar;
 
 pub TPTP_file: Vec<TptpInput> = {
     TPTP_input*

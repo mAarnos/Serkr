@@ -22,3 +22,6 @@ pub mod literal;
 
 /// Contains the data structure for clauses.
 pub mod clause;
+
+/// Contains an implementation of a perfect discrimination tree.
+pub mod pd_tree;

@@ -14,14 +14,17 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-//! Contains all kinds of generally useful stuff (macros, timers etc.).
+use prover::data_structures::pd_tree::PDTree;
+use prover::data_structures::clause::Clause;
+use prover::simplification::equality_subsumption::matching_equation_exists;
 
-/// Contains some useful macros.
-#[macro_use]
-pub mod macros;
+/// Checks if a clause is unit-subsumed by the active set.
+pub fn unit_subsumed(term_index: &PDTree, cl: &Clause) -> bool {
+    cl.iter()
+      .any(|l| matching_equation_exists(term_index, l.get_lhs(), l.get_rhs(), l.is_positive()))
+}
 
-/// Contains a stopwatch-type timer for measuring time during program execution.
-pub mod stopwatch;
+#[cfg(test)]
+mod test {
 
-/// Contains the Either type.
-pub mod either;
+}

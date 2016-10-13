@@ -52,7 +52,7 @@ fn estimate_size(cache: &mut HashMap<(Formula, bool), BigInt>,
                 estimate_size(cache, p, false) * estimate_size(cache, q, false)
             }
         }
-        Formula::Forall(_, ref p) | Formula::Exists(_, ref p) => estimate_size(cache, &p, polarity),
+        Formula::Forall(_, ref p) | Formula::Exists(_, ref p) => estimate_size(cache, p, polarity),
         _ => panic!("True and false should've been eliminated already"),
     };
 
@@ -105,6 +105,8 @@ fn renaming_condition_fulfilled(cache: &mut HashMap<(Formula, bool), BigInt>,
 }
 
 /// Tries to rename a formula. If it does not succeed it calls rename_formula again
+/// There is some bug with collapsible_if here.
+#[cfg_attr(feature="clippy", allow(collapsible_if))]
 fn try_to_rename(cache: &mut HashMap<(Formula, bool), BigInt>,
                  ri: &mut RenamingInfo,
                  f: Formula,

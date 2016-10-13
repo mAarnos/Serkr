@@ -13,9 +13,6 @@ version = "*"
 [dependencies.lalrpop-util]
 version = "*"
 
-[dependencies.time]
-version = "*"
-
 [dependencies.regex]
 version = "*"
 

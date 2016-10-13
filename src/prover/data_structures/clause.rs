@@ -41,6 +41,12 @@ impl Clause {
     pub fn size(&self) -> usize {
         self.literals.len()
     }
+    
+    /// Get the amount of positive literals in the clause.
+    pub fn positive_size(&self) -> usize {
+        self.literals.iter()
+                     .fold(0, |acc, l| if l.is_positive() { 1 + acc } else { acc })
+    }
 
     /// Checks if the clause is empty.
     pub fn is_empty(&self) -> bool {
@@ -50,11 +56,6 @@ impl Clause {
     /// Checking if the clause is a unit clause.
     pub fn is_unit(&self) -> bool {
         self.size() == 1
-    }
-
-    /// Checks if the clause is a positive unit clause.
-    pub fn is_positive_unit(&self) -> bool {
-        self.is_unit() && self.literals[0].is_positive()
     }
 
     /// Used for iterating the literals of the clause.
@@ -70,8 +71,8 @@ impl Clause {
     /// Removes a literal from the clause. Since we don't care about ordering we use swap_remove.
     /// Using this requires some care.
     /// A good example of correct use is found in tautology_deletion.rs
-    pub fn swap_remove(&mut self, index: usize) {
-        self.literals.swap_remove(index);
+    pub fn swap_remove(&mut self, index: usize) -> Literal {
+        self.literals.swap_remove(index)
     }
 
     /// Add the literal to the clause (without checking for duplicates).
@@ -90,7 +91,12 @@ impl Clause {
             l.subst(substitution);
         }
     }
-
+    
+    /// Calculates the symbol count with given weights to function and variable symbols.
+    pub fn symbol_count(&self, f_value: u64, v_value: u64) -> u64 {
+        self.iter().fold(0, |acc, l| acc + l.symbol_count(f_value, v_value))
+    }
+   
     /// Set the ID of the clause.
     /// The IDs should be unique so care must be taken.
     pub fn set_id(&mut self, new_id: u64) {

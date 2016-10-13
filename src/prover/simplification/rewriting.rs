@@ -14,53 +14,48 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// Note: rewriting is probably incomplete as it is used currently. Fix that.
+// To be specific, we rewrite maximal literals in clauses with no restriction.
+// I'd like to see a concrete example where it causes problems first though.
+
 use prover::data_structures::term::Term;
 use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
-use prover::unification::matching::term_match;
+use prover::data_structures::pd_tree::PDTree;
 
-/// Does one rewrite step.
-/// Returns true if something was rewritten.
-#[cfg_attr(feature="clippy", allow(collapsible_if))]
-fn normal_form_step(term_ordering: &TermOrdering, active: &[Clause], u: &mut Term) -> bool {
-    for cl in active {
-        if cl.is_positive_unit() {
-            if try_rewrite_at_position(term_ordering, cl[0].get_lhs(), cl[0].get_rhs(), u) ||
-               try_rewrite_at_position(term_ordering, cl[0].get_rhs(), cl[0].get_lhs(), u) {
-                return true;
-            }
+/// Rewrites a term into some normal form.
+/// Tries to rewrite the leftmost and innermost terms first.
+fn rewrite_to_normal_form(term_ordering: &TermOrdering, term_index: &PDTree, t: &mut Term) {
+    if t.is_function() {
+        for sub_t in t.iter_mut() {
+            rewrite_to_normal_form(term_ordering, term_index, sub_t);
+        }
+        
+        if let Some(new_r) = normal_form_step_helper(term_ordering, term_index, t) {
+            *t = new_r;
+            rewrite_to_normal_form(term_ordering, term_index, t);
         }
     }
-
-    u.iter_mut().any(|t2| normal_form_step(term_ordering, active, t2))
 }
 
-fn try_rewrite_at_position(term_ordering: &TermOrdering, s: &Term, t: &Term, u: &mut Term) -> bool {
-    if let Some(sigma) = term_match(s, u) {
-        let mut new_s = s.clone();
-        let mut new_t = t.clone();
-        new_s.subst(&sigma);
-        new_t.subst(&sigma);
-        if term_ordering.gt(&new_s, &new_t) {
-            *u = new_t;
-            return true;
+/// Helper for above. Gets around lifetime issues with the iterator.
+fn normal_form_step_helper(term_ordering: &TermOrdering, term_index: &PDTree, t: &Term) -> Option<Term> {
+    for (_, r, sigma, oriented) in term_index.iter_generalizations(t, true) {
+        let mut new_r = r.clone();
+        new_r.subst(&sigma);
+        if oriented || term_ordering.gt(t, &new_r) {
+            return Some(new_r);
         }
     }
-
-    false
-}
-
-/// Reduces a term into normal form with regards to the active clause set.
-fn normal_form(term_ordering: &TermOrdering, active: &[Clause], t: &mut Term) {
-    while normal_form_step(term_ordering, active, t) {
-    }
+    
+    None
 }
 
 /// Rewrites a given clause into normal form with regards to the active clause set.
-pub fn rewrite_literals(term_ordering: &TermOrdering, active: &[Clause], cl: &mut Clause) {
+pub fn rewrite_clause(term_ordering: &TermOrdering, term_index: &PDTree, cl: &mut Clause) {
     for l in cl.iter_mut() {
-        normal_form(term_ordering, active, l.get_lhs_mut());
-        normal_form(term_ordering, active, l.get_rhs_mut());
+        rewrite_to_normal_form(term_ordering, term_index, l.get_lhs_mut());
+        rewrite_to_normal_form(term_ordering, term_index, l.get_rhs_mut());
     }
 }
 

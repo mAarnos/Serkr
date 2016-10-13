@@ -53,7 +53,7 @@ fn overlaps(term_ordering: &TermOrdering,
             cl2_i: usize,
             trace: &mut Vec<usize>,
             generated: &mut Vec<Clause>)
-            -> u64 {
+            -> usize {
     let mut sp_count = 0;
 
     if !u_p.is_variable() {
@@ -122,7 +122,7 @@ fn overlaps_literal(term_ordering: &TermOrdering,
                     cl2: &Clause,
                     cl2_i: usize,
                     generated: &mut Vec<Clause>)
-                    -> u64 {
+                    -> usize {
     let mut trace = Vec::new();
     let l_lhs = cl1[cl1_i].get_lhs();
     let l_rhs = cl1[cl1_i].get_rhs();
@@ -194,7 +194,7 @@ fn superposition_generate(term_ordering: &TermOrdering,
                           cl1: &Clause,
                           cl2: &Clause,
                           generated: &mut Vec<Clause>)
-                          -> u64 {
+                          -> usize {
     let mut sp_count = 0;
 
     for (i, l1) in cl1.iter().enumerate() {
@@ -216,7 +216,7 @@ pub fn superposition(term_ordering: &TermOrdering,
                      cl: &Clause,
                      clauses: &[Clause],
                      generated: &mut Vec<Clause>)
-                     -> u64 {
+                     -> usize {
     let mut sp_count = 0;
 
     for cl2 in clauses {

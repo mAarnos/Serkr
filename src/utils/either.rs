@@ -14,14 +14,14 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-//! Contains all kinds of generally useful stuff (macros, timers etc.).
+/// The Either type represents values with two possibilities.
+/// It is similar to Result, but the second possibility is not necessarily an error.
+#[derive(Debug)]
+#[allow(missing_docs)]
+pub enum Either<L, R> {
+    Left(L),
+    Right(R)
+}
 
-/// Contains some useful macros.
-#[macro_use]
-pub mod macros;
-
-/// Contains a stopwatch-type timer for measuring time during program execution.
-pub mod stopwatch;
-
-/// Contains the Either type.
-pub mod either;
+impl<L, R> Either<L, R> {
+}

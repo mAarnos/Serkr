@@ -20,9 +20,9 @@ use prover::ordering::term_ordering::TermOrdering;
 use prover::clause_selection::clause_weight::ClauseWeight;
 use prover::clause_selection::heuristic::Heuristic;
 use prover::clause_selection::pick_best::{pick_best_clause, choose_heuristic};
+use prover::data_structures::pd_tree::PDTree;
 
 /// Contains the current proof state.
-/// That is, the used, the unused clauses and the term ordering used.
 pub struct ProofState {
     used_clauses: Vec<Clause>,
     unused_clauses: HashMap<u64, Clause>,
@@ -31,6 +31,8 @@ pub struct ProofState {
     heuristic_order: Vec<Heuristic>,
     heuristic_use_count: Vec<usize>,
     current_heuristic_count: usize,
+    term_index: PDTree,
+    id_count: u64
 }
 
 impl ProofState {
@@ -40,13 +42,15 @@ impl ProofState {
             used_clauses: Vec::new(),
             unused_clauses: HashMap::new(),
             term_ordering: term_order,
-            clause_order: vec![BinaryHeap::new()],
-            heuristic_order: vec![Heuristic::Size(2, 1)],
-            heuristic_use_count: vec![5],
+            clause_order: vec![BinaryHeap::new(), BinaryHeap::new()],
+            heuristic_order: vec![Heuristic::Size(2, 1), Heuristic::Age],
+            heuristic_use_count: vec![4, 1],
             current_heuristic_count: 0,
+            term_index: PDTree::new(),
+            id_count: 0
         };
         
-        for cl in preprocessed_clauses.into_iter() {
+        for cl in preprocessed_clauses {
             state.add_to_unused(cl);
         }
         
@@ -71,11 +75,15 @@ impl ProofState {
 
     /// Adds the given clause to used clauses.
     pub fn add_to_used(&mut self, cl: Clause) {
+        self.term_index.add_clause_to_index(&self.term_ordering, &cl);
         self.used_clauses.push(cl);
     }
 
     /// Adds the given clause to unused clauses.
-    pub fn add_to_unused(&mut self, cl: Clause) {
+    pub fn add_to_unused(&mut self, mut cl: Clause) {
+        // Give a unique ID to the clause.
+        cl.set_id(self.id_count);
+        self.id_count += 1;
         for i in 0..self.heuristic_order.len() {
             let cw = self.heuristic_order[i].new_clauseweight(&cl);
             self.clause_order[i].push(cw);
@@ -87,14 +95,14 @@ impl ProofState {
     pub fn get_term_ordering(&self) -> &TermOrdering {
         &self.term_ordering
     }
-
+    
+    /// Get a reference to the term index.
+    pub fn get_term_index(&self) -> &PDTree {
+        &self.term_index
+    }
+    
     /// Get a reference to the used clauses.
     pub fn get_used(&self) -> &Vec<Clause> {
         &self.used_clauses
-    }
-
-    /// Get a mutable reference to the used clauses.
-    pub fn get_used_mut(&mut self) -> &mut Vec<Clause> {
-        &mut self.used_clauses
     }
 }

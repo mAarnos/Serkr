@@ -14,13 +14,13 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-extern crate time;
+use std::time::Instant;
 
 /// A stopwatch-type timer.
 #[derive(Debug, Copy, Clone)]
 pub struct Stopwatch {
-    start_time: u64,
-    stop_time: u64,
+    start_time: Instant,
+    stop_time: Instant,
     running: bool,
 }
 
@@ -28,28 +28,28 @@ impl Stopwatch {
     /// Creates a new stopwatch.
     pub fn new() -> Stopwatch {
         Stopwatch {
-            start_time: 0,
-            stop_time: 0,
+            start_time: Instant::now(),
+            stop_time: Instant::now(),
             running: false,
         }
     }
 
     /// Starts the stopwatch.
     pub fn start(&mut self) {
-        self.start_time = time::precise_time_ns();
+        self.start_time = Instant::now();
         self.running = true;
     }
 
     /// Stops the stopwatch.
     pub fn stop(&mut self) {
-        self.stop_time = time::precise_time_ns();
+        self.stop_time = Instant::now();
         self.running = false;
     }
 
     /// Resets the stopwatch.
     pub fn reset(&mut self) {
-        self.start_time = 0;
-        self.stop_time = 0;
+        self.start_time = Instant::now();
+        self.stop_time = Instant::now();
         self.running = false;
     }
 
@@ -61,11 +61,12 @@ impl Stopwatch {
     /// Returns the elapsed time between the starting and either the current or stopping time.
     /// Obviously the time will be in milliseconds.
     pub fn elapsed_ms(&self) -> u64 {
-        (if self.running {
-            time::precise_time_ns()
-        } else {
-            self.stop_time
-        } - self.start_time) / 1000000
+        let elapsed_duration = if self.running {
+                                   Instant::now()
+                               } else {
+                                   self.stop_time
+                               } - self.start_time;
+        elapsed_duration.as_secs() * 1000 + (elapsed_duration.subsec_nanos() / 1000000) as u64
     }
 }
 

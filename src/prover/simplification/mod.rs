@@ -14,10 +14,13 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-/// Contains functions for checking if a clause subsumes some other clause.
-pub mod subsumption;
+/// Contains functions for checking if a clause is unit subsumed by the active set, which can be done efficiently.
+pub mod unit_subsumption;
 
-/// Contains functions for checking if a positive unit clause subsumes some ther clause.
+/// Contains functions for checking if a clause is non-unit subsumed by the active set.
+pub mod non_unit_subsumption;
+
+/// Contains functions for checking if a positive unit clause subsumes some other clause.
 pub mod equality_subsumption;
 
 /// Contains functions for rewriting positive and negative literals.

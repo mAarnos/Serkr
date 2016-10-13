@@ -34,7 +34,7 @@ pub struct Term {
 }
 
 impl Term {
-    /// Creates a new normal function. Note that the ID passed in should be negative.
+    /// Creates a new normal function. Note that the ID passed in should be positive.
     pub fn new_function(id: i64, args: Vec<Term>) -> Term {
         assert!(id > 0);
         Term {
@@ -52,6 +52,12 @@ impl Term {
             sort_predicate: true,
             args: args,
         }
+    }
+    
+    /// Creates a new constant. The ID passed in should be positive.
+    #[allow(dead_code)]
+    pub fn new_constant(id: i64) -> Term {
+        Term::new_function(id, Vec::new())
     }
 
     /// Creates a new variable. Note that the ID passed in should be negative.
@@ -87,7 +93,13 @@ impl Term {
     pub fn is_function(&self) -> bool {
         self.id >= 0
     }
-
+    
+    /// Checks if this term represents truth.
+    #[allow(dead_code)]
+    pub fn is_truth(&self) -> bool {
+        self.id == 0
+    }
+    
     /// Check if the term is a special function.
     pub fn is_special_function(&self) -> bool {
         self.sort_predicate
@@ -121,12 +133,21 @@ impl Term {
 
     /// Substitutes according to the mapping.
     pub fn subst(&mut self, substitution: &Substitution) {
-        if let Some(t) = substitution.get(&self) {
+        if let Some(t) = substitution.get(self) {
             *self = t.clone();
         } else {
             for x in &mut self.args {
                 x.subst(substitution);
             }
+        }
+    }
+    
+    /// Calculates the symbol count with given weights to function and variable symbols.
+    pub fn symbol_count(&self, f_value: u64, v_value: u64) -> u64 {
+        if self.is_variable() {
+            v_value
+        } else {
+            self.iter().fold(f_value, |acc, sub_t| acc + sub_t.symbol_count(f_value, v_value))
         }
     }
 

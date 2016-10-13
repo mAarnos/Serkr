@@ -22,7 +22,6 @@ pub enum ProofResult {
     CounterSatisfiable,
     Unsatisfiable,
     Satisfiable,
-    GaveUp,
     Timeout,
     Error(String),
 }
@@ -54,7 +53,6 @@ impl ProofResult {
             ProofResult::CounterSatisfiable => "CounterSatisfiable".to_owned(),
             ProofResult::Unsatisfiable => "Unsatisfiable".to_owned(),
             ProofResult::Satisfiable => "Satisfiable".to_owned(),
-            ProofResult::GaveUp => "GaveUp".to_owned(),
             ProofResult::Timeout => "Timeout".to_owned(),
             ProofResult::Error(_) => "Error".to_owned(),
         }
