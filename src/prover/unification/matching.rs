@@ -40,6 +40,7 @@ pub fn term_match_general(mut substitution: Substitution,
     while let Some((s, t)) = eqs.pop() {
         if s.is_function() && t.is_function() {
             if s.get_id() == t.get_id() {
+                assert_eq!(s.get_arity(), t.get_arity());
                 eqs.extend(s.into_iter().zip(t.into_iter()));
             } else {
                 return None;

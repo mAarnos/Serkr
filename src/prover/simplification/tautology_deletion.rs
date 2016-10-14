@@ -16,18 +16,13 @@
 
 use prover::data_structures::clause::Clause;
 
-/// Checks if a clause is a syntactical tautology.
-pub fn trivial(cl: &Clause) -> bool {
-    td1(cl) || td2(cl)
-}
-
 /// Checks if a clause contains a literal of the form "s = s".
-fn td1(cl: &Clause) -> bool {
+pub fn td1(cl: &Clause) -> bool {
     cl.iter().any(|l| l.is_positive() && l.get_lhs() == l.get_rhs())
 }
 
 /// Checks if a clause contains a literal and its negation.
-fn td2(cl: &Clause) -> bool {
+pub fn td2(cl: &Clause) -> bool {
     for (i, l1) in cl.iter().enumerate() {
         for l2 in cl.iter().skip(i + 1) {
             if !l1.polarity_equal(l2) && l1.terms_equal(l2) {

@@ -23,7 +23,7 @@ use prover::proof_state::ProofState;
 use prover::proof_statistics::*;
 
 use prover::simplification::literal_deletion::*;
-use prover::simplification::tautology_deletion::trivial;
+use prover::simplification::tautology_deletion::*;
 use prover::simplification::unit_subsumption::unit_subsumed;
 use prover::simplification::non_unit_subsumption::non_unit_subsumed;
 use prover::simplification::equality_subsumption::forward_equality_subsumed;
@@ -56,6 +56,11 @@ fn forward_subsumed(proof_state: &ProofState, cl: &Clause) -> bool {
     non_unit_subsumed(proof_state.get_used(), cl)
 }
 
+/// Checks if a clause is a syntactical tautology.
+fn trivial(cl: &Clause) -> bool {
+    td1(cl) || td2(cl)
+}
+
 /// Simplifies a clause with cheap (i.e. fast to run) rules if possible.
 fn cheap_simplify(cl: &mut Clause) {
     destructive_equality_resolution(cl);
@@ -72,6 +77,20 @@ fn simplify(proof_state: &ProofState, cl: &mut Clause) {
     simplify_reflect(proof_state.get_term_index(), cl);
 }
 
+/// Simplifies a new clause, and adds it to the set of unused clauses if it is not trivial.
+fn handle_new_clause(proof_state: &mut ProofState, mut cl: Clause) {
+    // Simplification need to be done before triviality checking.
+    // Consider the clause x <> y, y <> z, x = z which is clearly a tautology.
+    // We cannot detect it as a tautology with a pure syntactical check,
+    // unless we first simplify it with destructive equality resolution.
+    cheap_simplify(&mut cl);
+    if trivial(&cl) {
+        increment_trivial_inference_count();
+    } else {
+        proof_state.add_to_unused(cl);
+    }
+}
+
 /// The main proof search loop.
 /// Note that we use the DISCOUNT version of the given clause algorithm.
 /// Also note that this function might NEVER terminate, time handling should be done elsewhere.
@@ -80,10 +99,12 @@ fn serkr_loop(mut proof_state: ProofState,
     assert_eq!(proof_state.get_used_size(), 0);
     set_initial_clauses(proof_state.get_unused_size());
     
+    // Pick the "best" clause from the set of unused clause.
+    // Every clause should eventually be picked, otherwise system is not complete.
     while let Some(mut chosen_clause) = proof_state.pick_best_clause() {
         increment_iteration_count();
 
-        // We start by simplifying the chosen clause as much as possible.
+        // We start processing the chosen clause by simplifying it as much as possible.
         simplify(&proof_state, &mut chosen_clause);
 
         // If we derived a contradiction we are done.
@@ -98,10 +119,14 @@ fn serkr_loop(mut proof_state: ProofState,
         } else if forward_subsumed(&proof_state, &chosen_clause) {
             increment_forward_subsumed_count();
         } else {
+            // The chosen clause wasn't redundant, so we add it to the set of used clauses.
             proof_state.add_to_used(chosen_clause.clone());
+            // If we do not rename variables in the clause prior to inference we are in trouble.
             rename_clause(&mut chosen_clause, &mut var_cnt);
 
             let mut inferred_clauses = Vec::new();
+            // Now perform all inferences between our chosen clause and used clauses.
+            // This includes inferences with itself.
             let sp_count = superposition(proof_state.get_term_ordering(),
                                          &chosen_clause,
                                          proof_state.get_used(),
@@ -116,17 +141,9 @@ fn serkr_loop(mut proof_state: ProofState,
             add_equality_factoring_inferred_count(ef_count);
             add_equality_resolution_inferred_count(er_count);
 
-            for mut cl in inferred_clauses {
-                // Simplification need to be done before triviality checking.
-                // Consider the clause x <> y, y <> z, x = z which is clearly a tautology.
-                // We cannot detect it as a tautology with a pure syntactical check,
-                // unless we first simplify it with destructive equality resolution.
-                cheap_simplify(&mut cl);
-                if trivial(&cl) {
-                    increment_trivial_inference_count();
-                } else {
-                    proof_state.add_to_unused(cl);
-                }
+            // Finally handle all generated clauses.
+            for cl in inferred_clauses {
+                handle_new_clause(&mut proof_state, cl);
             }
         }
     }

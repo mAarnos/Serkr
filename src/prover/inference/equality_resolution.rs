@@ -29,12 +29,13 @@ pub fn equality_resolution(term_ordering: &TermOrdering,
 
     for (i, l) in cl.iter().enumerate() {
         if l.is_negative() {
-            if let Some(sigma) = mgu(l.get_lhs(), l.get_rhs()) {
+            if let Some(sigma) = mgu(l.get_lhs(), l.get_rhs()) {          
                 let mut new_cl = cl.clone();
                 new_cl.subst(&sigma);
                 let new_l = new_cl.swap_remove(i);
                 
                 assert_eq!(new_l.get_lhs(), new_l.get_rhs());
+                assert_eq!(new_cl.size() + 1, cl.size());
 
                 if literal_maximal_in(term_ordering, &new_cl, &new_l) {
                     generated.push(new_cl);

@@ -14,7 +14,7 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-/// Defines a substitution of variables for terms.
+/// Defines a substitution of variables to terms.
 pub mod substitution;
 
 /// Contains functions for matching, i.e. finding a sigma so that s\sigma = t
