@@ -49,7 +49,6 @@ impl Substitution {
     }
 
     /// Checks if the substitution is a variable renaming.
-    #[allow(dead_code)]
     pub fn is_variable_renaming(&self) -> bool {
         self.subst.iter().all(|(_, v)| v.is_variable())
     }

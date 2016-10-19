@@ -14,7 +14,7 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 use std::slice::{Iter, IterMut};
 use std::fmt::{Debug, Formatter, Error};
 use prover::data_structures::literal::Literal;
@@ -114,6 +114,12 @@ impl Index<usize> for Clause {
 
     fn index(&self, index: usize) -> &Literal {
         &self.literals[index]
+    }
+}
+
+impl IndexMut<usize> for Clause {
+    fn index_mut(&mut self, index: usize) -> &mut Literal {
+        &mut self.literals[index]
     }
 }
 
