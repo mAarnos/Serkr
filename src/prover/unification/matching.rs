@@ -26,12 +26,12 @@ pub fn term_match(s: &Term, t: &Term) -> Option<Substitution> {
     term_match_general(Substitution::new(), vec![(s.clone(), t.clone())])
 }
 
-/// A version of term_match where we extend a given substitution.
+/// A version of `term_match` where we extend a given substitution.
 pub fn term_match_with_subst(sigma: Substitution, s: &Term, t: &Term) -> Option<Substitution> {
     term_match_general(sigma, vec![(s.clone(), t.clone())])
 }
 
-/// A more general version of term_match.
+/// A more general version of `term_match`.
 /// We can pass in a substitution to expand.
 /// We can also give more pairs of equations than just one.
 pub fn term_match_general(mut substitution: Substitution,

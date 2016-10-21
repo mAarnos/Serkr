@@ -21,7 +21,7 @@ use prover::data_structures::literal::Literal;
 use prover::unification::substitution::Substitution;
 
 /// A multiset containing literals.
-/// Here also Eq and PartialEq and intensional instead of extensional.
+/// Equality of clauses doesn't take into account permutations.
 #[derive(Eq, PartialEq, Clone)]
 pub struct Clause {
     id: Option<u64>,

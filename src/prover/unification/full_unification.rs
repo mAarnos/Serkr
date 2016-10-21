@@ -16,13 +16,14 @@
 
 use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
+use std::mem::swap;
 
 /// Tries to find the most general unifier of s and t.
 pub fn mgu(s: &Term, t: &Term) -> Option<Substitution> {
     let mut sigma = Substitution::new();
     let mut eqs = vec![(s.clone(), t.clone())];
 
-    while let Some((s, t)) = eqs.pop() {
+    while let Some((mut s, mut t)) = eqs.pop() {
         if s == t {
             continue; // delete
         }
@@ -35,32 +36,36 @@ pub fn mgu(s: &Term, t: &Term) -> Option<Substitution> {
             } else {
                 return None; // conflict
             }
-        } else if s.is_function() {
-            // swap
-            eqs.push((t, s));
-        } else if t.occurs(&s) {
-            return None; // check
         } else {
-            // Can't unify between two different sorts.
-            if t.is_special_function() {
-                return None;
-            }
+            if s.is_function() {
+                // swap
+                swap(&mut s, &mut t);
+            } 
+            
+            if t.occurs(&s) {
+                return None; // check
+            } else {
+                // Can't unify between two different sorts.
+                if t.is_special_function() {
+                    return None;
+                }
 
-            // eliminate
-            // We soon add a mapping of the form s |-> t.
-            // We might have mappings of the form x |-> s which need to be fixed to x |-> t.
-            for (_, v) in sigma.iter_mut() {
-                v.subst_single(&s, &t);
-            }
+                // eliminate
+                // We soon add a mapping of the form s |-> t.
+                // We might have mappings of the form x |-> s which need to be fixed to x |-> t.
+                for (_, v) in sigma.iter_mut() {
+                    v.subst_single(&s, &t);
+                }
 
-            // Then eliminate all occurences of s.
-            for eq in &mut eqs {
-                eq.0.subst_single(&s, &t);
-                eq.1.subst_single(&s, &t);
-            }
+                // Then eliminate all occurences of s.
+                for eq in &mut eqs {
+                    eq.0.subst_single(&s, &t);
+                    eq.1.subst_single(&s, &t);
+                }
 
-            // And finally add the new mapping.
-            sigma.insert(s.get_id(), t);
+                // And finally add the new mapping.
+                sigma.insert(s.get_id(), t);
+            }
         }
     }
     

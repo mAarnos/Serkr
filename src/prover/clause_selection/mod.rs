@@ -18,7 +18,7 @@
 pub mod clause_weight;
 
 /// Contains different heuristics to give clauses a weight.
-/// This and clause_weight are tightly connected.
+/// This and `clause_weight` are tightly connected.
 /// Is there some nice way to combine them both?
 pub mod heuristic;
 

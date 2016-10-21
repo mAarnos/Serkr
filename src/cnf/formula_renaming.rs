@@ -104,8 +104,9 @@ fn renaming_condition_fulfilled(cache: &mut HashMap<(Formula, bool), BigInt>,
     }
 }
 
-/// Tries to rename a formula. If it does not succeed it calls rename_formula again
-/// There is some bug with collapsible_if here.
+/// Tries to rename a formula. If it does not succeed it calls `rename_formula` again.
+/// There is a bug with `collapsible_if` here.
+/// For more details see https://github.com/Manishearth/rust-clippy/issues/1197
 #[cfg_attr(feature="clippy", allow(collapsible_if))]
 fn try_to_rename(cache: &mut HashMap<(Formula, bool), BigInt>,
                  ri: &mut RenamingInfo,
@@ -147,8 +148,8 @@ fn rename_formulae(cache: &mut HashMap<(Formula, bool), BigInt>,
                                 .fold(One::one(), |acc, x| acc * estimate_size(cache, x, false));
             Formula::And(l.into_iter()
                           .map(|x| {
-                              let v = b.clone() * prod.clone() / estimate_size(cache, &x, false);
-                              try_to_rename(cache, ri, x, a.clone(), v, polarity, limit.clone())
+                              let new_b = b.clone() * prod.clone() / estimate_size(cache, &x, false);
+                              try_to_rename(cache, ri, x, a.clone(), new_b, polarity, limit.clone())
                           })
                           .collect())
         }
@@ -157,8 +158,8 @@ fn rename_formulae(cache: &mut HashMap<(Formula, bool), BigInt>,
                          .cloned()
                          .enumerate()
                          .map(|(i, x)| {
-                             let v = a.clone() * product(cache, &l, i, true);
-                             try_to_rename(cache, ri, x, v, b.clone(), polarity, limit.clone())
+                             let new_a = a.clone() * product(cache, &l, i, true);
+                             try_to_rename(cache, ri, x, new_a, b.clone(), polarity, limit.clone())
                          })
                          .collect())
         }
@@ -213,7 +214,7 @@ fn product(cache: &mut HashMap<(Formula, bool), BigInt>,
 }
 
 /// Renames subformulae of f to avoid an exponential increase in generated clauses.
-/// If renaming_limit is 0, we do not do any renaming.
+/// If `renaming_limit` is 0, we do not do any renaming.
 pub fn rename_formula(f: Formula,
                       renaming_info: &mut RenamingInfo,
                       renaming_limit: u64)

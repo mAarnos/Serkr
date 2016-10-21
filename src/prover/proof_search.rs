@@ -68,7 +68,7 @@ fn cheap_simplify(cl: &mut Clause) {
     delete_duplicates(cl);
 }
 
-/// A more expensive version of cheap_simplify with more effective rules.
+/// A more expensive version of `cheap_simplify` with more effective rules.
 fn simplify(proof_state: &ProofState, cl: &mut Clause) {
     rewrite_clause(proof_state.get_term_ordering(), 
                    proof_state.get_term_index(), 

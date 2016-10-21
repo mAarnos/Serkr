@@ -59,10 +59,8 @@ fn maximal_literals(term_ordering: &TermOrdering, cl: &Clause) -> Vec<bool> {
         }
         
         for j in 0..cl.size() {
-            if i != j && bv[j] {
-                if term_ordering.gt_lit(&cl[i], &cl[j]) {
-                    bv[j] = false;
-                }
+            if i != j && bv[j] && term_ordering.gt_lit(&cl[i], &cl[j]) {
+                bv[j] = false;
             }
         }
     }
@@ -77,14 +75,14 @@ pub fn rewrite_clause(term_ordering: &TermOrdering, term_index: &PDTree, cl: &mu
     for i in 0..cl.size() {
         let l = &mut cl[i];
         let restricted = l.is_positive() && bv[i];
-        if !restricted {
-            rewrite_to_normal_form(term_ordering, term_index, l.get_lhs_mut(), false);
-            rewrite_to_normal_form(term_ordering, term_index, l.get_rhs_mut(), false);
-        } else {
+        if restricted {
             let s_t = term_ordering.gt(l.get_lhs(), l.get_rhs());
             let t_s = term_ordering.gt(l.get_rhs(), l.get_lhs());
             rewrite_to_normal_form(term_ordering, term_index, l.get_lhs_mut(), s_t);
             rewrite_to_normal_form(term_ordering, term_index, l.get_rhs_mut(), t_s);
+        } else {
+            rewrite_to_normal_form(term_ordering, term_index, l.get_lhs_mut(), false);
+            rewrite_to_normal_form(term_ordering, term_index, l.get_rhs_mut(), false);
         } 
     }
 }

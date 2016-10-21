@@ -33,7 +33,7 @@ pub fn pick_best_clause(clauses: &mut HashMap<u64, Clause>, clause_order: &mut B
     None
 }
 
-/// Picks the next heuristic to use. Also updates 'current_heuristic_count'.
+/// Picks the next heuristic to use. Also updates `current_heuristic_count`.
 pub fn choose_heuristic(heuristic_use_count: &[usize], current_heuristic_count: &mut usize) -> usize {
     let mut running_total = 0;
     

@@ -187,10 +187,13 @@ pub struct GeneralizationIterator<'a> {
     stack: Vec<StackFrame<'a>>,
 }
 
+/// Either an iterator of the children of an node, or the stuff at a leaf node.
+type LevelIter<'a> = Either<MIter<'a, i64, PDTree>, VIter<'a, (Term, Term, bool, bool)>>;
+
 struct StackFrame<'a> {
     subst: Substitution,
     iter: PrefixOrderIterator<'a>, 
-    tree_iter: Either<MIter<'a, i64, PDTree>, VIter<'a, (Term, Term, bool, bool)>>
+    tree_iter: LevelIter<'a>
 }
 
 impl<'a> GeneralizationIterator<'a> {

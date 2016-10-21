@@ -110,9 +110,7 @@ fn kbo_precedence(precedence: &Precedence,
             return true;
         } else if s.get_id() != id && t.get_id() == id {
             return false;
-        } else if s.get_id() == id && t.get_id() == id {
-            return false;
-        }
+        } 
     }
 
     precedence.gt(s, t)

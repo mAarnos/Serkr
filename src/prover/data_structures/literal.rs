@@ -20,7 +20,8 @@ use prover::data_structures::term::Term;
 use prover::unification::substitution::Substitution;
 
 /// A single (possibly negated) equation, or simply, a literal.
-/// Note: has custom PartialEq and Eq: if you add stuff to here remember to change them too.
+/// Note that this has custom `PartialEq` and `Eq`. 
+/// If we add stuff to here remember to change them too.
 #[derive(Clone)]
 pub struct Literal {
     lhs: Term,

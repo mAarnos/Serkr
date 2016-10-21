@@ -36,9 +36,8 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy))]
 #![cfg_attr(feature="clippy", deny(clippy_pedantic))]
-#![cfg_attr(feature="clippy", allow(indexing_slicing, similar_names, 
-                                    many_single_char_names, doc_markdown,
-                                    stutter, type_complexity,
+#![cfg_attr(feature="clippy", allow(similar_names, 
+                                    stutter,
                                     missing_docs_in_private_items))]
 
 #[macro_use]
@@ -145,7 +144,7 @@ fn main() {
         std::thread::sleep(resolution);
     } 
     sw.stop();
-    
+
     let proof_result = get_proof_result();
     print_proof_result(&proof_result, &input_file_name);
     if !proof_result.is_err() {
