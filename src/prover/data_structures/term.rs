@@ -14,12 +14,12 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::HashMap;
 use std::iter::IntoIterator;
 use std::slice::{Iter, IterMut};
 use std::ops::{Index, IndexMut};
 use std::fmt::{Debug, Formatter, Error};
 use prover::unification::substitution::Substitution;
+use utils::hash_map::HashMap;
 
 /// A single term.
 /// Functions are given a positive id, variables a negative one.

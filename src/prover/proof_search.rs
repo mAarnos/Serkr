@@ -14,7 +14,6 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::HashMap;
 use prover::flatten_cnf::flatten_cnf;
 
 use prover::data_structures::clause::Clause;
@@ -36,13 +35,15 @@ use prover::inference::superposition::superposition;
 
 use prover::problem_analysis::determine_term_ordering::create_term_ordering;
 
+use utils::hash_map::HashMap;
+
 use cnf::ast::Formula;
 use cnf::ast_transformer::tptp_to_cnf_ast;
 use cnf::standard_cnf::cnf;
 
 /// Rename a clause so that it contains no variables in common with any other clause.
 fn rename_clause(cl: &mut Clause, var_cnt: &mut i64) {
-    let mut var_map = HashMap::<i64, i64>::new();
+    let mut var_map = HashMap::default();
     for l in cl.iter_mut() {
         l.get_lhs_mut().rename_no_common(&mut var_map, var_cnt);
         l.get_rhs_mut().rename_no_common(&mut var_map, var_cnt);

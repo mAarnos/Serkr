@@ -15,8 +15,8 @@
 //
 
 use std::default::Default;
-use std::collections::HashMap;
 use prover::data_structures::term::Term;
+use utils::hash_map::HashMap;
 
 /// Defines a partial orders on the function symbols.
 /// Different enums represent different partial orders.

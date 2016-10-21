@@ -14,17 +14,8 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-//! Contains all kinds of generally useful stuff (macros, timers etc.).
+use fnv::FnvHashMap;
 
-/// Contains some useful macros.
-#[macro_use]
-pub mod macros;
-
-/// Contains a stopwatch-type timer for measuring time during program execution.
-pub mod stopwatch;
-
-/// Contains the Either type.
-pub mod either;
-
-/// Contains a `HashMap` more suitable for this program than the standard library one.
-pub mod hash_map;
+/// A `HashMap` with the Fowler-Noll-Vo hash function.
+/// It is more suited for small integer keys than `SipHash`.
+pub type HashMap<K, V> = FnvHashMap<K, V>;

@@ -14,10 +14,10 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::hash_map::HashMap;
 use prover::data_structures::term::Term;
 use prover::ordering::precedence::Precedence;
 use prover::ordering::weight::Weight;
+use utils::hash_map::HashMap;
 
 /// Checks if s is greater than t according to the ordering.
 pub fn kbo_gt(precedence: &Precedence,
@@ -61,7 +61,7 @@ pub fn kbo_ge(precedence: &Precedence,
 
 /// Checks if for every variable x the amount of x in s is greater than or equal to the amount in t.
 fn variable_domination(s: &Term, t: &Term) -> bool {
-    let mut variable_counts = HashMap::new();
+    let mut variable_counts = HashMap::default();
     variable_count(&mut variable_counts, s, 1);
     variable_count(&mut variable_counts, t, -1);
     variable_counts.values().all(|&count| count >= 0)

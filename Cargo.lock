@@ -2,8 +2,9 @@
 name = "serkr"
 version = "0.1.0"
 dependencies = [
- "clap 2.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.95 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-util 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -58,7 +59,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "2.14.0"
+version = "2.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -111,7 +112,12 @@ dependencies = [
 
 [[package]]
 name = "fixedbitset"
-version = "0.1.4"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "fnv"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -280,7 +286,7 @@ name = "petgraph"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "fixedbitset 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fixedbitset 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -428,12 +434,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum bit-vec 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "5b97c2c8e8bbb4251754f559df8af22fb264853c7d009084a576cdf12565089d"
 "checksum bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8dead7461c1127cf637931a1e50934eb6eee8bff2f74433ac7909e9afcee04a3"
 "checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
-"checksum clap 2.14.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5fa304b03c49ccbb005784fc26e985b5d2310b1d37f2c311ce90dbcd18ea5fde"
+"checksum clap 2.14.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a503111034e86ae5c92594e22b28f76dc573a5e271149ac57610d2c9c7d3d975"
 "checksum clippy 0.0.95 (registry+https://github.com/rust-lang/crates.io-index)" = "326a296da2adbb719fcc2301f3b44a148261f72a46dbda89930ead9c90d584b2"
 "checksum clippy_lints 0.0.95 (registry+https://github.com/rust-lang/crates.io-index)" = "921bb7c49a9a58f6bd097fbbb9f729426e0f05372fe5b81a0a053f6b2d98dc5b"
 "checksum diff 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "e48977eec6d3b7707462c2dc2e1363ad91b5dd822cf942537ccdc2085dc87587"
 "checksum docopt 0.6.86 (registry+https://github.com/rust-lang/crates.io-index)" = "4a7ef30445607f6fc8720f0a0a2c7442284b629cf0d049286860fae23e71c4d9"
-"checksum fixedbitset 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "63e1bb0180773fc68cabf608d2f7abbb956c2fb40e274fd895b18fb3465abfd2"
+"checksum fixedbitset 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "88c3c33fc4c00db33f5174eb98aea809c4c007db0b71351d810a7e094ea3b64d"
+"checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
 "checksum itertools 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)" = "16b73f1c685cfd8ff8d75698ed87e6188cd09944b30c0863d45c2c3699d1da0c"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
 "checksum lalrpop 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)" = "69020f40548438f3eb03204574dc5d3a82336e7b33a56d27be0248c011699e12"

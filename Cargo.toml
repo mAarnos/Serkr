@@ -22,6 +22,9 @@ version = "*"
 [dependencies.num]
 version = "*"
 
+[dependencies.fnv]
+version = "*"
+
 [dependencies.clippy]
 version = "*"
 optional = true

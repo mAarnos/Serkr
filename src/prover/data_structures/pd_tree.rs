@@ -17,7 +17,6 @@
 // This file is too complicated, figure out a simper way.
 // To be precise, a lazy recursive iterator is very painful to write.
 
-use std::collections::HashMap;
 use std::slice::Iter as VIter;
 use std::collections::hash_map::Iter as MIter;
 use prover::data_structures::clause::Clause;
@@ -26,6 +25,7 @@ use prover::unification::substitution::Substitution;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::unification::matching::term_match_with_subst;
 use utils::either::Either;
+use utils::hash_map::HashMap;
 
 /// Used for traveling the positions of a term in prefix order lazily.
 #[derive(Clone, Debug)]
@@ -93,7 +93,7 @@ impl<'a> Iterator for PrefixOrderIterator<'a> {
 }
 
 fn normalize_variables(l: &mut Term, r: &mut Term) {
-    let mut m = HashMap::new();
+    let mut m = HashMap::default();
     let mut x = 0;
     l.rename_no_common(&mut m, &mut x);
     r.rename_no_common(&mut m, &mut x);
@@ -112,7 +112,7 @@ pub enum PDTree {
 impl PDTree {
     /// Creates an empty perfect discrimination tree.
     pub fn new() -> PDTree {
-        PDTree::Node(HashMap::new())
+        PDTree::Node(HashMap::default())
     }
 
     /// Adds a clause to the index.

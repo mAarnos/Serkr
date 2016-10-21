@@ -14,12 +14,12 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::HashMap;
 use prover::data_structures::clause::Clause;
 use prover::data_structures::term::Term;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::ordering::precedence::Precedence;
 use prover::ordering::weight::Weight;
+use utils::hash_map::HashMap;
 
 fn single_unary_function_in_term(t: &Term, found_unary: &mut Option<i64>) -> bool {
     if t.is_function() {
@@ -74,7 +74,7 @@ fn update_function_symbol_count(counts: &mut HashMap<i64, i64>, t: &Term) {
 
 /// Runs through all terms in a problem, and counts how many times each function symbol appears.
 fn create_function_symbol_count(clauses: &[Clause]) -> HashMap<i64, i64> {
-    let mut counts = HashMap::new();
+    let mut counts = HashMap::default();
 
     for cl in clauses {
         for l in cl.iter() {

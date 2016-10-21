@@ -14,9 +14,9 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::HashMap;
 use std::collections::hash_map::IterMut;
 use prover::data_structures::term::Term;
+use utils::hash_map::HashMap;
 
 /// Represents a substitution of from variables to terms.
 #[derive(Eq, PartialEq, Clone, Debug)]
@@ -27,7 +27,7 @@ pub struct Substitution {
 impl Substitution {
     /// Creates an empty substitution.
     pub fn new() -> Substitution {
-        Substitution { subst: HashMap::new() }
+        Substitution { subst: HashMap::default() }
     }
 
     /// Used for getting the size of the substitution.

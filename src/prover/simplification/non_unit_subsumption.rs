@@ -14,12 +14,12 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::hash_map::HashMap;
 use prover::data_structures::literal::Literal;
 use prover::data_structures::clause::Clause;
 use prover::data_structures::term::Term;
 use prover::unification::matching::term_match_general;
 use prover::unification::substitution::Substitution;
+use utils::hash_map::HashMap;
 
 fn match_literals(substitution: Substitution,
                   p: &Literal,
@@ -108,7 +108,7 @@ fn fulfills_preconditions(cl1: &Clause, cl2: &Clause) -> bool {
 
 /// Checks that cl1 doesn't have more (positive or negative) function symbols than cl2.
 fn not_more_function_symbols(cl1: &Clause, cl2: &Clause, pos_lit: bool) -> bool {
-    let mut counts = HashMap::new();
+    let mut counts = HashMap::default();
     update_function_symbol_count(&mut counts, cl1, 1, pos_lit);
     update_function_symbol_count(&mut counts, cl2, -1, pos_lit);
     counts.values().all(|&count| count <= 0)

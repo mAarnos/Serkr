@@ -14,9 +14,10 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::{HashMap, BinaryHeap};
+use std::collections::BinaryHeap;
 use prover::data_structures::clause::Clause;
 use prover::clause_selection::clause_weight::ClauseWeight;
+use utils::hash_map::HashMap;
 
 /// Chooses the best clause according to the ordering given, if possible.
 pub fn pick_best_clause(clauses: &mut HashMap<u64, Clause>, clause_order: &mut BinaryHeap<ClauseWeight>) -> Option<Clause> {

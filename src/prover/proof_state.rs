@@ -14,13 +14,14 @@
 // along with Serkr. If not, see <http://www.gnu.org/licenses/>.
 //
 
-use std::collections::{HashMap, BinaryHeap};
+use std::collections::BinaryHeap;
 use prover::data_structures::clause::Clause;
 use prover::ordering::term_ordering::TermOrdering;
 use prover::clause_selection::clause_weight::ClauseWeight;
 use prover::clause_selection::heuristic::Heuristic;
 use prover::clause_selection::pick_best::{pick_best_clause, choose_heuristic};
 use prover::data_structures::pd_tree::PDTree;
+use utils::hash_map::HashMap;
 
 /// Contains the current proof state.
 pub struct ProofState {
@@ -40,7 +41,7 @@ impl ProofState {
     pub fn new(preprocessed_clauses: Vec<Clause>, term_order: TermOrdering) -> ProofState {
         let mut state = ProofState {
             used_clauses: Vec::new(),
-            unused_clauses: HashMap::new(),
+            unused_clauses: HashMap::default(),
             term_ordering: term_order,
             clause_order: vec![BinaryHeap::new(), BinaryHeap::new()],
             heuristic_order: vec![Heuristic::Size(2, 1), Heuristic::Age],

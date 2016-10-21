@@ -43,6 +43,7 @@
 #[macro_use]
 extern crate clap;
 extern crate num;
+extern crate fnv;
 
 #[macro_use]
 pub mod utils;
