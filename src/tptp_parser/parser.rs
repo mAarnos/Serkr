@@ -87,7 +87,7 @@ fn remove_comments(s: &str) -> String {
 /// Not sure if this is necessary.
 fn remove_empty_lines(s: &str) -> String {
     let empty_line_regex = regex::Regex::new(r"[ ]*[\n]").expect("This should always work");
-    empty_line_regex.replace_all(s, regex::NoExpand(""))
+    empty_line_regex.replace_all(s, regex::NoExpand("")).into_owned()
 }
 
 /// Reads the file at the location given into a String.

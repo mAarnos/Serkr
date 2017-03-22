@@ -34,6 +34,7 @@ fn match_literals(substitution: Substitution,
     term_match_general(substitution, eqs)
 }
 
+#[cfg_attr(feature="clippy", allow(needless_pass_by_value))]
 fn subsumes_clause(substitution: Substitution,
                    exclusion: &mut Vec<bool>,
                    cl1: &Clause,

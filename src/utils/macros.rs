@@ -23,7 +23,7 @@ macro_rules! get {
                   })
 }
 
-/// Same as assert_eq! except for inequality.
+/// Same as `assert_eq!` except for inequality.
 #[macro_export]
 macro_rules! assert_neq {
     ($left:expr , $right:expr) => ({

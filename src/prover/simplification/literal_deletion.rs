@@ -144,7 +144,7 @@ mod test {
         let cl_copy = cl.clone();
 
         delete_duplicates(&mut cl);
-        assert!(cl == cl_copy);
+        assert_eq!(cl, cl_copy);
     }
 
     #[test]
@@ -155,6 +155,6 @@ mod test {
 
         delete_duplicates(&mut cl);
         assert_eq!(cl.size(), 1);
-        assert!(cl[0] == l);
+        assert_eq!(cl[0], l);
     }
 }
