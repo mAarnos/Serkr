@@ -7,6 +7,7 @@ from multiprocessing import Pool
 from re import match
 from random import shuffle
 from time import time
+from tqdm import tqdm
 
 def parse_args():
     parser = ArgumentParser(description='Analyze TPTP problems en masse')
@@ -76,7 +77,6 @@ args = parse_args()
 def analyze_file(data):
     s = data[0]
     cnf = data[1]
-    print(s)
     problem_status = find_status_of_problem(s, cnf)
     output = check_output(["serkr.exe", "-t=%d" % args.time, s], universal_newlines=True)
     prover_status = find_status_of_prover(output, cnf)
@@ -100,9 +100,11 @@ def main():
     shuffle(file_names)
     pool = Pool(args.processes)
     now = time()
-    results = pool.map(analyze_file, file_names)
+    proven = 0;
+    for result in tqdm(pool.imap_unordered(analyze_file, file_names), total=len(file_names)):
+        proven += result
     after = time()
-    print("Proved %d out of %d in %d seconds" % (sum(results), len(file_names), after - now))
+    print("Proved %d out of %d in %d seconds" % (proven, len(file_names), after - now))
 
 if __name__ == "__main__":
     main()
